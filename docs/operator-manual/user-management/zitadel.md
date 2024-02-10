@@ -9,12 +9,12 @@
 
 将 ArgoCD 与 Zitadel 整合需要以下步骤：
 
-1.在 Zitadel 中创建新项目和新应用程序
-2.在 Zitadel 中配置应用程序
-3.在 Zitadel 中设置角色
-4.在 Zitadel 中设置操作
-5.配置 ArgoCD configmaps
-6.测试设置
+1. 在 Zitadel 中创建新项目和新应用程序
+2. 在 Zitadel 中配置应用程序
+3. 在 Zitadel 中设置角色
+4. 在 Zitadel 中设置操作
+5. 配置 ArgoCD configmaps
+6. 测试设置
 
 本例将被引用以下 Values 值：
 

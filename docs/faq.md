@@ -5,8 +5,8 @@
 
 Argo CD 如果无法生成配置清单，就无法删除应用程序。 你也需要这样做：
 
-1.恢复/修复您的 repo。
-2.使用 `--cascade=false` 删除应用程序，然后手动删除资源。
+1. 恢复/修复您的 repo。
+2. 使用 `--cascade=false` 删除应用程序，然后手动删除资源。
 
 ## 为什么我的应用程序在成功同步后仍会立即`OutOfSync`？
 
@@ -201,10 +201,10 @@ resource.customizations.health.bitnami.com_SealedSecret: |
 
 信息有两个部分：
 
-1.`补丁列表中的顺序：[`
+1. `补丁列表中的顺序：[`
     这将识别项目的值，尤其是多次出现的项目：&gt; map[name:**KEY_BC** value:150] map[name:**KEY_BC** value:500] map[name:**KEY_BD** value:250] map[name:**KEY_BD** value:500] map[name:KEY_BI value:something]
     您需要识别重复的键 - 您可以关注第一部分，因为每个重复的键都会出现一次，其值与第一个列表中的值各一次。第二个列表实际上只是`]`。
-2.不匹配 $setElementOrder 列表：[`
+2. 不匹配 $setElementOrder 列表：[`
     这包括所有的键。它是为了调试目的而包含的 -- 你不需要太在意它。它将提示您重复键在列表中的精确位置：&gt; map[name:KEY_AA] map[name:KEY_AB] map[name:KEY_AC] map[name:KEY_AD] map[name:KEY_AE] map[name：KEY_AF] 地图[名称:KEY_AG] 地图[名称:KEY_AH] 地图[名称:KEY_AI] 地图[名称:KEY_AJ] 地图[名称:KEY_AK] 地图[名称:KEY_AL] 地图[名称:KEY_AM] 地图[名称:KEY_AN] 地图[名称:KEY_AO] 地图[名称:KEY_AP] 地图[名称：Map[name:KEY_AQ] map[name:KEY_AR] map[name:KEY_AS] map[name:KEY_AT] map[name:KEY_AU] map[name:KEY_AV] map[name:KEY_AW] map[name:KEY_AX] map[name:KEY_AY] map[name:KEY_AZ] map[name:KEY_BA] map[name：地图[名称:KEY_BB] 地图[名称:**KEY_BC**] 地图[名称:**KEY_BD**] 地图[名称:KEY_BE] 地图[名称:KEY_BF] 地图[名称:KEY_BG] 地图[名称:KEY_BH] 地图[名称:KEY_BI] 地图[名称:**KEY_BC**] 地图[名称:**KEY_BD**]
     `]`
 
