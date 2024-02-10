@@ -1,30 +1,29 @@
-# Monitoring
+<!-- TRANSLATED by md-translate -->
+# 监测
 
-The Argo CD Notification controller serves Prometheus metrics on port 9001.
+Argo CD 通知控制器通过 9001 端口为 Prometheus 指标提供服务。
 
-!!! note
-    The metrics port can be changed using the `--metrics-port` flag in `argocd-notifications-controller` deployment.
+注意 可使用 `argocd-notifications-controller` 部署中的 `--metrics-port` flag 更改度量端口。
 
-## Metrics 
-The following metrics are available:
- 
-### `argocd_notifications_deliveries_total`
-  
- Number of delivered notifications.
- Labels:
+## 指标
 
-* `template` - notification template name 
-* `notifier` - notification service name
-* `succeeded` - flag that indicates if notification was successfully sent or failed
+可使用以下指标：
 
-### `argocd_notifications_trigger_eval_total`
-  
- Number of trigger evaluations.
- Labels:
+### `argocd_notifications_deliveries_total` 共计
 
-* `name` - trigger name 
-* `triggered` - flag that indicates if trigger condition returned true of false
+发送的通知数量。 标签：
 
-## Examples
+* template` - 通知模板名称
+* `notifier` - 通知服务名称
+* `succeeded` - 表示通知发送成功或失败的 flag
 
-* Grafana Dashboard: [grafana-dashboard.json](grafana-dashboard.json)
+### `argocd_notifications_trigger_eval_total` 总计
+
+触发评估次数 标签
+
+* `name` - 触发器名称
+* `triggered` - 标志，表示触发条件返回的是真还是假
+
+## 示例
+
+* Grafana 仪表板：[grafana-dashboard.json](grafana-dashboard.json)

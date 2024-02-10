@@ -1,14 +1,16 @@
-# Templates
+<!-- TRANSLATED by md-translate -->
+# 模板
 
-The template fields of the ApplicationSet `spec` are used to generate Argo CD `Application` resources.
+ApplicationSet `spec` 的模板字段被引用来生成 Argo CD `Application` 资源。
 
-ApplicationSet is using [fasttemplate](https://github.com/valyala/fasttemplate) but will be soon deprecated in favor of Go Template. 
+ApplicationSet 被引用 [fasttemplate](https://github.com/valyala/fasttemplate) 但很快就会被弃用，改用 Go Template。
 
-## Template fields
+## 模板字段
 
-An Argo CD Application is created by combining the parameters from the generator with fields of the template (via `{{values}}`), and from that a concrete `Application` resource is produced and applied to the cluster.
+Argo CD 应用程序是通过将生成器中的参数与模板中的字段（通过 `{{values}}`）相结合而创建的，并由此生成一个具体的 `Application` 资源并应用于集群。
 
-Here is the template subfield from a Cluster generator:
+下面是集群生成器的模板子字段：
+
 ```yaml
 # (...)
  template:
@@ -24,50 +26,48 @@ Here is the template subfield from a Cluster generator:
        namespace: guestbook
 ```
 
-The template subfields correspond directly to [the spec of an Argo CD `Application` resource](../../declarative-setup/#applications):
+模板子字段直接对应于[Argo CD `Application` 资源的规格]（.../.../声明式设置/#applications）：
 
-- `project` refers to the [Argo CD Project](../../user-guide/projects.md) in use (`default` may be used here to utilize the default Argo CD Project)
-- `source` defines from which Git repository to extract the desired Application manifests
-    - **repoURL**: URL of the repository (eg `https://github.com/argoproj/argocd-example-apps.git`)
-    - **targetRevision**: Revision (tag/branch/commit) of the repository (eg `HEAD`)
-    - **path**: Path within the repository where Kubernetes manifests (and/or Helm, Kustomize, Jsonnet resources) are located
-- `destination`: Defines which Kubernetes cluster/namespace to deploy to
-    - **name**: Name of the cluster (within Argo CD) to deploy to
-    - **server**: API Server URL for the cluster (Example: `https://kubernetes.default.svc`)
-    - **namespace**: Target namespace in which to deploy the manifests from `source` (Example: `my-app-namespace`)
+* project "指的是被引用的[Argo CD 项目]（../../user-guide/projects.md）（"default "可用于使用默认的 Argo CD 项目）
+* source "定义从哪个 Git 仓库提取所需的应用程序配置清单
+    - **repoURL**：版本库的 URL（例如 `https://github.com/argoproj/argocd-example-apps.git`)
+    - **targetRevision**：版本库的修订版本（标签/分支/提交）（例如 `HEAD`)
+    - **path**：版本库中 Kubernetes 配置清单（和/或 Helm、Kustomize、Jsonnet 资源）所在的路径
+* 目的地定义要部署到哪个 Kubernetes 集群/名称空间
+    - **name**：要部署到的集群（Argo CD 中）的名称
+    - **服务器***：集群的 API 服务器 URL（例如：`https://kubernetes.default.svc`）。
+    - **namespace**：要从 `source` 中配置清单的目标名称空间（例如：`my-app-namespace`）。
 
-Note:
+请注意：
 
-- Referenced clusters must already be defined in Argo CD, for the ApplicationSet controller to use them
-- Only **one** of `name` or `server` may be specified: if both are specified, an error is returned.
+* 被引用的集群必须已在 Argo CD 中定义，这样 ApplicationSet 控制器才能使用它们。
+* 只能指定 `name` 或 `server` 中的***一个：如果同时指定两个，将返回错误信息。
 
-The `metadata` field of template may also be used to set an Application `name`, or to add labels or annotations to the Application.
+模板的 `metadata` 字段也可被用来设置应用程序的 `name` 或为应用程序添加标签或 Annotations。
 
-While the ApplicationSet spec provides a basic form of templating, it is not intended to replace the full-fledged configuration management capabilities of tools such as Kustomize, Helm, or Jsonnet.
+虽然 ApplicationSet 规范提供了一种基本的模板形式，但它并不打算取代 kustomize、Helm 或 Jsonnet 等工具的全面配置管理功能。
 
-### Deploying ApplicationSet resources as part of a Helm chart
+### 部署作为 Helm 图表一部分的 ApplicationSet 资源
 
-ApplicationSet uses the same templating notation as Helm (`{{}}`). If the ApplicationSet templates aren't written as
-Helm string literals, Helm will throw an error like `function "cluster" not defined`. To avoid that error, write the
-template as a Helm string literal. For example:
+ApplicationSet 使用与 Helm 相同的模板符号 (`{{}}`)。 如果 ApplicationSet 模板没有写成 Helm 字符串字面量，Helm 会抛出类似`函数 "集群 "未定义`的错误。 为避免出现该错误，请将模板写成 Helm 字符串字面量。 例如：
 
 ```yaml
-    metadata:
+metadata:
       name: '{{`{{.cluster}}`}}-guestbook'
 ```
 
-This _only_ applies if you use Helm to deploy your ApplicationSet resources.
+这_仅_适用于使用 Helm 部署 ApplicationSet 资源的情况。
 
-## Generator templates
+## 生成器模板
 
-In addition to specifying a template within the `.spec.template` of the `ApplicationSet` resource, templates may also be specified within generators. This is useful for overriding the values of the `spec`-level template.
+除了在 `ApplicationSet` 资源的 `.spec.template` 中指定模板外，还可在生成器中指定模板。 这对于覆盖 `spec` 级模板的值非常有用。
 
-The generator's `template` field takes precedence over the `spec`'s template fields:
+生成器的 "模板 "字段优先于 "规格 "的模板字段：
 
-- If both templates contain the same field, the generator's field value will be used.
-- If only one of those templates' fields has a value, that value will be used.
+* 如果两个模板都包含相同的字段，则会引用生成器的字段值。
+* 如果只有其中一个模板的字段有值，则将引用该值。
 
-Generator templates can thus be thought of as patches against the outer `spec`-level template fields.
+因此，生成器模板可被视为针对外部 "规格 "级模板字段的补丁。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -105,21 +105,22 @@ spec:
         server: '{{url}}'
         namespace: guestbook
 ```
-(*The full example can be found [here](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/template-override).*)
 
-In this example, the ApplicationSet controller will generate an `Application` resource using the `path` generated by the List generator, rather than the `path` value defined in `.spec.template`.
+（_完整示例见 [此处](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/template-override)。_）
 
-## Template Patch
+在本例中，ApplicationSet 控制器将使用 List 生成器生成的 `path` 而不是 `.spec.template` 中定义的 `path` 值生成一个 `Application` 资源。
 
-Templating is only available on string type. However, some use cases may require applying templating on other types.
+## 模板补丁
 
-Example:
+模板化仅适用于字符串类型，但某些用例可能需要在其他类型上应用模板化。
 
-- Conditionally set the automated sync policy.
-- Conditionally switch prune boolean to `true`.
-- Add multiple helm value files from a list.
+例如
 
-The `templatePatch` feature enables advanced templating, with support for `json` and `yaml`.
+* 有条件地设置自动同步策略。
+* 有条件地将剪枝布尔值切换为 `true`。
+* 从列表中添加多个 helm 值文件。
+
+模板补丁 "功能可实现高级模板化，支持 "json "和 "yaml"。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -165,14 +166,11 @@ spec:
     {{- end }}
 ```
 
-!!! important
-    The `templatePatch` can apply arbitrary changes to the template. If parameters include untrustworthy user input, it 
-    may be possible to inject malicious changes into the template. It is recommended to use `templatePatch` only with 
-    trusted input or to carefully escape the input before using it in the template. Piping input to `toJson` should help
-    prevent, for example, a user from successfully injecting a string with newlines.
+重要 `templatePatch` 可以对模板进行任意修改。 如果参数中包含不可信的用户输入，就有可能向模板中注入恶意修改。 建议仅对可信输入使用 `templatePatch` 或在模板中使用前仔细转义输入。 将输入导入 `toJson` 应有助于防止用户成功注入带换行的字符串等。
 
-    The `spec.project` field is not supported in `templatePatch`. If you need to change the project, you can use the
-    `spec.project` field in the `template` field.
+```
+The `spec.project` field is not supported in `templatePatch`. If you need to change the project, you can use the
+`spec.project` field in the `template` field.
+```
 
-!!! important
-    When writing a `templatePatch`, you're crafting a patch. So, if the patch includes an empty `spec: # nothing in here`, it will effectively clear out existing fields. See [#17040](https://github.com/argoproj/argo-cd/issues/17040) for an example of this behavior.
+!!! 重要 当编写 `templatePatch` 时，您正在制作一个补丁。 因此，如果补丁包含一个空的 `spec: # nothing in here`，它将有效地清除现有字段。 有关此行为的示例，请参阅 [#17040](https://github.com/argoproj/argo-cd/issues/17040)。

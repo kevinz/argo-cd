@@ -1,19 +1,15 @@
-## Projects
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Projects provide a logical grouping of applications, which is useful when Argo CD is used by multiple
-teams. Projects provide the following features:
+## 项目
 
-* restrict what may be deployed (trusted Git source repositories)
-* restrict where apps may be deployed to (destination clusters and namespaces)
-* restrict what kinds of objects may or may not be deployed (e.g. RBAC, CRDs, DaemonSets, NetworkPolicy etc...)
-* defining project roles to provide application RBAC (bound to OIDC groups and/or JWT tokens)
+项目提供了应用程序的逻辑分组，这在 Argo CD 被多个团队引用时非常有用。
 
-### The Default Project
+限制可部署的内容（受信任的 Git 源代码库） * 限制应用程序可部署的位置（目标集群和名称空间） * 限制可部署或不可部署的对象类型（如 RBAC、CRD、DaemonSets、NetworkPolicy 等......） * 定义项目角色以提供应用程序 RBAC（与 OIDC 组和/或 JWT 标记绑定） * 限制可部署或不可部署的对象类型（如 RBAC、CRD、DaemonSets、NetworkPolicy 等......
 
-Every application belongs to a single project. If unspecified, an application belongs to the
-`default` project, which is created automatically and by default, permits deployments from any
-source repo, to any cluster, and all resource Kinds. The default project can be modified, but not
-deleted. When initially created, it's specification is configured to be the most permissive:
+### 默认项目
+
+每个应用程序都属于一个项目。 如果未指定，则应用程序属于`default`项目是自动创建的，默认情况下允许从任何源代码 repo 部署到任何集群和所有资源类型。 默认项目可以修改，但不能删除。 初始创建时，其规范被配置为最具许可性：。
 
 ```yaml
 spec:
@@ -27,34 +23,31 @@ spec:
     kind: '*'
 ```
 
-### Creating Projects
+### 创建项目
 
-Additional projects can be created to give separate teams different levels of access to namespaces.
-The following command creates a new project `myproject` which can deploy applications to namespace
-`mynamespace` of cluster `https://kubernetes.default.svc`. The permitted Git source repository is
-set to `https://github.com/argoproj/argocd-example-apps.git` repository.
+可以创建其他项目，让不同的团队有不同级别的 namespace 访问权限。 以下命令创建了一个新项目`myproject`可将应用程序部署到 namespace`mynamespace`集群`https://kubernetes.default.svc`允许的 Git 源代码库设置为`https://github.com/argoproj/argocd-example-apps.git`存放处。
 
 ```bash
 argocd proj create myproject -d https://kubernetes.default.svc,mynamespace -s https://github.com/argoproj/argocd-example-apps.git
 ```
 
-### Managing Projects
+### 管理项目
 
-Permitted source Git repositories are managed using commands:
+允许的源 Git 仓库被引用命令进行管理：
 
 ```bash
 argocd proj add-source <PROJECT> <REPO>
 argocd proj remove-source <PROJECT> <REPO>
 ```
 
-We can also do negations of sources (i.e. do _not_ use this repo).
+我们还可以对源代码进行否定（即执行不是被引用）。
 
 ```bash
 argocd proj add-source <PROJECT> !<REPO>
 argocd proj remove-source <PROJECT> !<REPO>
 ```
 
-Declaratively we can do something like this:
+从声明的角度来说，我们可以这样做
 
 ```yaml
 spec:
@@ -67,28 +60,27 @@ spec:
     - '*'
 ```
 
-A source repository is considered valid if the following conditions hold:
+如果符合以下条件，则源资源库被视为有效：
 
-1. _Any_ allow source rule (i.e. a rule which isn't prefixed with `!`) permits the source
-2. AND *no* deny source (i.e. a rule which is prefixed with `!`) rejects the source
+1._Any_ 允许源规则（即不带`!`前缀的规则）允许源 2.AND _no_ 拒绝源规则（即不带`！`前缀的规则）拒绝源
 
-Keep in mind that `!*` is an invalid rule, since it doesn't make any sense to disallow everything.
+请记住`！*`是一条无效规则，因为禁止一切规则是没有意义的。
 
-Permitted destination clusters and namespaces are managed with the commands (for clusters always provide server, the name is not used for matching):
+允许的目标集群和名称空间通过命令进行管理（对于集群始终提供服务器，名称不被引用用于匹配）：
 
 ```bash
 argocd proj add-destination <PROJECT> <CLUSTER>,<NAMESPACE>
 argocd proj remove-destination <PROJECT> <CLUSTER>,<NAMESPACE>
 ```
 
-As with sources, we can also do negations of destinations (i.e. install anywhere _apart from_).
+与来源一样，我们也可以对目的地进行否定（即在任何地方安装除了___________________________之外).
 
 ```bash
 argocd proj add-destination <PROJECT> !<CLUSTER>,!<NAMESPACE>
 argocd proj remove-destination <PROJECT> !<CLUSTER>,!<NAMESPACE>
 ```
 
-Declaratively we can do something like this:
+从声明的角度来说，我们可以这样做
 
 ```yaml
 spec:
@@ -104,16 +96,13 @@ spec:
     server: '*'
 ```
 
-As with sources, a destination is considered valid if the following conditions hold:
+与信源一样，如果满足以下条件，则认为目的地有效：
 
-1. _Any_ allow destination rule (i.e. a rule which isn't prefixed with `!`) permits the destination
-2. AND *no* deny destination (i.e. a rule which is prefixed with `!`) rejects the destination
+1._Any_ 允许目的地规则（即不带`!`前缀的规则）允许目的地 2.AND _no_ 拒绝目的地规则（即不带`!`前缀的规则）拒绝目的地
 
-Keep in mind that `!*` is an invalid rule, since it doesn't make any sense to disallow everything. 
+请记住`！*`是一条无效规则，因为禁止一切规则是没有意义的。
 
-Permitted destination K8s resource kinds are managed with the commands. Note that namespaced-scoped
-resources are restricted via a deny list, whereas cluster-scoped resources are restricted via
-allow list.
+允许的目标 k8s 资源类型通过命令进行管理。 请注意，namespace-scoped 资源通过 deny 列表进行限制，而集群-scoped 资源则通过 allow 列表进行限制。
 
 ```bash
 argocd proj allow-cluster-resource <PROJECT> <GROUP> <KIND>
@@ -122,29 +111,21 @@ argocd proj deny-cluster-resource <PROJECT> <GROUP> <KIND>
 argocd proj deny-namespace-resource <PROJECT> <GROUP> <KIND>
 ```
 
-### Assign Application To A Project
+### 将应用程序分配给一个项目
 
-The application project can be changed using `app set` command. In order to change the project of
-an app, the user must have permissions to access the new project.
+可通过以下方式更改应用程序项目`app set`要更改应用程序的项目，用户必须拥有访问新项目的权限。
 
 ```
 argocd app set guestbook-default --project myproject
 ```
 
-## Project Roles
+## 项目角色
 
-Projects include a feature called roles that enable automated access to a project's applications.
-These can be used to give a CI pipeline a restricted set of permissions. For example, a CI system
-may only be able to sync a single app (but not change its source or destination).
+这些角色可被引用来为 Ci 管道提供一组受限的权限。 例如，Ci 系统可能只能同步单个应用程序（但不能更改其源或目标）。
 
-Projects can have multiple roles, and those roles can have different access granted to them. These
-permissions are called policies, and they are stored within the role as a list of policy strings.
-A role's policy can only grant access to that role and are limited to applications within the role's
-project.  However, the policies have an option for granting wildcard access to any application
-within a project.
+这些权限被称为策略，它们以策略字符串列表的形式存储在角色中。 角色的策略只能授予该角色访问权限，并且仅限于该角色项目中的应用程序。
 
-In order to create roles in a project and add policies to a role, a user will need permission to
-update a project.  The following commands can be used to manage a role.
+要在项目中创建角色并为角色添加策略，用户需要有更新项目的权限。 以下命令可用于管理角色。
 
 ```bash
 argocd proj role list
@@ -155,28 +136,18 @@ argocd proj role add-policy
 argocd proj role remove-policy
 ```
 
-Project roles in itself are not useful without generating a token to associate to that role. Argo CD
-supports JWT tokens as the means to authenticate to a role. Since the JWT token is
-associated with a role's policies, any changes to the role's policies will immediately take effect
-for that JWT token.
+如果不生成与角色相关联的令牌，项目角色本身就没有用处。 Argo CD 支持将 JWT 令牌作为验证角色的手段。 由于 JWT 令牌与角色的策略相关联，因此对角色策略的任何更改都会立即对该 JWT 令牌生效。
 
-The following commands are used to manage the JWT tokens.
+以下命令被用来管理 jwt 标记。
 
 ```bash
 argocd proj role create-token PROJECT ROLE-NAME
 argocd proj role delete-token PROJECT ROLE-NAME ISSUED-AT
 ```
 
-Since the JWT tokens aren't stored in Argo CD, they can only be retrieved when they are created. A
-user can leverage them in the cli by either passing them in using the `--auth-token` flag or setting
-the ARGOCD_AUTH_TOKEN environment variable. The JWT tokens can be used until they expire or are
-revoked.  The JWT tokens can created with or without an expiration, but the default on the cli is
-creates them without an expirations date.  Even if a token has not expired, it cannot be used if
-the token has been revoked.
+由于 JWT 标记没有存储在 Argo CD 中，因此只能在创建时才能引用。 用户可以通过使用`--AUTH-token`标记或设置 ARGOCD_AUTH_TOKEN 环境变量。 JWT 令牌可以一直使用，直到过期或被引用。
 
-Below is an example of leveraging a JWT token to access a guestbook application.  It makes the
-assumption that the user already has a project named myproject and an application called
-guestbook-default.
+下面是一个利用 JWT 令牌访问留言簿应用程序的示例，假定用户已经拥有一个名为 myproject 的项目和一个名为 guestbook-default 的应用程序。
 
 ```bash
 PROJ=myproject
@@ -201,7 +172,6 @@ argocd proj role add-policy $PROJ $ROLE -a get --permission allow -o '*'
 argocd app get $APP --auth-token $JWT
 argocd proj role get $PROJ $ROLE
 
-
 argocd proj role get $PROJ $ROLE
 # Revoking the JWT token
 argocd proj role delete-token $PROJ $ROLE <id field from the last command>
@@ -209,12 +179,11 @@ argocd proj role delete-token $PROJ $ROLE <id field from the last command>
 argocd app get $APP --auth-token $JWT
 ```
 
-## Configuring RBAC With Projects
+## 通过项目配置 RBAC
 
-The project Roles allows configuring RBAC rules scoped to the project. The following sample
-project provides read-only permissions on project applications to any member of `my-oidc-group` group.
+项目角色允许配置项目范围内的 RBAC 规则。 以下示例项目向 Providers 的任何成员提供项目应用程序的只读权限`my-oidc-group`组。
 
-*AppProject example:*
+应用项目示例：_
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -233,25 +202,18 @@ spec:
     - my-oidc-group
 ```
 
-You can use `argocd proj role` CLI commands or project details page in the user interface to configure the policy.
-Note that each project role policy rule must be scoped to that project only. Use the `argocd-rbac-cm` ConfigMap described in
-[RBAC](../operator-manual/rbac.md) documentation if you want to configure cross project RBAC rules.
+您可以被引用`argocd proj role`CLI 命令或用户界面中的项目详细信息页面来配置策略。 请注意，每个项目角色策略规则的作用域必须仅限于该项目。 使用`argocd-rbac-`cm 中描述的 ConfigMap[RBAC] (./operator-manual/rbac.md)如果要配置跨项目 RBAC 规则，请参阅文档。
 
-## Configuring Global Projects (v1.8)
+## 配置全局项目（v1.8）
 
-Global projects can be configured to provide configurations that other projects can inherit from. 
+可以对全局项目进行配置，以提供其他项目可以继承的配置。
 
-Projects, which match `matchExpressions` specified in `argocd-cm` ConfigMap, inherit the following fields from the global project:
+项目，这些项目与`matchExpressions`中规定的`argocd-cm`ConfigMap，从全局项目中继承下字段：
 
-* namespaceResourceBlacklist
-* namespaceResourceWhitelist
-* clusterResourceBlacklist
-* clusterResourceWhitelist
-* SyncWindows
-* SourceRepos
-* Destinations
+* 名称空间资源黑名单 * 名称空间资源白名单 * 集群资源黑名单 * 集群资源白名单 * 同步窗口 * 源重置 * 目的地
 
-Configure global projects in `argocd-cm` ConfigMap:
+在`argocd-cm`配置地图：
+
 ```yaml
 data:
   globalProjects: |-
@@ -263,25 +225,21 @@ data:
               - prod
       projectName: proj-global-test
 kind: ConfigMap
-``` 
+```
 
-Valid operators you can use are: In, NotIn, Exists, DoesNotExist. Gt, and Lt.
+可被引用的有效运算符有：In、NotIn、Exists、DoesNotExist、Gt 和 Lt。
 
-projectName: `proj-global-test` should be replaced with your own global project name.
+项目名称：`proj-global-test`应替换为您自己的全局项目名称。
 
-## Project scoped Repositories and Clusters
+## 项目范围内的存储库和集群
 
-Normally, an Argo CD admin creates a project and decides in advance which clusters and Git repositories
-it defines. However, this creates a problem in scenarios where a developer wants to add a repository or cluster
-after the initial creation of the project. This forces the developer to contact their Argo CD admin again to update the project definition.
+通常情况下，Argo CD 管理员在创建项目时会事先决定定义哪些集群和 Git 仓库。 然而，如果开发人员在创建项目后想要添加仓库或集群，这就会造成问题。 开发人员不得不再次联系 Argo CD 管理员更新项目定义。
 
-It is possible to offer a self-service process for developers so that they can add a repository and/or cluster in a project on their own even after the initial creation of the project.
+可以为开发人员提供自助服务流程，这样他们即使在最初创建项目后，也可以自行在项目中添加存储库和/或集群。
 
-For this purpose Argo CD supports project-scoped repositories and clusters.
+为此，Argo CD 支持项目范围内的存储库和集群。
 
-To begin the process, Argo CD admins must configure RBAC security to allow this self-service behavior.
-For example, to allow users to add project scoped repositories and admin would have to add
-the following RBAC rules:
+要开始这一过程，Argo CD 管理员必须配置 RBAC 安全性，以允许这种自助行为。 例如，要允许用户添加项目范围内的存储库，管理员必须添加以下 RBAC 规则： Argo CD 管理员必须配置 RBAC 安全性，以允许这种自助行为。
 
 ```
 p, proj:my-project:admin, repositories, create, my-project/*, allow
@@ -289,19 +247,17 @@ p, proj:my-project:admin, repositories, delete, my-project/*, allow
 p, proj:my-project:admin, repositories, update, my-project/*, allow
 ```
 
-This provides extra flexibility so that admins can have stricter rules. e.g.:
+这提供了额外的灵活性，使管理员可以制定更严格的规则：
 
 ```
 p, proj:my-project:admin, repositories, update, my-project/https://github.example.com/*, allow
 ```
 
-Once the appropriate RBAC rules are in place, developers can create their own Git repositories and (assuming 
-they have the correct credentials) can add them in an existing project either from the UI or the CLI.
-Both the User interface and the CLI have the ability to optionally specify a project. If a project is specified then the respective cluster/repository is considered project scoped:
+如果指定了一个项目，那么相应的集群/仓库就会被视为项目范围： 用户界面和 CLI 都可以选择指定一个项目。
 
-```argocd repo add --name stable https://charts.helm.sh/stable --type helm --project my-project```
+`argocd repo add --name stable https://charts.helm.sh/stable --type helm chart --project my-project`
 
-For the declarative setup both repositories and clusters are stored as Kubernetes Secrets, and so a new field is used to denote that this resource is project scoped:
+对于声明式设置，存储库和集群都存储为 Kubernetes Secrets，因此会使用一个新字段来表示此资源是项目作用域的： Secrets
 
 ```yaml
 apiVersion: v1
@@ -319,7 +275,7 @@ stringData:
   password: ****
 ```
 
-All the examples above talk about Git repositories, but the same principles apply to clusters as well.
+上面的例子都是关于 Git 仓库的，但同样的原则也适用于集群。
 
 ```yaml
 apiVersion: v1
@@ -343,9 +299,7 @@ stringData:
     }
 ```
 
-With project-scoped clusters we can also restrict projects to only allow applications whose destinations belong to the 
-same project. The default behavior allows for applications to be installed onto clusters which are not a part of the same 
-project, as the example below demonstrates:
+有了项目范围的集群，我们还可以限制项目只允许目的地属于同一项目的应用程序。 默认行为允许将应用程序安装到不属于同一项目的集群上，如下例所示： 项目范围的集群
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -360,12 +314,11 @@ spec:
   project: foo-project
 ```
 
-To prevent this behavior, we can set the attribute `permitOnlyProjectScopedClusters` on a project. 
+为了防止这种行为，我们可以设置属性`permitOnlyProjectScopedClusters`项目。
 
 ```yaml
 spec:
   permitOnlyProjectScopedClusters: true
 ```
 
-With this set, the application above would no longer be allowed to be synced to any cluster other than the ones which 
-are a part of the same project.    
+有了这一设置，上述应用程序将不再被允许同步到同一项目中的集群以外的任何集群。

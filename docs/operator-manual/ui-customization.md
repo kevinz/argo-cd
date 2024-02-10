@@ -1,9 +1,10 @@
-# UI Customization
+<!-- TRANSLATED by md-translate -->
+# 用户界面定制
 
-## Default Application Details View
+## 默认应用程序详细信息视图
 
-By default, the Application Details will show the `Tree` view.
+默认情况下，"应用程序详细信息 "将显示 "树 "视图。
 
-This can be configured on an Application basis, by setting the `pref.argocd.argoproj.io/default-view` annotation, accepting one of: `tree`, `pods`, `network`, `list` as values.
+可以通过设置 `pref.argocd.argoproj.io/default-view` 注解，接受 `tree`、`pods`、`network`、`list` 中的一个作为 Values，在应用程序基础上进行配置。
 
-For the Pods view, the default grouping mechanism can be configured using the `pref.argocd.argoproj.io/default-pod-sort` annotation, accepting one of: `node`, `parentResource`, `topLevelResource` as values.
+对于 Pods 视图，可使用 `pref.argocd.argoproj.io/default-pod-sort` 注解配置默认分组机制，并接受 `node`、`parentResource`、`topLevelResource` 中的一个作为值。

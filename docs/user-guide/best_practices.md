@@ -1,40 +1,17 @@
-# Best Practices
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-## Separating Config Vs. Source Code Repositories
+# 最佳做法
 
-Using a separate Git repository to hold your Kubernetes manifests, keeping the config separate
-from your application source code, is highly recommended for the following reasons:
+## 区分配置库和源代码库
 
-1. It provides a clean separation of application code vs. application config. There will be times
-   when you wish to modify just the manifests without triggering an entire CI build. For example,
-   you likely do _not_ want to trigger a build if you simply wish to bump the number of replicas in
-   a Deployment spec.
+从以下原因出发，强烈建议使用单独的 Git 仓库来保存 Kubernetes 清单，将配置与应用程序源代码分开： Kubernetes 清单，将配置与应用程序源代码分开： Kubernetes 清单，将配置与应用程序源代码分开
 
-2. Cleaner audit log. For auditing purposes, a repo which only holds configuration will have a much
-   cleaner Git history of what changes were made, without the noise coming from check-ins due to
-   normal development activity.
+1.Provider 提供了应用程序代码与应用程序配置的清晰分离。有时，您只想修改配置清单，而不想触发整个 CI 构建。例如，如果您只想增加部署规范中的副本数量，您可能不想触发构建。 2.更整洁的审计日志。出于审计目的，一个只保存配置的 repo 会有更清晰的 Git 历史记录，记录所做的更改，而不会出现因正常开发活动而产生的签入噪音。 3.您的应用程序可能由多个 Git 仓库构建的服务组成，但作为一个整体部署。通常情况下，微服务应用程序由具有不同版本方案和发布周期的服务组成（如 ELK、Kafka + ZooKeeper）。将配置清单存储在单个组件的某个源代码库中可能并不合理。 4.访问分离。开发应用程序的开发人员不一定是同一个人。
 
-3. Your application may be comprised of services built from multiple Git repositories, but is
-   deployed as a single unit. Oftentimes, microservices applications are comprised of services
-   with different versioning schemes, and release cycles (e.g. ELK, Kafka + ZooKeeper). It may not
-   make sense to store the manifests in one of the source code repositories of a single component.
+## 给不自信留有余地
 
-4. Separation of access. The developers who are developing the application, may not necessarily be 
-   the same people who can/should push to production environments, either intentionally or
-   unintentionally. By having separate repos, commit access can be given to the source code repo,
-   and not the application config repo.
-
-5. If you are automating your CI pipeline, pushing manifest changes to the same Git repository can
-   trigger an infinite loop of build jobs and Git commit triggers. Having a separate repo to push
-   config changes to, prevents this from happening.
-
-
-## Leaving Room For Imperativeness
-
-It may be desired to leave room for some imperativeness/automation, and not have everything defined
-in your Git manifests. For example, if you want the number of your deployment's replicas to be
-managed by [Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/),
-then you would not want to track `replicas` in Git.
+可能需要为一些不确定性/自动化留有余地，而不是在 Git 清单中定义所有内容。[水平吊舱自动定标器](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)那么您就不想跟踪`replicas`在 Git 中。
 
 ```yaml
 apiVersion: apps/v1
@@ -54,24 +31,20 @@ spec:
 ...
 ```
 
-## Ensuring Manifests At Git Revisions Are Truly Immutable
+## 确保 Git 修订时的 Manifests 配置清单 真正不可变
 
-When using templating tools like `helm` or `kustomize`, it is possible for manifests to change
-their meaning from one day to the next. This is typically caused by changes made to an upstream helm
-repository or kustomize base.
+使用模板工具时，如`helm`或`kustomize`这通常是由于上游 helm 资源库或 kustomize 库发生了变更。
 
-For example, consider the following kustomization.yaml
+例如，请看下面的 kustomization.yaml
 
 ```yaml
 resources:
 - github.com/argoproj/argo-cd//manifests/cluster-install
 ```
 
-The above kustomization has a remote base to the HEAD revision of the argo-cd repo. Since this
-is not a stable target, the manifests for this kustomize application can suddenly change meaning, even without
-any changes to your own Git repository.
+上述 kustomize 的远程基础是 Argo-cd repo 的 HEAD 修订版。 由于这不是一个稳定的目标，即使你自己的 Git 仓库没有任何改动，这个 kustomize 应用程序的清单也可能突然改变含义。
 
-A better version would be to use a Git tag or commit SHA. For example:
+更好的版本是使用 Git 标签或提交 SHA，例如
 
 ```yaml
 bases:

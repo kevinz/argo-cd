@@ -1,104 +1,75 @@
-# RBAC Configuration
+<!-- TRANSLATED by md-translate -->
+# RBAC 配置
 
-The RBAC feature enables restriction of access to Argo CD resources. Argo CD does not have its own
-user management system and has only one built-in user `admin`. The `admin` user is a superuser and
-it has unrestricted access to the system. RBAC requires [SSO configuration](user-management/index.md) or [one or more local users setup](user-management/index.md).
-Once SSO or local users are configured, additional RBAC roles can be defined, and SSO groups or local users can then be mapped to roles.
+RBAC 功能可以限制对 Argo CD 资源的访问。 Argo CD 没有自己的用户管理系统，只有一个内置用户 "admin"。 "admin "用户是超级用户，它对系统的访问不受限制。 RBAC 需要[SSO 配置](user-management/index.md) 或[一个或多个本地用户设置](user-management/index.md)。 一旦配置了 SSO 或本地用户，就可以定义其他 RBAC 角色，然后将 SSO 组或本地用户映射到角色。
 
-## Basic Built-in Roles
+## 基本内置角色
 
-Argo CD has two pre-defined roles but RBAC configuration allows defining roles and groups (see below).
+Argo CD 有两个预定义角色，但 RBAC 配置允许定义角色和组（见下文）。
 
-* `role:readonly` - read-only access to all resources
-* `role:admin` - unrestricted access to all resources
+* 角色:只读"- 对所有资源的只读访问权限
+* 角色:admin`-不受限制地访问所有资源
 
-These default built-in role definitions can be seen in [builtin-policy.csv](https://github.com/argoproj/argo-cd/blob/master/assets/builtin-policy.csv)
+这些默认内置角色定义可以在 [builtin-policy.csv](https://github.com/argoproj/argo-cd/blob/master/assets/builtin-policy.csv) 中看到
 
-### RBAC Permission Structure
+### RBAC 权限结构
 
-Breaking down the permissions definition differs slightly between applications and every other resource type in Argo CD.
+在 Argo CD 中，应用程序和其他资源类型的权限定义略有不同。
 
-* All resources *except* application-specific permissions (see next bullet):
+* 除应用程序特定权限外的所有资源（请参阅下一条）：
+    p、&lt;角色/用户/组&gt;、<resource>,<action>,<object>`
+* 应用程序、应用程序集、logging 和 exec（属于`AppProject`）：
+    P、&lt;角色/用户/组&gt;、<resource>,<action>,<appproject>/<object>`
 
-    `p, <role/user/group>, <resource>, <action>, <object>`
+#### RBAC 资源和操作
 
-* Applications, applicationsets, logs, and exec (which belong to an `AppProject`):
+资源："集群"、"项目"、"应用程序"、"应用程序集"、"存储库"、"证书"、"账户"、"gpgkeys"、"日志"、"执行"、"扩展
 
-    `p, <role/user/group>, <resource>, <action>, <appproject>/<object>`
+操作：`get`、`create`、`update`、`delete`、`sync`、`override`、`action/&lt;group/kind/action-name&gt;`。
 
-### RBAC Resources and Actions
+请注意，"sync"、"override "和 "action/&lt;group/kind/action-name&gt;"仅对 "applications "资源有意义。
 
-Resources: `clusters`, `projects`, `applications`, `applicationsets`,
-`repositories`, `certificates`, `accounts`, `gpgkeys`, `logs`, `exec`,
-`extensions`
+#### 应用资源
 
-Actions: `get`, `create`, `update`, `delete`, `sync`, `override`,`action/<group/kind/action-name>`
+应用程序对象的资源路径格式为 `<project-name>/<application-name>`。
 
-Note that `sync`, `override`, and `action/<group/kind/action-name>` only have meaning for the `applications` resource.
+删除对项目子资源（如 rollout 或 pod）的访问权限无法进行细粒度管理。`<project-name>/<application-name>` 授予对应用程序所有子资源的访问权限。
 
-#### Application resources
+#### `action`行动
 
-The resource path for application objects is of the form
-`<project-name>/<application-name>`.
+action "动作对应于[Argo CD 资源库中](https://github.com/argoproj/argo-cd/tree/master/resource_customizations)定义的内置资源定制，或您定义的[自定义资源动作](resource_actions.md#custom-resource-actions)。"action "路径的形式为 "action/<api-group>/<Kind>/<action-name>"。例如，资源定制路径 "resource_customizations/extensions/DaemonSet/actions/restart/action.lua "对应于 "action "路径 "action/extensions/DaemonSet/restart"。您也可以在action路径中被引用glob模式："action/*"（或 "regex "模式，如果您已[启用 "regex "匹配模式](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-rbac-cm.yaml)）。
 
-Delete access to sub-resources of a project, such as a rollout or a pod, cannot
-be managed granularly. `<project-name>/<application-name>` grants access to all
-subresources of an application.
-
-#### The `action` action
-
-The `action` action corresponds to either built-in resource customizations defined
-[in the Argo CD repository](https://github.com/argoproj/argo-cd/tree/master/resource_customizations),
-or to [custom resource actions](resource_actions.md#custom-resource-actions) defined by you.
-The `action` path is of the form `action/<api-group>/<Kind>/<action-name>`. For
-example, a resource customization path
-`resource_customizations/extensions/DaemonSet/actions/restart/action.lua`
-corresponds to the `action` path `action/extensions/DaemonSet/restart`. You can
-also use glob patterns in the action path: `action/*` (or regex patterns if you have
-[enabled the `regex` match mode](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-rbac-cm.yaml)).
-
-If the resource is not under a group (for examples, Pods or ConfigMaps), then omit the group name from your RBAC
-configuration:
+如果资源不属于某个组（例如 Pod 或 ConfigMaps），则在 RBAC 配置中省略组名：
 
 ```csv
 p, example-user, applications, action//Pod/maintenance-off, default/*, allow
 ```
 
-#### The `exec` resource
+#### `exec` 资源
 
-`exec` is a special resource. When enabled with the `create` action, this privilege allows a user to `exec` into Pods via
-the Argo CD UI. The functionality is similar to `kubectl exec`.
+exec "是一种特殊资源。 当使用 "create "操作时，该权限允许用户通过 Argo CD 用户界面 "exec "进入 Pod。 其功能类似于 "kubectl exec"。
 
-See [Web-based Terminal](web_based_terminal.md) for more info.
+更多信息请参阅 [基于网络的终端](web_based_terminal.md)。
 
-#### The `applicationsets` resource
+#### "Applicationsets "资源
 
-[ApplicationSets](applicationset/index.md) provide a declarative way to automatically create/update/delete Applications.
+[ApplicationSet](applicationset/index.md)提供了一种声明式的自动创建/更新/删除应用程序的方法。
 
-Granting `applicationsets, create` effectively grants the ability to create Applications. While it doesn't allow the
-user to create Applications directly, they can create Applications via an ApplicationSet.
+授予 "Applicationsets, create "有效地授予了创建应用程序的能力。 虽然它不允许用户直接创建应用程序，但用户可以通过 ApplicationSet 创建应用程序。
 
-In v2.5, it is not possible to create an ApplicationSet with a templated Project field (e.g. `project: {{path.basename}}`)
-via the API (or, by extension, the CLI). Disallowing templated projects makes project restrictions via RBAC safe:
+在 v2.5，无法通过 API（或 CLI）创建带有模板项目字段（如`project: {{path.basename}}`）的 ApplicationSet。 禁止模板项目可确保通过 RBAC 进行的项目限制安全：
 
 ```csv
 p, dev-group, applicationsets, *, dev-project/*, allow
 ```
 
-With this rule in place, a `dev-group` user will be unable to create an ApplicationSet capable of creating Applications
-outside the `dev-project` project.
+有了这条规则，"dev-group "用户将无法创建能够在 "dev-project "项目之外创建应用程序的 ApplicationSet。
 
-#### The `extensions` resource
+#### `扩展名`资源
 
-With the `extensions` resource it is possible configure permissions to
-invoke [proxy
-extensions](../developer-guide/extensions/proxy-extensions.md). The
-`extensions` RBAC validation works in conjunction with the
-`applications` resource. A user logged in Argo CD (UI or CLI), needs
-to have at least read permission on the project, namespace and
-application where the request is originated from.
+通过 "扩展 "资源，可以配置调用[代理扩展]的权限（.../developer-guide/extensions/proxy-extensions.md）。 扩展 "RBAC 验证与 "应用 "资源协同工作。 登录 Argo CD（用户界面或 CLI）的用户至少需要拥有请求所属项目、名称空间和应用的读取权限。
 
-Consider the example below:
+请看下面的例子：
 
 ```csv
 g, ext, role:extension
@@ -106,34 +77,23 @@ p, role:extension, applications, get, default/httpbin-app, allow
 p, role:extension, extensions, invoke, httpbin, allow
 ```
 
-Explanation:
+解释：
 
-* *line1*: defines the group `role:extension` associated with the
-  subject `ext`.
-* *line2*: defines a policy allowing this role to read (`get`) the
-  `httpbin-app` application in the `default` project.
-* *line3*: defines another policy allowing this role to `invoke` the
-  `httpbin` extension.
+* _line1_:定义了与主题 `ext` 相关联的组 `role:extension` 。
+* _line2_：定义了一个策略，允许此角色读取（`获取`）`default`项目中的`httpbin-app`应用程序。
+* _line3_：定义了另一条策略，允许该角色 "调用"`httpbin`扩展。
 
-**Note 1**: that for extensions requests to be allowed, the policy defined
-in the *line2* is also required.
+**注意 1**：要允许扩展请求，还需要_line2_中定义的策略。
 
-**Note 2**: `invoke` is a new action introduced specifically to be used
-with the `extensions` resource. The current actions for `extensions`
-are `*` or `invoke`.
+**注 2**："invoke "是专门为与 "扩展名 "资源一起使用而引入的新操作。 目前 "扩展名 "的操作是 "*"或 "invoke"。
 
 ## Tying It All Together
 
-Additional roles and groups can be configured in `argocd-rbac-cm` ConfigMap. The example below
-configures a custom role, named `org-admin`. The role is assigned to any user which belongs to
-`your-github-org:your-team` group. All other users get the default policy of `role:readonly`,
-which cannot modify Argo CD settings.
+可以在 `argocd-rbac-cm` 配置表中配置其他角色和组。 下面的示例配置了一个名为 `org-admin` 的自定义角色。 该角色会分配给属于 `your-github-org:your-team` 组的任何用户。 所有其他用户都会获得默认的 `role:readonly` 策略，不能修改 Argo CD 设置。
 
-!!! warning
-    All authenticated users get *at least* the permissions granted by the default policy. This access cannot be blocked
-    by a `deny` rule. Instead, restrict the default policy and then grant permissions to individual roles as needed.
+警告 所有已通过身份验证的用户至少可获得默认策略授予的权限。 不能通过 "拒绝 "规则阻止这种访问。 相反，应限制默认策略，然后根据需要向个别角色授予权限。
 
-*ArgoCD ConfigMap `argocd-rbac-cm` Example:*
+_ArgoCD 配置地图 `argocd-rbac-cm` 示例：_
 
 ```yaml
 apiVersion: v1
@@ -160,9 +120,9 @@ data:
     g, your-github-org:your-team, role:org-admin
 ```
 
-----
+---
 
-Another `policy.csv` example might look as follows:
+另一个 `policy.csv` 示例可能如下：
 
 ```csv
 p, role:staging-db-admin, applications, create, staging-db-project/*, allow
@@ -177,19 +137,16 @@ p, role:staging-db-admin, projects, get, staging-db-project, allow
 g, db-admins, role:staging-db-admin
 ```
 
-This example defines a *role* called `staging-db-admin` with nine *permissions* that allow users with that role to perform the following *actions*:
+本示例定义了一个名为 "staging-db-admin "的_角色，该角色有九个_权限，允许拥有该角色的用户执行以下_操作：
 
-* `create`, `delete`, `get`, `override`, `sync` and `update` for applications in the `staging-db-project` project,
-* `get` logs for objects in the `staging-db-project` project,
-* `create` exec for objects in the `staging-db-project` project, and
-* `get` for the project named `staging-db-project`.
+* 为 "staging-db-project "项目中的应用程序提供 "创建"、"删除"、"获取"、"覆盖"、"同步 "和 "更新 "功能、
+* 为`staging-db-project`项目中的对象生成`get`logging、
+* 为 "staging-db-project "项目中的对象创建 "执行"，以及
+* 获取`staging-db-project`项目的日志。
 
-!!! note
-    The `scopes` field controls which OIDC scopes to examine during rbac
-    enforcement (in addition to `sub` scope). If omitted, defaults to:
-    `'[groups]'`. The scope value can be a string, or a list of strings.
+注意 `scopes`字段控制在执行 rbac 时要检查哪些 OIDC 作用域（除了 `sub` 作用域）。 如果省略，默认为：`'[组]'`。 作用域值可以是字符串，也可以是字符串列表。
 
-Following example shows targeting `email` as well as `groups` from your OIDC provider.
+下面的示例显示了从 OIDC Provider 针对 "电子邮件 "和 "群组 "的操作。
 
 ```yaml
 apiVersion: v1
@@ -209,24 +166,15 @@ data:
   scopes: '[groups, email]'
 ```
 
-For more information on `scopes` please review the [User Management Documentation](user-management/index.md).
+有关 "范围 "的更多信息，请查阅[用户管理文档](user-management/index.md)。
 
-## Policy CSV Composition
+## 政策 CSV 组成
 
-It is possible to provide additional entries in the `argocd-rbac-cm`
-configmap to compose the final policy csv. In this case the key must
-follow the pattern `policy.<any string>.csv`. Argo CD will concatenate
-all additional policies it finds with this pattern below the main one
-('policy.csv'). The order of additional provided policies are
-determined by the key string. Example: if two additional policies are
-provided with keys `policy.A.csv` and `policy.B.csv`, it will first
-concatenate `policy.A.csv` and then `policy.B.csv`.
+可以在 `argocd-rbac-cm` configmaps 中提供附加条目，以组成最终的策略 csv。在这种情况下，密钥必须遵循 `policy.<any string>.csv`。Argo CD 会将找到的所有附加策略按此模式连接到主策略（"policy.csv"）下面。 附加策略的顺序由密钥字符串决定。 例如：如果提供了两个附加策略，密钥分别为 `policy.A.csv` 和 `policy.B.csv`，则会首先连接 `policy.A.csv` 然后连接 `policy.B.csv`。
 
-This is useful to allow composing policies in config management tools
-like Kustomize, Helm, etc.
+这对于在 kustomize、Helm 等配置管理工具中合成策略非常有用。
 
-The example below shows how a Kustomize patch can be provided in an
-overlay to add additional configuration to an existing RBAC policy.
+下面的示例展示了如何在叠加中 Provider 补丁，为现有 RBAC 策略添加额外配置。
 
 ```yaml
 apiVersion: v1
@@ -241,58 +189,45 @@ data:
     g, my-org:team-qa, role:tester
 ```
 
-## Anonymous Access
+## 匿名访问
 
-The anonymous access to Argo CD can be enabled using `users.anonymous.enabled` field in `argocd-cm` (see [argocd-cm.yaml](argocd-cm.yaml)).
-The anonymous users get default role permissions specified by `policy.default` in `argocd-rbac-cm.yaml`. For read-only access you'll want `policy.default: role:readonly` as above
+可以使用 `argocd-cm` 中的`users.anonymous.enabled`字段启用对 Argo CD 的匿名访问（参见 [argocd-cm.yaml](argocd-cm.yaml)）。 匿名用户获得由 `argocd-rbac-cm.yaml` 中的`policy.default`指定的默认角色权限。 若要实现只读访问，则需要如上所示使用`policy.default: role:readonly` 。
 
-## Validating and testing your RBAC policies
+## 验证和测试你的 RBAC 策略
 
-If you want to ensure that your RBAC policies are working as expected, you can
-use the `argocd admin settings rbac` command to validate them. This tool allows you to
-test whether a certain role or subject can perform the requested action with a
-policy that's not live yet in the system, i.e. from a local file or config map.
-Additionally, it can be used against the live policy in the cluster your Argo
-CD is running in.
+如果要确保 RBAC 策略按预期运行，可以使用 "argocd admin settings rbac "命令对其进行验证。 通过该工具，可以测试特定角色或主体是否可以使用系统中尚未生效的策略（即来自本地文件或 config maps 的策略）执行所请求的操作。 此外，还可以针对 Argo CD 所运行集群中的生效策略使用该工具。
 
-To check whether your new policy is valid and understood by Argo CD's RBAC
-implementation, you can use the `argocd admin settings rbac validate` command.
+要检查新策略是否有效并被 Argo CD 的 RBAC 实现所理解，可以引用 `argocd admin settings rbac validate` 命令。
 
-### Validating a policy
+### 验证政策
 
-To validate a policy stored in a local text file:
+验证存储在本地文本文件中的策略：
 
 ```shell
 argocd admin settings rbac validate --policy-file somepolicy.csv
 ```
 
-To validate a policy stored in a local K8s ConfigMap definition in a YAML file:
+要验证 YAML 文件中存储在本地 k8s ConfigMap 定义中的策略：
 
 ```shell
 argocd admin settings rbac validate --policy-file argocd-rbac-cm.yaml
 ```
 
-To validate a policy stored in K8s, used by Argo CD in namespace `argocd`,
-ensure that your current context in `~/.kube/config` is pointing to your
-Argo CD cluster and give appropriate namespace:
+要验证存储在 k8s 中、被 Argo CD 引用在 namespace `argocd` 中的策略，请确保 `~/.kube/config` 中的当前上下文指向 Argo CD 集群，并给出适当的 namespace：
 
 ```shell
 argocd admin settings rbac validate --namespace argocd
 ```
 
-### Testing a policy
+### 测试政策
 
-To test whether a role or subject (group or local user) has sufficient
-permissions to execute certain actions on certain resources, you can
-use the `argocd admin settings rbac can` command. Its general syntax is
+要测试某个角色或主体（组或本地用户）是否有足够的权限在某些资源上执行某些操作，可以使用 `argocd admin settings rbac can` 命令。 它的一般语法是
 
 ```shell
 argocd admin settings rbac can SOMEROLE ACTION RESOURCE SUBRESOURCE [flags]
 ```
 
-Given the example from the above ConfigMap, which defines the role
-`role:org-admin`, and is stored on your local system as `argocd-rbac-cm-yaml`,
-you can test whether that role can do something like follows:
+鉴于上述配置表中的示例定义了角色 `role:org-admin` 并以 `argocd-rbac-cm-yaml` 的形式存储在本地系统中，您可以测试该角色是否可以执行如下操作：
 
 ```console
 $ argocd admin settings rbac can role:org-admin get applications --policy-file argocd-rbac-cm.yaml
@@ -308,11 +243,9 @@ $ argocd admin settings rbac can role:org-admin create applications 'someproj/so
 Yes
 ```
 
-Another example,  given the policy above from `policy.csv`, which defines the
-role `role:staging-db-admin` and associates the group `db-admins` with it.
-Policy is stored locally as `policy.csv`:
+另一个例子，给定上面来自 `policy.csv` 的策略，其中定义了角色 `role:staging-db-admin` 并将组 `db-admins` 与之关联。 策略在本地存储为 `policy.csv`：
 
-You can test against the role:
+您可以根据角色进行测试：
 
 ```console
 $ # Plain policy, without a default role defined
@@ -328,7 +261,7 @@ $ argocd admin settings rbac can role:staging-db-admin get applications --policy
 Yes
 ```
 
-Or against the group defined:
+或反对所定义的群体：
 
 ```console
 $ argocd admin settings rbac can db-admins get applications 'staging-db-project/*' --policy-file policy.csv

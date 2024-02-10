@@ -1,66 +1,46 @@
-# Security
+<!-- TRANSLATED by md-translate -->
+# 安全
 
-Argo CD has undergone rigorous internal security reviews and penetration testing to satisfy [PCI
-compliance](https://www.pcisecuritystandards.org) requirements. The following are some security
-topics and implementation details of Argo CD.
+Argo CD 经过了严格的内部安全审查和渗透测试，以满足[PCI 合规性](https://www.pcisecuritystandards.org)要求。以下是 Argo CD 的一些安全主题和实施细节。
 
-## Authentication
+## 验证
 
-Authentication to Argo CD API server is performed exclusively using [JSON Web Tokens](https://jwt.io)
-(JWTs). Username/password bearer tokens are not used for authentication. The JWT is obtained/managed
-in one of the following ways:
+Argo CD API 服务器的身份验证完全使用[JSON Web 标记](https://jwt.io) (JWT)。用户名/密码承载标记不用于身份验证。 JWT 通过以下方式之一获取/管理：
 
-1. For the local `admin` user, a username/password is exchanged for a JWT using the `/api/v1/session`
-   endpoint. This token is signed & issued by the Argo CD API server itself and it expires after 24 hours 
-   (this token used not to expire, see [CVE-2021-26921](https://github.com/argoproj/argo-cd/security/advisories/GHSA-9h6w-j7w4-jr52)).
-   When the admin password is updated, all existing admin JWT tokens are immediately revoked.
-   The password is stored as a bcrypt hash in the [`argocd-secret`](https://github.com/argoproj/argo-cd/blob/master/manifests/base/config/argocd-secret.yaml) Secret.
+1.对于本地 `admin` 用户，用户名/密码会通过 `/api/v1/session` 端点与 JWT 交换。
+端点交换一个 JWT。该令牌由 Argo CD API 服务器本身签名和签发，24 小时后过期（该令牌过去不会过期，但现在会过期）。 
+(该令牌过去不会过期，参见 [CVE-2021-26921](https://github.com/argoproj/argo-cd/security/advisories/GHSA-9h6w-j7w4-jr52)）。
+当管理员密码更新时，所有现有的管理员 JWT 标记都会立即失效。
+密码以 bcrypt 哈希值的形式存储在 [`argocd-secret`](https://github.com/argoproj/argo-cd/blob/master/manifests/base/config/argocd-secret.yaml) Secret 中。
+2.对于单点登录用户，用户完成 OAuth2 登录流后，将登录到配置的 OIDC 身份提供商（可通过捆绑包委托）。
+提供商（通过捆绑的 Dex 提供商授权，或直接向自我管理的 OIDC
+提供商）。该 JWT 由 IDP 签发，过期和撤销由提供商处理。
+Providers 处理。Dex 令牌在 24 小时后过期。
+3.自动化令牌是使用 `/api/v1/projects/{project}/roles/{role}/token` 为项目生成的。
+端点为项目生成，并由 Argo CD 签发。这些令牌的范围和权限有限、
+只能用于管理其所属项目中的应用程序资源。项目
+JWT 有可配置的过期时间，可通过删除项目角色中的 JWT 引用
+ID 即可立即撤销。
 
-2. For Single Sign-On users, the user completes an OAuth2 login flow to the configured OIDC identity
-   provider (either delegated through the bundled Dex provider, or directly to a self-managed OIDC
-   provider). This JWT is signed & issued by the IDP, and expiration and revocation is handled by
-   the provider. Dex tokens expire after 24 hours.
+## 授权
 
-3. Automation tokens are generated for a project using the `/api/v1/projects/{project}/roles/{role}/token`
-   endpoint, and are signed & issued by Argo CD. These tokens are limited in scope and privilege,
-   and can only be used to manage application resources in the project which it belongs to. Project
-   JWTs have a configurable expiration and can be immediately revoked by deleting the JWT reference
-   ID from the project role.
-
-## Authorization
-
-Authorization is performed by iterating the list of group membership in a user's JWT groups claims,
-and comparing each group against the roles/rules in the [RBAC](../rbac) policy. Any matched rule
-permits access to the API request.
+授权是通过遍历用户 JWT group claims 中的 group 成员列表，并将每个 group 与 [RBAC](../rbac) 策略中的角色/规则进行比较来完成的。 任何匹配的规则都允许访问 API 请求。
 
 ## TLS
 
-All network communication is performed over TLS including service-to-service communication between
-the three components (argocd-server, argocd-repo-server, argocd-application-controller). The Argo CD
-API server can enforce the use of TLS 1.2 using the flag: `--tlsminversion 1.2`.
-Communication with Redis is performed over plain HTTP by default. TLS can be setup with command line arguments.
+所有网络通信均通过 TLS 进行，包括三个组件（argocd-server、argocd-repo-server、argocd-application-controller）之间的服务对服务通信。 Argo CD API 服务器可使用 flag: `--tlsminversion 1.2` 强制使用 TLS 1.2。 与 Redis 的通信默认通过普通 HTTP 进行。 TLS 可通过命令行参数设置。
 
-## Git & Helm Repositories
+## Git 和 Helm 仓库
 
-Git and helm repositories are managed by a stand-alone service, called the repo-server. The
-repo-server does not carry any Kubernetes privileges and does not store credentials to any services
-(including git). The repo-server is responsible for cloning repositories which have been permitted
-and trusted by Argo CD operators, and generating Kubernetes manifests at a given path in the
-repository. For performance and bandwidth efficiency, the repo-server maintains local clones of
-these repositories so that subsequent commits to the repository are efficiently downloaded.
+Git 和 helm 资源库由名为 repo-server 的独立服务管理。 repo-server 不具有任何 Kubernetes 权限，也不存储任何服务（包括 git）的凭据。 repo-server 负责克隆 Argo CD 操作员允许和信任的资源库，并在资源库的给定路径上生成 Kubernetes 配置清单。 为了提高性能和带宽效率，repo-server 会维护这些资源库的本地克隆，以便高效下载资源库的后续提交。
 
-There are security considerations when configuring git repositories that Argo CD is permitted to
-deploy from. In short, gaining unauthorized write access to a git repository trusted by Argo CD
-will have serious security implications outlined below.
+在配置允许 Argo CD 部署的 git 仓库时，有一些安全方面的注意事项。 简而言之，如果未经授权就写入 Argo CD 信任的 git 仓库，将会产生如下所述的严重安全问题。
 
-### Unauthorized Deployments
+### 未经授权的部署
 
-Since Argo CD deploys the Kubernetes resources defined in git, an attacker with access to a trusted
-git repo would be able to affect the Kubernetes resources which are deployed. For example, an
-attacker could update the deployment manifest deploy malicious container images to the environment,
-or delete resources in git causing them to be pruned in the live environment.
+由于 Argo CD 部署的是在 git 中定义的 Kubernetes 资源，因此攻击者若能访问受信任的 git repo，就能影响已部署的 Kubernetes 资源。 例如，攻击者可以更新部署配置清单，将恶意容器镜像部署到环境中，或删除 git 中的资源，导致它们在实时环境中被剪切。
 
-### Tool command invocation
+### 工具命令调用
 
 In addition to raw YAML, Argo CD natively supports two popular Kubernetes config management tools,
 helm and kustomize. When rendering manifests, Argo CD executes these config management tools
@@ -73,45 +53,28 @@ sensitive information, but might be configured with Config Management Plugins wh
 (e.g. decryption keys). If such plugins are used, extreme care must be taken to ensure the
 repository contents can be trusted at all times.
 
-Optionally the built-in config management tools might be individually disabled.
-If you know that your users will not need a certain config management tool, it's advisable
-to disable that tool.
-See [Tool Detection](../user-guide/tool_detection.md) for more information.
+可选择单独禁用内置配置管理工具。 如果知道用户不需要某个配置管理工具，建议禁用该工具。 更多信息请参阅 [Tool Detection]（.../user-guide/tool_detection.md）。
 
-### Remote bases and helm chart dependencies
+### 远程基地和 helm chart 依赖关系
 
-Argo CD's repository allow-list only restricts the initial repository which is cloned. However, both
-kustomize and helm contain features to reference and follow *additional* repositories
-(e.g. kustomize remote bases, helm chart dependencies), of which might not be in the repository
-allow-list. Argo CD operators must understand that users with write access to trusted git
-repositories could reference other remote git repositories containing Kubernetes resources not
-easily searchable or auditable in the configured git repositories.
+Argo CD 的版本库允许列表只限制克隆的初始版本库。 然而，kustomize 和 helm 都包含引用和跟踪附加版本库（如 kustomize 远程基地、helm 图表依赖）的功能，而这些版本库可能不在版本库允许列表中。 Argo CD 操作员必须明白，拥有写权限访问可信 git 版本库的用户可能会引用其他远程 git 版本库，其中包含在配置的 git 版本库中不易搜索或审计的 Kubernetes 资源。
 
-## Sensitive Information
+## 敏感信息
 
-### Secrets
+#### 秘密
 
-Argo CD never returns sensitive data from its API, and redacts all sensitive data in API payloads
-and logs. This includes:
+Argo CD 从不从其 API 返回敏感数据，并对 API 有效载荷和 logging 中的所有敏感数据进行编辑。 这包括：
 
-* cluster credentials
-* Git credentials
-* OAuth2 client secrets
-* Kubernetes Secret values
+* 集群证书
+* Git 认证
+* OAuth2 客户端秘密
+* Kubernetes 秘密值
 
-### External Cluster Credentials
+#### 外部集群证书
 
-To manage external clusters, Argo CD stores the credentials of the external cluster as a Kubernetes
-Secret in the argocd namespace. This secret contains the K8s API bearer token associated with the
-`argocd-manager` ServiceAccount created during `argocd cluster add`, along with connection options
-to that API server (TLS configuration/certs, AWS role-arn, etc...).
-The information is used to reconstruct a REST config and kubeconfig to the cluster used by Argo CD
-services.
+为了管理外部集群，Argo CD 会将外部集群的凭证存储为 argocd 名称空间中的 Kubernetes Secret。 该 Secret 包含与在 `argocd cluster add` 期间创建的 `argocd-manager` ServiceAccount 相关联的 K8s API 承载令牌，以及与该 API 服务器的连接选项（TLS 配置/证书、AWS 角色arn 等......）。 这些信息被用于向 Argo CD 服务所引用的集群重构 REST config 和 kubeconfig。
 
-To rotate the bearer token used by Argo CD, the token can be deleted (e.g. using kubectl) which
-causes Kubernetes to generate a new secret with a new bearer token. The new token can be re-inputted
-to Argo CD by re-running `argocd cluster add`. Run the following commands against the *_managed_*
-cluster:
+要轮换 Argo CD 使用的承载令牌，可以删除该令牌（例如使用 kubectl），这将导致 Kubernetes 用新的承载令牌生成新的 secret。 可以通过重新运行 `argocd cluster add` 将新令牌重新输入 Argo CD。 针对 __managed__ 集群运行以下命令：
 
 ```bash
 # run using a kubeconfig for the externally managed cluster
@@ -119,15 +82,9 @@ kubectl delete secret argocd-manager-token-XXXXXX -n kube-system
 argocd cluster add CONTEXTNAME
 ```
 
-!!! note
-    Kubernetes 1.24 [stopped automatically creating tokens for Service Accounts](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.24.md#no-really-you-must-read-this-before-you-upgrade).
-    [Starting in Argo CD 2.4](https://github.com/argoproj/argo-cd/pull/9546), `argocd cluster add` creates a 
-    ServiceAccount _and_ a non-expiring Service Account token Secret when adding 1.24 clusters. In the future, Argo CD 
-    will [add support for the Kubernetes TokenRequest API](https://github.com/argoproj/argo-cd/issues/9610) to avoid 
-    using long-lived tokens.
+!!! 注意 Kubernetes 1.24 [停止自动为服务账户创建令牌](https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.24.md#no-really-you-must-read-this-before-you-upgrade)。[从 Argo CD 2.4 开始](https://github.com/argoproj/argo-cd/pull/9546)，在添加 1.24 集群时，`argocd cluster add` 会创建一个 ServiceAccount _and_ 一个非过期的服务账户令牌 Secret。未来，Argo CD 将 [添加对 Kubernetes TokenRequest API 的支持](https://github.com/argoproj/argo-cd/issues/9610)，以避免被引用过期令牌。
 
-To revoke Argo CD's access to a managed cluster, delete the RBAC artifacts against the *_managed_*
-cluster, and remove the cluster entry from Argo CD:
+要取消 Argo CD 对托管集群的访问权限，请删除针对 __managed__ 集群的 RBAC 工具，并从 Argo CD 中删除集群条目：
 
 ```bash
 # run using a kubeconfig for the externally managed cluster
@@ -136,35 +93,32 @@ kubectl delete clusterrole argocd-manager-role
 kubectl delete clusterrolebinding argocd-manager-role-binding
 argocd cluster rm https://your-kubernetes-cluster-addr
 ```
+
 <!-- markdownlint-disable MD027 -->
-> NOTE: for AWS EKS clusters, the [get-token](https://docs.aws.amazon.com/cli/latest/reference/eks/get-token.html) command
-  is used to authenticate to the external cluster, which uses IAM roles in lieu of locally stored
-  tokens, so token rotation is not needed, and revocation is handled through IAM.
+
+&gt; 注意：对于 AWS EKS 集群，[get-token](https://docs.aws.amazon.com/cli/latest/reference/eks/get-token.html) 命令
+
+被用于对外部集群进行身份验证，该集群使用 IAM 角色代替本地存储的令牌，因此无需轮换令牌，也可通过 IAM 进行撤销。
+
 <!-- markdownlint-enable MD027 -->
 
-## Cluster RBAC
+## 集群 RBAC
 
-By default, Argo CD uses a [clusteradmin level role](https://github.com/argoproj/argo-cd/blob/master/manifests/base/application-controller/argocd-application-controller-role.yaml)
-in order to:
+默认情况下，Argo CD 被引用[clusteradmin 级角色](https://github.com/argoproj/argo-cd/blob/master/manifests/base/application-controller/argocd-application-controller-role.yaml)，以便：
 
-1. watch & operate on cluster state
-2. deploy resources to the cluster
+1. 观察和操作集群状态
+2. 向集群部署资源
 
-Although Argo CD requires cluster-wide **_read_** privileges to resources in the managed cluster to
-function properly, it does not necessarily need full **_write_** privileges to the cluster. The
-ClusterRole used by argocd-server and argocd-application-controller can be modified such
-that write privileges are limited to only the namespaces and resources that you wish Argo CD to
-manage.
+尽管 Argo CD 需要整个集群的**_read_**权限才能正常运行，但它并不一定需要集群的全部**_write_**权限。 可以修改 argocd-server 和 argocd-application-controller 被引用的 ClusterRole，使写入权限仅限于希望 Argo CD 管理的 namespace 和资源。
 
-To fine-tune privileges of externally managed clusters, edit the ClusterRole of the `argocd-manager-role`
+要微调外部管理集群的权限，请编辑 `argocd-manager-role` 的 ClusterRole
 
 ```bash
 # run using a kubeconfig for the externally managed cluster
 kubectl edit clusterrole argocd-manager-role
 ```
 
-To fine-tune privileges which Argo CD has against its own cluster (i.e. `https://kubernetes.default.svc`),
-edit the following cluster roles where Argo CD is running in:
+要微调 Argo CD 在自己的集群（即 "https://kubernetes.default.svc"）中的权限，请编辑 Argo CD 运行所在的下列集群角色：
 
 ```bash
 # run using a kubeconfig to the cluster Argo CD is running in
@@ -172,102 +126,74 @@ kubectl edit clusterrole argocd-server
 kubectl edit clusterrole argocd-application-controller
 ```
 
-!!! tip
-    If you want to deny Argo CD access to a kind of resource then add it as an [excluded resource](declarative-setup.md#resource-exclusion).
+提示 如果您想拒绝 Argo CD 访问某类资源，请将其添加为 [excluded resource]（声明式设置.md#resource-exclusion）。
 
-## Auditing
+## 审计
 
-As a GitOps deployment tool, the Git commit history provides a natural audit log of what changes
-were made to application configuration, when they were made, and by whom. However, this audit log
-only applies to what happened in Git and does not necessarily correlate one-to-one with events
-that happen in a cluster. For example, User A could have made multiple commits to application
-manifests, but User B could have just only synced those changes to the cluster sometime later.
+作为 GitOps 部署工具，Git 提交历史记录提供了一个天然的审计日志，记录了对应用程序配置所做的更改、更改时间和更改人。 不过，该审计日志只适用于 Git 中发生的情况，并不一定与集群中发生的事件一一对应。 例如，用户 A 可能对应用程序配置清单做了多次提交，但用户 B 可能只是在之后的某个时间才将这些更改同步到集群。
 
-To complement the Git revision history, Argo CD emits Kubernetes Events of application activity,
-indicating the responsible actor when applicable. For example:
+作为对 Git 修订历史的补充，Argo CD 还会发布有关应用程序活动的 Kubernetes 事件，并在适当情况下指出负责的行为者。 例如，Argo CD 会在 Kubernetes 事件的基础上进行修订：
 
 ```bash
 $ kubectl get events
-LAST SEEN   FIRST SEEN   COUNT   NAME                         KIND          SUBOBJECT   TYPE      REASON               SOURCE                          MESSAGE
-1m          1m           1       guestbook.157f7c5edd33aeac   Application               Normal    ResourceCreated      argocd-server                   admin created application
-1m          1m           1       guestbook.157f7c5f0f747acf   Application               Normal    ResourceUpdated      argocd-application-controller   Updated sync status:  -> OutOfSync
-1m          1m           1       guestbook.157f7c5f0fbebbff   Application               Normal    ResourceUpdated      argocd-application-controller   Updated health status:  -> Missing
-1m          1m           1       guestbook.157f7c6069e14f4d   Application               Normal    OperationStarted     argocd-server                   admin initiated sync to HEAD (8a1cb4a02d3538e54907c827352f66f20c3d7b0d)
-1m          1m           1       guestbook.157f7c60a55a81a8   Application               Normal    OperationCompleted   argocd-application-controller   Sync operation to 8a1cb4a02d3538e54907c827352f66f20c3d7b0d succeeded
-1m          1m           1       guestbook.157f7c60af1ccae2   Application               Normal    ResourceUpdated      argocd-application-controller   Updated sync status: OutOfSync -> Synced
-1m          1m           1       guestbook.157f7c60af5bc4f0   Application               Normal    ResourceUpdated      argocd-application-controller   Updated health status: Missing -> Progressing
-1m          1m           1       guestbook.157f7c651990e848   Application               Normal    ResourceUpdated      argocd-application-controller   Updated health status: Progressing -> Healthy
+LAST SEEN FIRST SEEN COUNT NAME KIND SUBOBJECT TYPE REASON SOURCE MESSAGE
+1m 1m 1 guestbook.157f7c5edd33aeac Application Normal ResourceCreated argocd-server admin created application
+1m 1m 1 guestbook.157f7c5f0f747acf Application Normal ResourceUpdated argocd-application-controller Updated sync status:  -> OutOfSync
+1m 1m 1 guestbook.157f7c5f0fbebbff Application Normal ResourceUpdated argocd-application-controller Updated health status:  -> Missing
+1m 1m 1 guestbook.157f7c6069e14f4d Application Normal OperationStarted argocd-server admin initiated sync to HEAD (8a1cb4a02d3538e54907c827352f66f20c3d7b0d)
+1m 1m 1 guestbook.157f7c60a55a81a8 Application Normal OperationCompleted argocd-application-controller Sync operation to 8a1cb4a02d3538e54907c827352f66f20c3d7b0d succeeded
+1m 1m 1 guestbook.157f7c60af1ccae2 Application Normal ResourceUpdated argocd-application-controller Updated sync status: OutOfSync -> Synced
+1m 1m 1 guestbook.157f7c60af5bc4f0 Application Normal ResourceUpdated argocd-application-controller Updated health status: Missing -> Progressing
+1m 1m 1 guestbook.157f7c651990e848 Application Normal ResourceUpdated argocd-application-controller Updated health status: Progressing -> Healthy
 ```
 
-These events can be then be persisted for longer periods of time using other tools as
-[Event Exporter](https://github.com/GoogleCloudPlatform/k8s-stackdriver/tree/master/event-exporter) or
-[Event Router](https://github.com/heptiolabs/eventrouter).
+然后，可以使用其他工具（如 [Event Exporter](https://github.com/GoogleCloudPlatform/k8s-stackdriver/tree/master/event-exporter) 或 [Event Router](https://github.com/heptiolabs/eventrouter)）将这些事件长期保存。
 
-## WebHook Payloads
+## Webhook 有效载荷
 
-Payloads from webhook events are considered untrusted. Argo CD only examines the payload to infer
-the involved applications of the webhook event (e.g. which repo was modified), then refreshes
-the related application for reconciliation. This refresh is the same refresh which occurs regularly
-at three minute intervals, just fast-tracked by the webhook event.
+来自 webhook 事件的有效载荷被认为是不可信任的。 Argo CD 仅检查有效载荷，以推断 webhook 事件涉及的应用程序（例如哪个软件仓库被修改），然后刷新相关应用程序进行核对。 这种刷新与每隔三分钟定期进行的刷新相同，只是被 webhook 事件快速跟踪。
 
 ## Logging
 
-### Security field
+### 安全领域
 
-Security-related logs are tagged with a `security` field to make them easier to find, analyze, and report on.
+与安全相关的 logging 都标有 "安全 "字段，以便于查找、分析和报告。
 
-| Level | Friendly Level | Description                                                                                       | Example                                     |
-|-------|----------------|---------------------------------------------------------------------------------------------------|---------------------------------------------|
-| 1     | Low            | Unexceptional, non-malicious events                                                               | Successful access                           |
-| 2     | Medium         | Could indicate malicious events, but has a high likelihood of being user/system error             | Access denied                               |
-| 3     | High           | Likely malicious events but one that had no side effects or was blocked                           | Out of bounds symlinks in repo              |
-| 4     | Critical       | Any malicious or exploitable event that had a side effect                                         | Secrets being left behind on the filesystem |
-| 5     | Emergency      | Unmistakably malicious events that should NEVER occur accidentally and indicates an active attack | Brute forcing of accounts                   |
+| 级别 | 友好级别 | 描述 | 示例 | |-------|----------------|---------------------------------------------------------------------------------------------------|---------------------------------------------| | 1 | 低 | 非感知、非恶意事件 | 成功访问 | 2 | 中等 | 可能表示恶意事件，但很有可能是用户/系统错误 | 拒绝访问 | 3 | 高 | 可能是恶意事件，但其中一个没有副作用或被阻止 | repo 中的越界符号链接 | 4 | 严重 | 任何有副作用的恶意或可被利用的事件 | 秘密被遗弃在
 
-Where applicable, a `CWE` field is also added specifying the [Common Weakness Enumeration](https://cwe.mitre.org/index.html) number.
+在适用情况下，还会添加一个 `CWE` 字段，指定[通用弱点枚举](https://cwe.mitre.org/index.html) 编号。
 
-!!! warning
-    Please be aware that not all security logs are comprehensively tagged yet and these examples are not necessarily implemented.
+!!!警告 请注意，目前还没有对所有安全日志进行全面标记，这些示例也不一定能实现。
 
-### API Logs
+### API 日志
 
-Argo CD logs payloads of most API requests except request that are considered sensitive, such as
-`/cluster.ClusterService/Create`, `/session.SessionService/Create` etc. The full list of method
-can be found in [server/server.go](https://github.com/argoproj/argo-cd/blob/abba8dddce8cd897ba23320e3715690f465b4a95/server/server.go#L516).
+Argo CD 会记录大多数 API 请求的有效载荷，但被认为敏感的请求除外，如 `/cluster.ClusterService/Create`、`/session.SessionService/Create` 等。方法的完整列表可参见 [server/server.go](https://github.com/argoproj/argo-cd/blob/abba8dddce8cd897ba23320e3715690f465b4a95/server/server.go#L516)。
 
-Argo CD does not log IP addresses of clients requesting API endpoints, since the API server is typically behind a proxy. Instead, it is recommended
-to configure IP addresses logging in the proxy server that sits in front of the API server.
+Argo CD 不会记录请求 API 端点的客户端的 IP 地址，因为 API 服务器通常位于代理服务器之后。 相反，建议在位于 API 服务器前面的代理服务器中配置 IP 地址记录。
 
-## ApplicationSets
+## ApplicationSet
 
-Argo CD's ApplicationSets feature has its own [security considerations](./applicationset/Security.md). Be aware of those
-issues before using ApplicationSets.
+Argo CD 的 ApplicationSet 功能有自己的 [安全注意事项](./applicationset/Security.md)。 在使用 ApplicationSets 之前，请注意这些问题。
 
-## Limiting Directory App Memory Usage
+## 限制目录应用程序内存 Usage
 
-> >2.2.10, 2.1.16, >2.3.5
+&gt;&gt; 2.2.10, 2.1.16, &gt;2.3.5
 
-Directory-type Applications (those whose source is raw JSON or YAML files) can consume significant
-[repo-server](architecture.md#repository-server) memory, depending on the size and structure of the YAML files.
+目录型应用程序（源文件为原始 JSON 或 YAML 文件的应用程序）会消耗大量 [repo-server](architecture.md#repository-server) 内存，具体取决于 YAML 文件的大小和架构。
 
-To avoid over-using memory in the repo-server (potentially causing a crash and denial of service), set the
-`reposerver.max.combined.directory.manifests.size` config option in [argocd-cmd-params-cm](argocd-cmd-params-cm.yaml).
+为避免在 repo-server 中过度使用内存（可能导致崩溃和拒绝服务），请在 [argocd-cmd-params-cm](argocd-cmd-params-cm.yaml) 中设置 `reposerver.max.combined.directory.manifests.size` 配置选项。
 
-This option limits the combined size of all JSON or YAML files in an individual app. Note that the in-memory
-representation of a manifest may be as much as 300x the size of the manifest on disk. Also note that the limit is per
-Application. If manifests are generated for multiple applications at once, memory usage will be higher.
+该选项限制了单个应用程序中所有 JSON 或 YAML 文件的总和大小。 请注意，清单的内存配置可能是磁盘上清单大小的 300 倍。 还请注意，该限制是针对每个应用程序的。 如果同时为多个应用程序生成清单，内存使用量会更高。
 
-**Example:**
+**示例：**
 
-Suppose your repo-server has a 10G memory limit, and you have ten Applications which use raw JSON or YAML files. To
-calculate the max safe combined file size per Application, divide 10G by 300 * 10 Apps (300 being the worst-case memory
-growth factor for the manifests).
+假设您的版本服务器有 10G 内存限制，而您有 10 个使用原始 JSON 或 YAML 文件的应用程序。 要计算每个应用程序的最大安全组合文件大小，请用 10G 除以 300 * 10 个应用程序（300 是配置清单最坏情况下的内存增长系数）。
 
 ```
 10G / 300 * 10 = 3M
 ```
 
-So a reasonably safe configuration for this setup would be a 3M limit per app.
+因此，这种设置的合理安全配置是每个应用程序限制为 3M。
 
 ```yaml
 apiVersion: v1
@@ -278,8 +204,6 @@ data:
   reposerver.max.combined.directory.manifests.size: '3M'
 ```
 
-The 300x ratio assumes a maliciously-crafted manifest file. If you only want to protect against accidental excessive
-memory use, it is probably safe to use a smaller ratio.
+300 倍的比率是假定配置清单文件被恶意伪造。 如果只想防止意外使用过多内存，使用较小的比率可能比较安全。
 
-Keep in mind that if a malicious user can create additional Applications, they can increase the total memory usage.
-Grant [App creation privileges](rbac.md) carefully.
+请记住，如果恶意用户可以创建更多应用程序，就会增加总内存使用量。 请谨慎授予 [应用程序创建权限](rbac.md)。

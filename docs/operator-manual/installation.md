@@ -1,70 +1,59 @@
-# Installation
+<!-- TRANSLATED by md-translate -->
+# 安装
 
-Argo CD has two type of installations: multi-tenant and core.
+Argo CD 有两种安装类型：多用户和核心。
 
-## Multi-Tenant
+## 多租户
 
-The multi-tenant installation is the most common way to install Argo CD. This type of installation is typically used to service multiple application developer teams
-in the organization and maintained by a platform team.
+多租户安装是 Argo CD 最常见的安装方式。 这种安装方式通常被引用来为企业中的多个应用开发团队提供服务，并由一个平台团队进行维护。
 
-The end-users can access Argo CD via the API server using the Web UI or `argocd` CLI. The `argocd` CLI has to be configured using `argocd login <server-host>` command
-(learn more [here](../user-guide/commands/argocd_login.md)).
+终端用户可以使用 Web UI 或 `argocd` CLI 通过 API 服务器访问 Argo CD。必须使用 `argocd login<server-host>` 命令配置 `argocd` CLI（了解更多 [此处](../user-guide/commands/argocd_login.md)）。
 
-Two types of installation manifests are provided:
+Provider 提供两种配置清单：
 
-### Non High Availability:
+#### 非高可用性：
 
-Not recommended for production use. This type of installation is typically used during evaluation period for demonstrations and testing.
+不建议用于生产。 这种安装方式通常在评估期间用于演示和测试。
 
-* [install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/install.yaml) - Standard Argo CD installation with cluster-admin access. Use this
-  manifest set if you plan to use Argo CD to deploy applications in the same cluster that Argo CD runs
-  in (i.e. kubernetes.svc.default). It will still be able to deploy to external clusters with inputted
-  credentials.
+* [install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/install.yaml) - 具有集群管理员权限的标准 Argo CD 安装。如果您计划在 Argo CD 运行的同一集群中使用 Argo CD 部署应用程序，请引用此
+配置清单集。
+即 kubernetes.svc.default）中部署应用程序时，请使用此清单集。它仍能通过输入的
+凭据。
+* [namespace-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/namespace-install.yaml) - 安装 Argo CD 仅需要
+namespace 级权限（不需要集群角色）。如果不需要在 Argo CD 中部署应用程序，请引用此配置清单集。
+使用此清单集。
+输入的集群凭据。使用此配置清单集的一个例子是，如果您为不同团队运行多个
+Argo CD 实例，每个实例都将应用程序部署到外部集群。
+外部集群。仍然可以部署到同一个集群（kubernetes.svc.default）
+输入的凭据（即 `argocd cluster add<CONTEXT> --in-cluster --namespace<YOUR NAMESPACE>`）。
+    &gt; 注意：Argo CD CRD 未包含在 [namespace-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/namespace-install.yaml) 中。
+    &gt; 必须单独安装。CRD 配置清单位于 [manifests/crds](https://github.com/argoproj/argo-cd/blob/master/manifests/crds) 目录中。
+    &gt; 使用以下命令安装它们：
+    &gt;
+    &gt; ```
+    &gt; kubectl apply -k https://github.com/argoproj/argo-cd/manifests/crds\?ref\=stable
+    &gt; ```
 
-* [namespace-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/namespace-install.yaml) - Installation of Argo CD which requires only
-  namespace level privileges (does not need cluster roles). Use this manifest set if you do not
-  need Argo CD to deploy applications in the same cluster that Argo CD runs in, and will rely solely
-  on inputted cluster credentials. An example of using this set of manifests is if you run several
-  Argo CD instances for different teams, where each instance will be deploying applications to
-  external clusters. It will still be possible to deploy to the same cluster (kubernetes.svc.default)
-  with inputted credentials (i.e. `argocd cluster add <CONTEXT> --in-cluster --namespace <YOUR NAMESPACE>`).
+#### 高可用性：
 
-  > Note: Argo CD CRDs are not included into [namespace-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/namespace-install.yaml).
-  > and have to be installed separately. The CRD manifests are located in the [manifests/crds](https://github.com/argoproj/argo-cd/blob/master/manifests/crds) directory.
-  > Use the following command to install them:
-  > ```
-  > kubectl apply -k https://github.com/argoproj/argo-cd/manifests/crds\?ref\=stable
-  > ```
+高可用性安装建议在生产中使用。 该捆绑包包括相同的组件，但针对高可用性和弹性进行了调整。
 
-### High Availability:
+* [ha/install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/ha/install.yaml) - 与 install.yaml 相同，但为支持的组件提供了多个副本。
+支持的组件的多个副本。
+* [ha/namespace-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/ha/namespace-install.yaml) - 与namespace-install.yaml相同，但支持组件的
+为支持的组件提供多个副本。
 
-High Availability installation is recommended for production use. This bundle includes the same components but tuned for high availability and resiliency.
+## 核心
 
-* [ha/install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/ha/install.yaml) - the same as install.yaml but with multiple replicas for
-  supported components.
+Argo CD Core 安装主要用于在无头模式下部署 Argo CD。 这种类型的安装最适合独立使用 Argo CD 且不需要多租户功能的集群管理员。 这种安装包含的组件较少，更易于设置。 捆绑安装不包含 API 服务器或用户界面，安装的是每个组件的轻量级（非 HA）版本。
 
-* [ha/namespace-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/ha/namespace-install.yaml) - the same as namespace-install.yaml but
-  with multiple replicas for supported components.
+安装配置清单见 [core-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/core-install.yaml)。
 
-## Core
+有关 Argo CD Core 的更多详情，请参阅[官方文档](./core.md)
 
-The Argo CD Core installation is primarily used to deploy Argo CD in
-headless mode. This type of installation is most suitable for cluster
-administrators who independently use Argo CD and don't need
-multi-tenancy features. This installation includes fewer components
-and is easier to setup. The bundle does not include the API server or
-UI, and installs the lightweight (non-HA) version of each component.
+## kustomize
 
-Installation manifest is available at [core-install.yaml](https://github.com/argoproj/argo-cd/blob/master/manifests/core-install.yaml).
-
-For more details about Argo CD Core please refer to the [official
-documentation](./core.md)
-
-## Kustomize
-
-The Argo CD manifests can also be installed using Kustomize. It is recommended to include the manifest as a remote resource and apply additional customizations
-using Kustomize patches.
-
+Argo CD 配置清单也可使用 Kustomize 安装，建议将配置清单作为远程资源，并使用 Kustomize 补丁引用其他自定义配置。
 
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -75,20 +64,18 @@ resources:
 - https://raw.githubusercontent.com/argoproj/argo-cd/v2.7.2/manifests/install.yaml
 ```
 
-For an example of this, see the [kustomization.yaml](https://github.com/argoproj/argoproj-deployments/blob/master/argocd/kustomization.yaml)
-used to deploy the [Argoproj CI/CD infrastructure](https://github.com/argoproj/argoproj-deployments#argoproj-deployments).
+有关示例，请参阅被引用用于部署 [Argoproj CI/CD 基础架构](https://github.com/argoproj/argoproj-deployments#argoproj-deployments) 的 [kustomization.yaml](https://github.com/argoproj/argoproj-deployments/blob/master/argocd/kustomization.yaml)。
 
 ## Helm
 
-The Argo CD can be installed using [Helm](https://helm.sh/). The Helm chart is currently community maintained and available at
-[argo-helm/charts/argo-cd](https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd).
+Argo CD 可通过 [Helm](https://helm.sh/) 安装。Helm 图表目前由社区维护，可通过 [argo-helm/charts/argo-cd](https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd) 获取。
 
-## Supported versions
+## 支持的版本
 
-For detailed information regarding Argo CD's version support policy, please refer to the [Release Process and Cadence documentation](https://argo-cd.readthedocs.io/en/stable/developer-guide/release-process-and-cadence/).
+有关 Argo CD 版本支持政策的详细信息，请参阅[发布流程和 Cadence 文档](https://argo-cd.readthedocs.io/en/stable/developer-guide/release-process-and-cadence/)。
 
-## Tested versions
+## 测试版本
 
-The following table shows the versions of Kubernetes that are tested with each version of Argo CD.
+下表显示了与 Argo CD 各个版本一起测试的 Kubernetes 版本。
 
 {!docs/operator-manual/tested-kubernetes-versions.md!}

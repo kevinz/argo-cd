@@ -1,11 +1,11 @@
-## Additional configuration methods
+<!-- TRANSLATED by md-translate -->
+## 其他配置方法
 
-Additional configuration methods for configuring commands `argocd-server`, `argocd-repo-server` and `argocd-application-controller`.
+用于配置命令 `argocd-server`, `argocd-repo-server` 和 `argocd-application-controller` 的附加配置方法。
 
+#### 简介
 
-### Synopsis
-
-The commands can also be configured by setting the respective flag of the available options in `argocd-cmd-params-cm.yaml`. Each component has a specific prefix associated with it.
+也可以通过在 `argocd-cmd-params-cm.yaml` 中设置可用选项的相应 flag 来配置命令。 每个组件都有与之相关的特定前缀。
 
 ```
 argocd-server                 --> server
@@ -13,16 +13,13 @@ argocd-repo-server            --> reposerver
 argocd-application-controller --> controller
 ```
 
-The flags that do not have a prefix are shared across multiple components. One such flag is `repo.server`
-The list of flags that are available can be found in [argocd-cmd-params-cm.yaml](../argocd-cmd-params-cm.yaml) 
+没有前缀的标志在多个组件中共享。 其中一个标志是 `repo.server` 可用标志的列表可以在 [argocd-cmd-params-cm.yaml](../argocd-cmd-params-cm.yaml) 中找到。
 
+### 示例
 
-### Example
-
-To set `logformat` of `argocd-application-controller`, add below entry to the config map `argocd-cmd-params-cm.yaml`.
+要设置 `argocd-application-controller` 的 `logformat` ，请在配置 maps `argocd-cmd-params-cm.yaml` 中添加以下条目。
 
 ```
 data:
     controller.log.format: "text"
 ```
-

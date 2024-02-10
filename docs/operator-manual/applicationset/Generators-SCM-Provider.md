@@ -1,6 +1,7 @@
-# SCM Provider Generator
+<!-- TRANSLATED by md-translate -->
+# SCM Provider 生成器
 
-The SCM Provider generator uses the API of an SCMaaS provider (eg GitHub) to automatically discover repositories within an organization. This fits well with GitOps layout patterns that split microservices across many repositories.
+SCM Provider 生成器被引用 SCMaaS 提供商（如 GitHub）的 API 来自动发现组织内的资源库。 这非常适合 GitOps 的布局模式，即在许多资源库中分割微服务。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -17,17 +18,13 @@ spec:
         # ...
 ```
 
-* `cloneProtocol`: Which protocol to use for the SCM URL. Default is provider-specific but ssh if possible. Not all providers necessarily support all protocols, see provider documentation below for available options.
+* `cloneProtocol`：被引用到 SCM URL 的协议。默认为特定于 Provider 的协议，但可能的话使用 ssh。并非所有 Provider 都支持所有协议，有关可用选项，请参阅下面的 Provider 文档。
 
-!!! note
-    Know the security implications of using SCM generators. [Only admins may create ApplicationSets](./Security.md#only-admins-may-createupdatedelete-applicationsets)
-    to avoid leaking Secrets, and [only admins may create repos/branches](./Security.md#templated-project-field) if the
-    `project` field of an ApplicationSet with an SCM generator is templated, to avoid granting management of
-    out-of-bounds resources.
+只有管理员可以创建 ApplicationSet](./Security.md#only-admins-may-createupdatedelete-applicationsets)，以避免泄露秘密；如果使用 SCM 生成器的 ApplicationSet 的 `project` 字段是模板化的，则[只有管理员可以创建 repos/分支](./Security.md#templated-project-field)，以避免授权管理越界资源。
 
 ## GitHub
 
-The GitHub mode uses the GitHub API to scan an organization in either github.com or GitHub Enterprise.
+GitHub 模式被引用 GitHub API 扫描 github.com 或 GitHub Enterprise 中的组织。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -54,21 +51,19 @@ spec:
   # ...
 ```
 
-* `organization`: Required name of the GitHub organization to scan. If you have multiple organizations, use multiple generators.
-* `api`: If using GitHub Enterprise, the URL to access it.
-* `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
-* `tokenRef`: A `Secret` name and key containing the GitHub access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories.
-* `appSecretName`: A `Secret` name containing a GitHub App secret in [repo-creds format][repo-creds].
+* `organization`：需要扫描的 GitHub 组织名称。如果有多个组织，请被引用多个生成器。
+* `api`：如果被引用为 GitHub 企业版，则是访问它的 URL。
+* `allBranches`：默认情况下（false），模板只对每个 repo 的默认分支进行评估。如果为 "true"，则每个版本库的每个分支都会传递给过滤器。如果被引用此 flag，则可能需要使用 `branchMatch` 过滤器。
+* tokenRef`：一个包含 GitHub 访问令牌的 `Secret` 名称和密钥，用于请求。如果未指定，将发出匿名请求，其速率限制较低，且只能查看公共仓库。
+* 应用程序密名包含[repo-creds 格式]（.../declarative-setup.md#repository-credentials）的 GitHub 应用秘密的 `Secret` 名称。
 
-[repo-creds]: ../declarative-setup.md#repository-credentials
+在标签过滤方面，存储库主题被引用。
 
-For label filtering, the repository topics are used.
-
-Available clone protocols are `ssh` and `https`.
+可用的克隆协议有`ssh`和`https`。
 
 ## Gitlab
 
-The GitLab mode uses the GitLab API to scan and organization in either gitlab.com or self-hosted GitLab.
+GitLab 模式使用 GitLab API 在 gitlab.com 或自托管的 GitLab 中进行扫描和组织。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -79,7 +74,7 @@ spec:
   generators:
   - scmProvider:
       gitlab:
-        # The base GitLab group to scan.  You can either use the group id or the full namespaced path.
+        # The base GitLab group to scan. You can either use the group id or the full namespaced path.
         group: "8675309"
         # For self-hosted GitLab:
         api: https://gitlab.example.com/
@@ -102,30 +97,30 @@ spec:
   # ...
 ```
 
-* `group`: Required name of the base GitLab group to scan. If you have multiple base groups, use multiple generators.
-* `api`: If using self-hosted GitLab, the URL to access it.
-* `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
-* `includeSubgroups`: By default (false) the controller will only search for repos directly in the base group. If this is true, it will recurse through all the subgroups searching for repos to scan.
-* `includeSharedProjects`: If true and includeSubgroups is also true, include Shared Projects, which is gitlab API default. If false only search Projects under the same path. In general most would want the behaviour when set to false. Defaults to true.
-* `topic`: filter projects by topic. A single topic is supported by Gitlab API. Defaults to "" (all topics).
-* `tokenRef`: A `Secret` name and key containing the GitLab access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories.
-* `insecure`: By default (false) - Skip checking the validity of the SCM's certificate - useful for self-signed TLS certificates.
+* group`：需要扫描的 GitLab 基本组名称。如果有多个基础组，请被引用多个生成器。
+* `api`：被引用的 GitLab 的 URL。
+* `allBranches`：默认情况下（false），模板只对每个 repo 的默认分支进行评估。如果为 "true"，则每个版本库的每个分支都会传递给过滤器。如果被引用此 flag，则可能需要使用 `branchMatch` 过滤器。
+* includeSubgroups`（包含子组）：默认情况下（false），控制器只会直接搜索基本组中的 repos。如果为 "true"，它将遍历所有子组，搜索要扫描的软件版本。
+* includeSharedProjects`：如果为 true 且 includeSubgroups 也为 true，则包括共享项目，这是 gitlab API 的默认设置。false 则只搜索相应路径下的项目。一般来说，大多数人都希望设置为 false 时的行为。默认为 true。
+* topic`：按主题过滤项目。Gitlab API 支持单个主题。默认为""（所有主题）。
+* `tokenRef`：一个包含 GitLab 访问令牌的 `Secret` 名称和密钥，用于请求。如果未指定，将发出匿名请求，其速率限制较低，且只能查看公共仓库。
+* 不安全被引用（false）--跳过检查 SCM 证书的有效性--对自签 TLS 证书有用。
 
-For label filtering, the repository topics are used.
+在标签过滤方面，存储库主题被引用。
 
-Available clone protocols are `ssh` and `https`.
+可用的克隆协议有`ssh`和`https`。
 
-### Self-signed TLS Certificates
+### 自签名 TLS 证书
 
-As a preferable alternative to setting `insecure` to true, you can configure self-signed TLS certificates for Gitlab.
+除了将 `insecure` 设为 true 之外，还可以为 Gitlab 配置自签名 TLS 证书。
 
-In order for a self-signed TLS certificate be used by an ApplicationSet's SCM / PR Gitlab Generator, the certificate needs to be mounted on the applicationset-controller. The path of the mounted certificate must be explicitly set using the environment variable `ARGOCD_APPLICATIONSET_CONTROLLER_SCM_ROOT_CA_PATH` or alternatively using parameter `--scm-root-ca-path`. The applicationset controller will read the mounted certificate to create the Gitlab client for SCM/PR Providers
+要让应用程序集的 SCM/PR Gitlab 生成器使用自签名 TLS 证书，必须在应用程序集控制器上加载该证书。 加载证书的路径必须使用环境变量 "ARGOCD_APPLICATIONSET_CONTROLLER_SCM_ROOT_CA_PATH "或参数"--scm-root-ca-path "明确设置。 应用程序集控制器将读取加载的证书，为 SCM/PR Providers 创建 Gitlab 客户端。
 
-This can be achieved conveniently by setting `applicationsetcontroller.scm.root.ca.path` in the argocd-cmd-params-cm ConfigMap. Be sure to restart the ApplicationSet controller after setting this value.
+通过在 argocd-cmd-params-cm ConfigMap 中设置 "applicationsetcontroller.scm.root.ca.path"，可以方便地实现这一点。 设置此值后，请务必重启 ApplicationSet 控制器。
 
 ## Gitea
 
-The Gitea mode uses the Gitea API to scan organizations in your instance
+Gitea 模式使用 Gitea API 扫描实例中的组织
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -150,19 +145,19 @@ spec:
   # ...
 ```
 
-* `owner`: Required name of the Gitea organization to scan. If you have multiple organizations, use multiple generators.
-* `api`: The URL of the Gitea instance you are using.
-* `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
-* `tokenRef`: A `Secret` name and key containing the Gitea access token to use for requests. If not specified, will make anonymous requests which have a lower rate limit and can only see public repositories.
-* `insecure`: Allow for self-signed TLS certificates.
+* Owner`：需要扫描的 Gitea 组织名称。如果有多个组织，请被引用多个生成器。
+* `api`：您正在使用的 Gitea 实例的 URL。
+* `allBranches`：默认情况下（false），模板只对每个 repo 的默认分支进行评估。如果为 "true"，则每个版本库的每个分支都会传递给过滤器。如果被引用此 flag，则可能需要使用 `branchMatch` 过滤器。
+* tokenRef`：一个包含 Gitea 访问令牌的 `Secret` 名称和密钥，用于请求。如果未指定，将发出匿名请求，其速率限制较低，且只能查看公共版本库。
+* 不安全允许自签名 TLS 证书。
 
-This SCM provider does not yet support label filtering
+该 SCM Provider 尚不支持标签过滤功能
 
-Available clone protocols are `ssh` and `https`.
+可用的克隆协议有`ssh`和`https`。
 
-## Bitbucket Server
+## Bitbucket 服务器
 
-Use the Bitbucket Server API (1.0) to scan repos in a project. Note that Bitbucket Server is not to same as Bitbucket Cloud (API 2.0)
+使用 Bitbucket Server API（1.0）扫描项目中的软件仓库。 请注意，Bitbucket Server 与 Bitbucket Cloud（API 2.0）不同。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -191,20 +186,20 @@ spec:
   # ...
 ```
 
-* `project`: Required name of the Bitbucket project
-* `api`: Required URL to access the Bitbucket REST api.
-* `allBranches`: By default (false) the template will only be evaluated for the default branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
+* 项目必填的 Bitbucket 项目名称
+* `api`：访问 Bitbucket REST api 所需的 URL。
+* `allBranches`：默认情况下（false），模板只对每个版本库的默认分支进行评估。如果为 "true"，则每个版本库的每个分支都会传递给过滤器。如果被引用此 flag，则可能需要使用 `branchMatch` 过滤器。
 
-If you want to access a private repository, you must also provide the credentials for Basic auth (this is the only auth supported currently):
-* `username`: The username to authenticate with. It only needs read access to the relevant repo.
-* `passwordRef`: A `Secret` name and key containing the password or personal access token to use for requests.
+如果要访问私有资源库，还必须提供 Basic auth 的凭据（这是目前唯一支持的 auth）：
 
-Available clone protocols are `ssh` and `https`.
+* 用户名：要验证的用户名。它只需要相关版本库的读取权限。
+* `passwordRef`：包含密码或个人访问令牌的 `Secret` 名称和密钥，用于请求。
+
+可用的克隆协议有`ssh`和`https`。
 
 ## Azure DevOps
 
-Uses the Azure DevOps API to look up eligible repositories based on a team project within an Azure DevOps organization.
-The default Azure DevOps URL is `https://dev.azure.com`, but this can be overridden with the field `azureDevOps.api`.
+被引用的 Azure DevOps API 可根据 Azure DevOps 组织内的团队项目查找符合条件的存储库。默认 Azure DevOps URL 为 `https://dev.azure.com`，但可通过字段 `azureDevOps.api` 改写。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -231,15 +226,15 @@ spec:
   # ...
 ```
 
-* `organization`: Required. Name of the Azure DevOps organization.
-* `teamProject`: Required. The name of the team project within the specified `organization`.
-* `accessTokenRef`: Required. A `Secret` name and key containing the Azure DevOps Personal Access Token (PAT) to use for requests.
-* `api`: Optional. URL to Azure DevOps. If not set, `https://dev.azure.com` is used.
-* `allBranches`: Optional, default `false`. If `true`, scans every branch of eligible repositories. If `false`, check only the default branch of the eligible repositories.
+* 组织"：必填。Azure DevOps 组织的名称。
+* 团队项目必填。指定 `organization` 中团队项目的名称。
+* `accessTokenRef`：必填。包含要用于请求的 Azure DevOps 个人访问令牌 (PAT) 的 `Secret` 名称和密钥。
+* `api`：可选。Azure DevOps 的 URL。如果未设置，则被引用 `https://dev.azure.com`。
+* `allBranches`：可选，默认为 `false`。如果 `true`，则扫描符合条件的版本库的每个分支。如果 `false`，则只检查符合条件的软件源的默认分支。
 
-## Bitbucket Cloud
+## Bitbucket 云
 
-The Bitbucket mode uses the Bitbucket API V2 to scan a workspace in bitbucket.org.
+Bitbucket 模式被引用 Bitbucket API V2 来扫描 bitbucket.org 中的工作区。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -264,18 +259,18 @@ spec:
   # ...
 ```
 
-* `owner`: The workspace ID (slug) to use when looking up repositories.
-* `user`: The user to use for authentication to the Bitbucket API V2 at bitbucket.org.
-* `allBranches`: By default (false) the template will only be evaluated for the main branch of each repo. If this is true, every branch of every repository will be passed to the filters. If using this flag, you likely want to use a `branchMatch` filter.
-* `appPasswordRef`: A `Secret` name and key containing the bitbucket app password to use for requests.
+* Owner`：查找软件源时被引用的工作区 ID（slug）。
+* `user`：被引用到 bitbucket.org 的 Bitbucket API V2 验证的用户。
+* `allBranches`：默认情况下（false），模板只对每个版本库的主分支进行评估。如果为 "true"，则每个版本库的每个分支都会传给过滤器。如果被引用此 flag，则可能需要使用 `branchMatch` 过滤器。
+* `appPasswordRef`：包含 bitbucket 应用程序密码的 `Secret` 名称和密钥，用于请求。
 
-This SCM provider does not yet support label filtering
+该 SCM Provider 尚不支持标签过滤功能
 
-Available clone protocols are `ssh` and `https`.
+可用的克隆协议有`ssh`和`https`。
 
-## AWS CodeCommit (Alpha)
+### AWS CodeCommit (Alpha)
 
-Uses AWS ResourceGroupsTagging and AWS CodeCommit APIs to scan repos across AWS accounts and regions.
+被引用 AWS ResourceGroupsTagging 和 AWS CodeCommit API 跨 AWS 账户和地区扫描 repos。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -305,58 +300,55 @@ spec:
   # ...
 ```
 
-* `region`: (Optional) AWS region to scan repos. By default, use ApplicationSet controller's current region.
-* `role`: (Optional) AWS role to assume to scan repos. By default, use ApplicationSet controller's current role.
-* `allBranches`: (Optional) If `true`, scans every branch of eligible repositories. If `false`, check only the default branch of the eligible repositories. Default `false`.
-* `tagFilters`: (Optional) A list of tagFilters to filter AWS CodeCommit repos with. See [AWS ResourceGroupsTagging API](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#resourcegrouptagging-GetResources-request-TagFilters) for details. By default, no filter is included.
+* region`：（可选）扫描 repos 的 AWS 区域。默认情况下，被引用的是 ApplicationSet 控制器的当前区域。
+* `role`：（可选）要扫描 repos 的 AWS 角色。默认情况下，使用 ApplicationSet 控制器的当前角色。
+* allBranches`：（可选）如果 `true`，则扫描符合条件的版本库的每个分支。如果 `false`，则只检查符合条件的软件源的默认分支。默认为 `false`。
+* tagFilters：（可选）用于过滤 AWS CodeCommit 仓库的 tagFilters 列表。详情请参阅 [AWS ResourceGroupsTagging API](https://docs.aws.amazon.com/resourcegroupstagging/latest/APIReference/API_GetResources.html#resourcegrouptagging-GetResources-request-TagFilters)。默认情况下，不包含任何过滤器。
 
-This SCM provider does not support the following features
+该 SCM Provider 不支持以下功能
 
-* label filtering
-* `sha`, `short_sha` and `short_sha_7` template parameters
+* 标签过滤
+* sha"、"short_sha "和 "short_sha_7 "模板参数
 
-Available clone protocols are `ssh`, `https` and `https-fips`.
+可用的克隆协议有`ssh`、`https`和`https-fips`。
 
-### AWS IAM Permission Considerations
+### AWS IAM 权限注意事项
 
-In order to call AWS APIs to discover AWS CodeCommit repos, ApplicationSet controller must be configured with valid environmental AWS config, like current AWS region and AWS credentials.
-AWS config can be provided via all standard options, like Instance Metadata Service (IMDS), config file, environment variables, or IAM roles for service accounts (IRSA).
+为了调用 AWS API 发现 AWS CodeCommit repos，ApplicationSet 控制器必须配置有效的 AWS 环境配置，如当前 AWS 区域和 AWS 凭据。 AWS 配置可通过所有标准选项提供，如实例元数据服务（IMDS）、配置文件、环境变量或服务账户的 IAM 角色（IRSA）。
 
-Depending on whether `role` is provided in `awsCodeCommit` property, AWS IAM permission requirement is different.
+根据是否在 `awsCodeCommit` 属性中提供 `role` ，AWS IAM 权限要求有所不同。
 
-#### Discover AWS CodeCommit Repositories in the same AWS Account as ApplicationSet Controller
+#### 在与 ApplicationSet Controller 相同的 AWS 账户中发现 AWS CodeCommit 存储库
 
-Without specifying `role`, ApplicationSet controller will use its own AWS identity to scan AWS CodeCommit repos.
-This is suitable when you have a simple setup that all AWS CodeCommit repos reside in the same AWS account as your Argo CD.
+如果不指定 "角色"，ApplicationSet 控制器将使用自己的 AWS 身份扫描 AWS CodeCommit repos。 这适用于所有 AWS CodeCommit repos 与 Argo CD 位于同一 AWS 账户的简单设置。
 
-As the ApplicationSet controller AWS identity is used directly for repo discovery, it must be granted below AWS permissions.
+由于 ApplicationSet 控制器 AWS 身份被直接引用用于发现 repo，因此必须授予 AWS 以下权限。
 
-* `tag:GetResources`
-* `codecommit:ListRepositories`
-* `codecommit:GetRepository`
-* `codecommit:GetFolder`
-* `codecommit:ListBranches`
+* 标签:获取资源
+* codecommit:ListRepositories`目录
+* 代码提交:获取资源库
+* 代码提交:获取文件夹
+* codecommit:ListBranches`目录
 
-#### Discover AWS CodeCommit Repositories across AWS Accounts and Regions
+#### 跨 AWS 账户和地区发现 AWS CodeCommit 资源库
 
-By specifying `role`, ApplicationSet controller will first assume the `role`, and use it for repo discovery.
-This enables more complicated use cases to discover repos from different AWS accounts and regions.
+通过指定 "角色"，ApplicationSet 控制器将首先假定 "角色"，并使用它来发现软件仓库。 这样就能在更复杂的用例中发现来自不同 AWS 账户和地区的软件仓库。
 
-The ApplicationSet controller AWS identity should be granted permission to assume target AWS roles.
+应授予 ApplicationSet 控制器 AWS 身份承担目标 AWS 角色的权限。
 
-* `sts:AssumeRole`
+* sts:AssumeRole`（承担角色
 
-All AWS roles must have repo discovery related permissions.
+所有 AWS 角色都必须拥有与 repo 发现相关的权限。
 
-* `tag:GetResources`
-* `codecommit:ListRepositories`
-* `codecommit:GetRepository`
-* `codecommit:GetFolder`
-* `codecommit:ListBranches`
+* 标签:获取资源
+* codecommit:ListRepositories`目录
+* 代码提交:获取资源库
+* 代码提交:获取文件夹
+* codecommit:ListBranches`目录
 
-## Filters
+## 过滤器
 
-Filters allow selecting which repositories to generate for. Each filter can declare one or more conditions, all of which must pass. If multiple filters are present, any can match for a repository to be included. If no filters are specified, all repositories will be processed.
+过滤器允许选择要生成的版本库。 每个过滤器可以声明一个或多个条件，所有条件都必须通过。 如果存在多个过滤器，则任何一个过滤器都可以匹配以包含一个版本库。 如果没有指定过滤器，则将处理所有版本库。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -379,15 +371,15 @@ spec:
   # ...
 ```
 
-* `repositoryMatch`: A regexp matched against the repository name.
-* `pathsExist`: An array of paths within the repository that must exist. Can be a file or directory.
-* `pathsDoNotExist`: An array of paths within the repository that must not exist. Can be a file or directory.
-* `labelMatch`: A regexp matched against repository labels. If any label matches, the repository is included.
-* `branchMatch`: A regexp matched against branch names.
+* repositoryMatch`：与版本库名称匹配的 regexp。
+* `pathsExist`：版本库中必须存在的路径数组。可以是文件或目录。
+* `pathsDoNotExist`：版本库中必须不存在的路径数组。可以是文件或目录。
+* `labelMatch`：与版本库标签匹配的 regexp。如果有标签匹配，则包含该版本库。
+* 分支匹配与分支名称匹配的 regexp。
 
-## Template
+## 模板
 
-As with all generators, several parameters are generated for use within the `ApplicationSet` resource template.
+与所有生成器一样，会生成几个参数供 `ApplicationSet` 资源模板使用。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -414,21 +406,22 @@ spec:
         namespace: default
 ```
 
-* `organization`: The name of the organization the repository is in.
-* `repository`: The name of the repository.
-* `url`: The clone URL for the repository.
-* `branch`: The default branch of the repository.
-* `sha`: The Git commit SHA for the branch.
-* `short_sha`: The abbreviated Git commit SHA for the branch (8 chars or the length of the `sha` if it's shorter).
-* `short_sha_7`: The abbreviated Git commit SHA for the branch (7 chars or the length of the `sha` if it's shorter).
-* `labels`: A comma-separated list of repository labels in case of Gitea, repository topics in case of Gitlab and Github. Not supported by Bitbucket Cloud, Bitbucket Server, or Azure DevOps.
-* `branchNormalized`: The value of `branch` normalized to contain only lowercase alphanumeric characters, '-' or '.'.
+* `organization`：版本库所在组织的名称。
+* `repository`：版本库的名称。
+* `url`：版本库的克隆 URL。
+* 分支版本库的默认分支。
+* `sha`：分支的 Git 提交 SHA。
+* `short_sha`：该分支的 Git 提交 SHA 缩写（8 个字符或 `sha` 的长度（如果更短））。
+* `short_sha_7`：分支的 Git 提交 SHA 缩写（7 个字符，如果更短，则与 `sha` 长度相同）。
+* 标签以逗号分隔的仓库标签列表（如果是 Gitea），以及仓库主题列表（如果是 Gitlab 和 Github）。Bitbucket Cloud、Bitbucket Server 或 Azure DevOps 不支持。
+* 分支规范化分支 "的值，规范化后只包含小写字母数字字符、"-"或"."。
 
-## Pass additional key-value pairs via `values` field
+## 通过 `values` 字段传递额外的键值对
 
-You may pass additional, arbitrary string key-value pairs via the `values` field of any SCM generator. Values added via the `values` field are added as `values.(field)`.
+您可以通过任何单片机生成器的 "values "字段传递额外的任意字符串键值对。 通过 "values "字段添加的值以 "values.(field) "的形式添加。
 
-In this example, a `name` parameter value is passed. It is interpolated from `organization` and `repository` to generate a different template name.
+在此示例中，传递了一个 `name` 参数值，它从 `organization` 和 `repository` 插值生成一个不同的模板名称。
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -465,7 +458,6 @@ spec:
         namespace: default
 ```
 
-!!! note
-    The `values.` prefix is always prepended to values provided via `generators.scmProvider.values` field. Ensure you include this prefix in the parameter name within the `template` when using it.
+注意 `values.` 前缀总是被引用到通过 `generators.scmProvider.values` 字段提供的值中。 使用时请确保在 `template` 中的参数名称中包含此前缀。
 
-In `values` we can also interpolate all fields set by the SCM generator as mentioned above.
+在 `values` 中，我们还可以对单片机生成器设置的所有字段进行上述插值。

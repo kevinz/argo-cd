@@ -1,6 +1,8 @@
-# List Generator
+<!-- TRANSLATED by md-translate -->
+# 列表生成器
 
-The List generator generates parameters based on an arbitrary list of key/value pairs (as long as the values are string values). In this example, we're targeting a local cluster named `engineering-dev`:
+List 生成器根据任意键/值对列表生成参数（只要值是字符串值即可）。 在本例中，我们的目标是名为 `engineering-dev` 的本地集群：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -30,11 +32,13 @@ spec:
         server: '{{.url}}'
         namespace: guestbook
 ```
-(*The full example can be found [here](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/list-generator).*)
 
-In this example, the List generator passes the `url` and `cluster` fields as parameters into the template. If we wanted to add a second environment, we could uncomment the second element and the ApplicationSet controller would automatically target it with the defined application.
+（_完整示例见 [此处](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/list-generator)。_）
 
-With the ApplicationSet v0.1.0 release, one could *only* specify `url` and `cluster` element fields (plus arbitrary `values`). As of ApplicationSet v0.2.0, any key/value `element` pair is supported (which is also fully backwards compatible with the v0.1.0 form):
+在本例中，List 生成器会将 `url` 和 `cluster` 字段作为参数传递到模板中。 如果我们想添加第二个环境，可以取消对第二个元素的注释，ApplicationSet 控制器就会自动将其作为已定义应用程序的目标。
+
+在 ApplicationSet v0.1.0 发布时，人们只能_指定`url`和`集群`元素字段（加上任意`值`）。 从 ApplicationSet v0.2.0 开始，支持任何键/值`元素`对（这也完全向后兼容 v0.1.0 表单）：
+
 ```yaml
 spec:
   generators:
@@ -52,11 +56,12 @@ spec:
 # (...)
 ```
 
-!!! note "Clusters must be predefined in Argo CD"
-    These clusters *must* already be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD (for instance, it does not have the credentials to do so).
+注意 "集群必须在 Argo CD 中预定义"，这些集群_必须_已经在 Argo CD 中定义，以便为这些 Values 生成应用程序。 ApplicationSet 控制器不会在 Argo CD 中创建集群（例如，它没有这样做的凭证）。
 
-## Dynamically generated elements
-The List generator can also dynamically generate its elements based on a yaml/json it gets from a previous generator like git by combining the two with a matrix generator. In this example we are using the matrix generator with a git followed by a list generator and pass the content of a file in git as input to the `elementsYaml` field of the list generator:
+## 动态生成元素
+
+列表生成器还可以根据从上一个生成器（如 git）获取的 yaml/json 动态生成元素，方法是将两者与矩阵生成器结合使用。 在本例中，我们将矩阵生成器与 git 结合使用，然后再与列表生成器结合使用，并将 git 中的文件内容作为输入传递给列表生成器的 `elementsYaml` 字段：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -97,7 +102,8 @@ spec:
         namespace: '{{.namespace}}'
 ```
 
-where `list-elementsYaml-example.yaml` content is:
+list-elementsYaml-example.yaml "内容：
+
 ```yaml
 key:
   components:

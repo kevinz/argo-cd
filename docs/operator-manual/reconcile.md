@@ -1,22 +1,19 @@
-# Reconcile Optimization
+<!-- TRANSLATED by md-translate -->
+# 对账优化
 
-By default, an Argo CD Application is refreshed every time a resource that belongs to it changes.
+默认情况下，每次属于 Argo CD 应用程序的资源发生变化时，都会刷新该应用程序。
 
-Kubernetes controllers often update the resources they watch periodically, causing continuous reconcile operation on the Application
-and a high CPU usage on the `argocd-application-controller`. Argo CD allows you to optionally ignore resource updates on specific fields
-for [tracked resources](../user-guide/resource_tracking.md).
+Kubernetes 控制器经常会定期更新其监控的资源，从而导致应用程序上的持续对账操作以及 `argocd-application-controller` 的 CPU 占用率过高。 Argo CD 允许您选择忽略 [tracked resources] 的特定字段上的资源更新（.../user-guide/resource_tracking.md）。
 
-When a resource update is ignored, if the resource's [health status](./health.md) does not change, the Application that this resource belongs to will not be reconciled.
+当资源更新被忽略时，如果资源的[健康状况](./health.md)没有变化，则该资源所属的应用程序不会进行对账。
 
-## System-Level Configuration
+## 系统级配置
 
-Argo CD allows ignoring resource updates at a specific JSON path, using [RFC6902 JSON patches](https://tools.ietf.org/html/rfc6902) and [JQ path expressions](https://stedolan.github.io/jq/manual/#path(path_expression)). It can be configured for a specified group and kind
-in `resource.customizations` key of the `argocd-cm` ConfigMap.
+Argo CD 允许使用 [RFC6902 JSON patches](https://tools.ietf.org/html/rfc6902) 和 [JQ path expressions](https://stedolan.github.io/jq/manual/#path(path_expression)) 忽略特定 JSON 路径下的资源更新。可以在 `argocd-cm` ConfigMap 的 `resource.customizations` 键中为指定组和种类进行配置。
 
-!!!important "Enabling the feature"
-    The feature is behind a flag. To enable it, set `resource.ignoreResourceUpdatesEnabled` to `"true"` in the `argocd-cm` ConfigMap.
+!!!重要 "启用该功能" 该功能在一个 flag 后面。 要启用该功能，请在 `argocd-cm` 配置表中将 `resource.ignoreResourceUpdatesEnabled` 设为 `"true"。
 
-Following is an example of a customization which ignores the `refreshTime` status field of an [`ExternalSecret`](https://external-secrets.io/main/api/externalsecret/) resource:
+以下是忽略 [`外部秘密`](https://external-secrets.io/main/api/externalsecret/) 资源的`刷新时间`状态字段的自定义示例：
 
 ```yaml
 data:
@@ -28,7 +25,7 @@ data:
     # - .status.refreshTime
 ```
 
-It is possible to configure `ignoreResourceUpdates` to be applied to all tracked resources in every Application managed by an Argo CD instance. In order to do so, resource customizations can be configured like in the example below:
+可以配置 "ignoreResourceUpdates"（忽略资源更新），使其应用于 Argo CD 实例管理的每个应用程序中的所有跟踪资源。 为此，可以像下面的示例一样配置资源自定义：
 
 ```yaml
 data:
@@ -37,10 +34,9 @@ data:
     - /status
 ```
 
-### Using ignoreDifferences to ignore reconcile
+### 使用 ignoreDifferences 忽略对账
 
-It is possible to use existing system-level `ignoreDifferences` customizations to ignore resource updates as well. Instead of copying all configurations,
-the `ignoreDifferencesOnResourceUpdates` setting can be used to add all ignored differences as ignored resource updates:
+也可以使用现有的系统级 `ignoreDifferences` 自定义来忽略资源更新。 可以使用 `ignoreDifferencesOnResourceUpdates` 设置将所有忽略的差异添加为忽略的资源更新，而不是复制所有配置：
 
 ```yaml
 apiVersion: v1
@@ -52,24 +48,19 @@ data:
     ignoreDifferencesOnResourceUpdates: true
 ```
 
-## Default Configuration
+## 默认配置
 
-By default, the metadata fields `generation`, `resourceVersion` and `managedFields` are always ignored for all resources.
+默认情况下，所有资源的 "生成"、"资源版本 "和 "管理字段 "元数据字段总是被忽略。
 
-## Finding Resources to Ignore
+## 寻找可忽略的资源
 
-The application controller logs when a resource change triggers a refresh. You can use these logs to find
-high-churn resource kinds and then inspect those resources to find which fields to ignore.
+当资源变化触发刷新时，应用程序控制器会记录 logging。 你可以利用这些 logging 找到高流失率的资源种类，然后检查这些资源，找出要忽略的字段。
 
-To find these logs, search for `"Requesting app refresh caused by object update"`. The logs include structured
-fields for `api-version` and `kind`.  Counting the number of refreshes triggered, by api-version/kind should
-reveal the high-churn resource kinds.
+要查找这些日志，请搜索""由对象更新引起的应用程序刷新请求""。 日志包括 "api-版本 "和 "类型 "的结构化字段。 按 api-版本/类型统计触发的刷新次数，应能发现高消耗资源类型。
 
-!!!note 
-    These logs are at the `debug` level. Configure the application-controller's log level to `debug`.
+注意这些 logging 的级别为 "debug"，请将应用程序控制器的日志级别配置为 "debug"。
 
-Once you have identified some resources which change often, you can try to determine which fields are changing. Here is
-one approach:
+一旦确定了一些经常变化的资源，就可以尝试确定哪些字段在变化。 下面是一种方法：
 
 ```shell
 kubectl get <resource> -o yaml > /tmp/before.yaml
@@ -78,19 +69,17 @@ kubectl get <resource> -o yaml > /tmp/after.yaml
 diff /tmp/before.yaml /tmp/after
 ```
 
-The diff can give you a sense for which fields are changing and should perhaps be ignored.
+通过 Diff 可以了解哪些字段正在发生变化，也许应该忽略。
 
-## Checking Whether Resource Updates are Ignored
+## 检查资源更新是否被忽略
 
-Whenever Argo CD skips a refresh due to an ignored resource update, the controller logs the following line:
-"Ignoring change of object because none of the watched resource fields have changed".
+每当 Argo CD 因忽略资源更新而跳过刷新时，控制器都会记录以下一行："忽略对象的更改，因为所观察的资源字段都没有更改"。
 
-Search the application-controller logs for this line to confirm that your resource ignore rules are being applied.
+搜索应用程序控制器日志中的这一行，以确认您的资源忽略规则已被应用。
 
-!!!note
-    These logs are at the `debug` level. Configure the application-controller's log level to `debug`.
+注意，这些 logging 的级别为 "debug"，请将应用程序控制器的日志级别配置为 "debug"。
 
-## Examples
+## 示例
 
 ### argoproj.io/Application
 

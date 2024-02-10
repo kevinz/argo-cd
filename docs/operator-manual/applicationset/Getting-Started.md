@@ -1,47 +1,44 @@
-# Getting Started
+<!-- TRANSLATED by md-translate -->
+# 入门
 
-This guide assumes you are familiar with Argo CD and its basic concepts. See the [Argo CD documentation](../../core_concepts.md) for more information.
-    
-## Requirements
+本指南假定您熟悉 Argo CD 及其基本概念。 更多信息请参阅 [Argo CD 文档](./../core_concepts.md)。
 
-* Installed [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) command-line tool
-* Have a [kubeconfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/) file (default location is `~/.kube/config`).
+## 要求
 
-## Installation
+* 已安装 [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 命令行工具
+* 拥有 [kubeconfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/) 文件（默认位置为 `~/.kube/config`）。
 
-There are a few options for installing the ApplicationSet controller.
+## 安装
 
+安装 ApplicationSet 控制器有几种选择。
 
-### A) Install ApplicationSet as part of Argo CD
+### A) 安装作为 Argo CD 一部分的 ApplicationSet
 
-Starting with Argo CD v2.3, the ApplicationSet controller is bundled with Argo CD. It is no longer necessary to install the ApplicationSet controller separately from Argo CD.
+从 Argo CD v2.3 版开始，ApplicationSet 控制器与 Argo CD 捆绑，不再需要从 Argo CD 单独安装 ApplicationSet 控制器。
 
-Follow the [Argo CD Getting Started](../../getting_started.md) instructions for more information.
+请按照 [Argo CD 入门](../../getting_started.md) 说明获取更多信息。
 
+### B) 将 ApplicationSet 安装到现有的 Argo CD 安装中（Argo CD v2.3 之前的版本）
 
+**注意**：这些说明仅适用于 Argo CD v2.3.0 之前的版本。
 
-### B) Install ApplicationSet into an existing Argo CD install (pre-Argo CD v2.3)
+ApplicationSet 控制器必须与 Argo CD 安装在同一个 namespace 中。
 
-**Note**: These instructions only apply to versions of Argo CD before v2.3.0.
-
-The ApplicationSet controller *must* be installed into the same namespace as the Argo CD it is targeting.
-
-Presuming that Argo CD is installed into the `argocd` namespace, run the following command:
+假设 Argo CD 已安装到 `argocd` 名称空间，请运行以下命令：
 
 ```bash
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/applicationset/v0.4.0/manifests/install.yaml
 ```
 
-Once installed, the ApplicationSet controller requires no additional setup.
+安装后，ApplicationSet 控制器无需额外设置。
 
-The `manifests/install.yaml` file contains the Kubernetes manifests required to install the ApplicationSet controller:
+manifests/install.yaml "文件包含安装 ApplicationSet 控制器所需的 Kubernetes 配置清单：
 
-- CustomResourceDefinition for `ApplicationSet` resource
-- Deployment for `argocd-applicationset-controller`
-- ServiceAccount for use by ApplicationSet controller, to access Argo CD resources
-- Role granting RBAC access to needed resources, for ServiceAccount
-- RoleBinding to bind the ServiceAccount and Role
-
+* ApplicationSet` 资源的自定义资源定义
+* 用于 `argocd-applicationset-controller` 的部署
+* 被应用集控制器引用的服务帐号，用于访问 Argo CD 资源
+* 为 ServiceAccount 授予 RBAC 访问所需资源权限的角色
+* 角色绑定用于绑定服务账户和角色
 
 <!-- ### C) Install development builds of ApplicationSet controller for access to the latest features
 
@@ -62,7 +59,6 @@ How it works:
 
 See the `master` branch [Read the Docs](https://argocd-applicationset.readthedocs.io/en/master/) page for documentation on post-release features. -->
 
-
 <!-- ## Upgrading to a Newer Release
 
 To upgrade from an older release (eg 0.1.0, 0.2.0) to a newer release (eg 0.3.0), you only need to `kubectl apply` the `install.yaml` for the new release, as described under *Installation* above.
@@ -72,14 +68,15 @@ There are no manual upgrade steps required between any release of ApplicationSet
 ### Behaviour changes in ApplicationSet controller v0.3.0
 
 There are no breaking changes, however, a couple of behaviours have changed from v0.2.0 to v0.3.0. See the [v0.3.0 upgrade page](upgrading/v0.2.0-to-v0.3.0.md) for details. -->
-## Enabling high availability mode
 
-To enable high availability, you have to set the command ``` --enable-leader-election=true  ``` in argocd-applicationset-controller container and increase the replicas. 
+## 启用高可用性模式
 
-do following changes in manifests/install.yaml
+要启用高可用性，必须在 argocd-applicationset-controller 容器中设置"--enable-leader-election=true "命令，并增加副本。
+
+对配置清单/install.yaml 做以下修改
 
 ```bash
-    spec:
+spec:
       containers:
       - command:
         - entrypoint.sh
@@ -87,21 +84,21 @@ do following changes in manifests/install.yaml
         - --enable-leader-election=true
 ```
 
-### Optional: Additional Post-Upgrade Safeguards
+### 可选：额外的升级后保障措施
 
-See the [Controlling Resource Modification](Controlling-Resource-Modification.md) page for information on additional parameters you may wish to add to the ApplicationSet Resource in `install.yaml`, to provide extra security against any initial, unexpected post-upgrade behaviour. 
+请参阅[控制资源修改](Controlling-Resource-Modification.md) 页面，了解您可能希望添加到 `install.yaml` 中 Providers 资源的其他参数，以提供额外的安全性，防止任何初始的、意外的升级后行为。
 
-For instance, to temporarily prevent the upgraded ApplicationSet controller from making any changes, you could:
+例如，要暂时阻止升级后的 ApplicationSet 控制器进行任何更改，可以这样做：
 
-- Enable dry-run
-- Use a create-only policy
-- Enable `preserveResourcesOnDeletion` on your ApplicationSets
-- Temporarily disable automated sync in your ApplicationSets' template
+* 启用干运行
+* 被引用仅创建策略
+* 在应用程序集上启用 "preserveResourcesOnDeletion
+* 暂时禁用 ApplicationSet 模板中的自动同步功能
 
-These parameters would allow you to observe/control the behaviour of the new version of the ApplicationSet controller in your environment, to ensure you are happy with the result (see the ApplicationSet log file for details). Just don't forget to remove any temporary changes when you are done testing!
+这些参数可让您观察/控制新版 ApplicationSet 控制器在环境中的行为，确保您对结果感到满意（详情请查看 ApplicationSet logging 文件）。 测试完成后，别忘了删除任何临时更改即可！
 
-However, as mentioned above, these steps are not strictly necessary: upgrading the ApplicationSet controller should be a minimally invasive process, and these are only suggested as an optional precaution for extra safety.
+不过，如上所述，这些步骤并非绝对必要：ApplicationSet 控制器的升级应该是一个微创过程，这些步骤只是建议作为额外安全的可选预防措施。
 
-## Next Steps
+## 接下来的步骤
 
-Once your ApplicationSet controller is up and running, proceed to [Use Cases](Use-Cases.md) to learn more about the supported scenarios, or proceed directly to [Generators](Generators.md) to see example `ApplicationSet` resources. 
+ApplicationSet 控制器启动并运行后，请访问 [Use Cases](Use-Cases.md)，了解更多有关支持场景的信息，或直接访问 [Generators](Generators.md) 查看示例 `ApplicationSet` 资源。

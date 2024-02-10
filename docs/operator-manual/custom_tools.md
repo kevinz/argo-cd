@@ -1,25 +1,20 @@
-# Custom Tooling
+<!-- TRANSLATED by md-translate -->
+# 定制工具
 
-Argo CD bundles preferred versions of its supported templating tools (helm, kustomize, ks, jsonnet)
-as part of its container images. Sometimes, it may be desired to use a specific version of a tool
-other than what Argo CD bundles. Some reasons to do this might be:
+Argo CD 捆绑了其支持的模板工具（helm、kustomize、ks、jsonnet）的首选版本，作为其容器镜像的一部分。 有时，可能需要使用 Argo CD 捆绑的工具之外的特定版本。 这样做的一些原因可能是：
 
-* To upgrade/downgrade to a specific version of a tool due to bugs or bug fixes.
-* To install additional dependencies to be used by kustomize's configmap/secret generators.
-  (e.g. curl, vault, gpg, AWS CLI)
-* To install a [config management plugin](config-management-plugins.md).
+* 升级/降级到某个工具的特定版本，因为存在错误或修复了错误。
+* 安装额外的依赖项，以便被 kustomize 的 configmaps 和 secrets 生成器引用。(例如：curl、vault、gpg、AWS CLI）
+* 安装[配置管理插件]（config-management-plugins.md）。
 
-As the Argo CD repo-server is the single service responsible for generating Kubernetes manifests, it
-can be customized to use alternative toolchain required by your environment.
+由于 Argo CD 版本库服务器是负责生成 Kubernetes 配置清单的单一服务，因此可以对其进行定制，以使用环境所需的其他工具链。
 
-## Adding Tools Via Volume Mounts
+## 通过卷挂载添加工具
 
-The first technique is to use an `init` container and a `volumeMount` to copy a different version of
-a tool into the repo-server container. In the following example, an init container is overwriting
-the helm binary with a different version than what is bundled in Argo CD:
+第一种技术是使用一个 "init "容器和一个 "volumeMount "将不同版本的工具复制到 repo-server 容器中。 在下面的示例中，init 容器正在用与 Argo CD 中捆绑的版本不同的二进制文件覆盖 helm：
 
 ```yaml
-    spec:
+spec:
       # 1. Define an emptyDir volume which will hold the custom binaries
       volumes:
       - name: custom-tools
@@ -44,11 +39,9 @@ the helm binary with a different version than what is bundled in Argo CD:
           subPath: helm
 ```
 
-## BYOI (Build Your Own Image)
+## BYOI（打造自己的镜像）
 
-Sometimes replacing a binary isn't sufficient, and you need to install other dependencies. The
-following example builds an entirely customized repo-server from a Dockerfile, installing extra
-dependencies that may be needed for generating manifests.
+有时，仅替换二进制文件是不够的，还需要安装其他依赖项。 下面的示例从 Docker 文件构建了一个完全定制的版本服务器，安装了生成配置清单可能需要的额外依赖项。
 
 ```Dockerfile
 FROM argoproj/argocd:v2.5.4 # Replace tag with the appropriate argo version

@@ -1,64 +1,65 @@
+<!-- TRANSLATED by md-translate -->
 # OneLogin
 
-!!! note "Are you using this? Please contribute!"
-    If you're using this IdP please consider [contributing](../../developer-guide/site.md) to this document.
+!!! 注 "您正在使用吗？ 请贡献！" 如果您正在使用此 IdP，请考虑[贡献]（.../.../developer-guide/site.md）到此文档。
 
 <!-- markdownlint-disable MD033 -->
+
 <div style="text-align:center"><img src="../../../assets/argo.png" /></div>
 <!-- markdownlint-enable MD033 -->
 
-# Integrating OneLogin and ArgoCD
+# 整合 OneLogin 和 ArgoCD
 
-These instructions will take you through the entire process of getting your ArgoCD application authenticating with OneLogin. You will create a custom OIDC application within OneLogin and configure ArgoCD to use OneLogin for authentication, using UserRoles set in OneLogin to determine privileges in Argo.
+这些说明将引导您完成 ArgoCD 应用程序与 OneLogin 进行身份验证的整个过程。 您将在 OneLogin 中创建一个自定义 OIDC 应用程序，并配置 ArgoCD 使用 OneLogin 进行身份验证，使用在 OneLogin 中设置的 UserRoles 来确定 Argo 中的权限。
 
-## Creating and Configuring OneLogin App
+## 创建和配置 OneLogin 应用程序
 
-For your ArgoCD application to communicate with OneLogin, you will first need to create and configure the OIDC application on the OneLogin side.
+要使 ArgoCD 应用程序与 OneLogin 通信，首先需要在 OneLogin 端创建和配置 OIDC 应用程序。
 
-### Create OIDC Application
+### 创建 OIDC 应用程序
 
-To create the application, do the following:
+要创建应用程序，请执行以下操作：
 
-1. Navigate to your OneLogin portal, then Administration > Applications.
-2. Click "Add App".
-3. Search for "OpenID Connect" in the search field.
-4. Select the "OpenId Connect (OIDC)" app to create.
-5. Update the "Display Name" field (could be something like "ArgoCD (Production)".
-6. Click "Save".
+1.导航至 OneLogin 门户，然后导航至管理工具 &gt; 应用程序。
+2.单击 "添加应用程序"。
+3.在搜索栏中搜索 "OpenID Connect"。
+4.选择要创建的 "OpenId Connect (OIDC) "应用程序。
+5.更新 "显示名称 "字段（可以是 "ArgoCD (Production) "之类的名称。
+6.点击 "保存"。
 
-### Configuring OIDC Application Settings
+### 配置 OIDC 应用程序设置
 
-Now that the application is created, you can configure the settings of the app.
+应用程序已创建，您可以配置应用程序的设置。
 
-#### Configuration Tab
+#### 配置选项卡
 
-Update the "Configuration" settings as follows:
+更新 "配置 "设置如下：
 
-1. Select the "Configuration" tab on the left.
-2. Set the "Login Url" field to https://argocd.myproject.com/auth/login, replacing the hostname with your own.
-3. Set the "Redirect Url" field to https://argocd.myproject.com/auth/callback, replacing the hostname with your own.
-4. Click "Save".
+1.选择左侧的 "配置 "选项卡。
+2.将 "Login Url"（登录网址）字段设为 https://argocd.myproject.com/auth/login，用自己的主机名代替。
+3.将 "重定向网址 "字段设置为 https://argocd.myproject.com/auth/callback，并将主机名替换为您自己的主机名。
+4.点击 "保存"。
 
-!!! note "OneLogin may not let you save any other fields until the above fields are set."
+注意 "在设置上述字段之前，OneLogin 可能不会让您保存任何其他字段"。
 
-#### Info Tab
+#### 信息选项卡
 
-You can update the "Display Name", "Description", "Notes", or the display images that appear in the OneLogin portal here.
+您可以在此更新 "显示名称"、"描述"、"备注 "或显示在 OneLogin 门户中的显示镜像。
 
-#### Parameters Tab
+#### 参数选项卡
 
-This tab controls what information is sent to Argo in the token. By default it will contain a Groups field and "Credentials are" is set to "Configured by admin". Leave "Credentials are" as the default.
+此选项卡可控制在令牌中发送给 Argo 的信息。 默认情况下，它将包含一个组字段，"凭据是 "被设置为 "由管理员配置"。 请将 "凭据是 "保留为默认值。
 
-How the Value of the Groups field is configured will vary based on your needs, but to use OneLogin User roles for ArgoCD privileges, configure the Value of the Groups field with the following:
+如何配置 "组 "字段的 Values 将根据您的需要而有所不同，但要将 OneLogin 用户角色用于 ArgoCD 权限，请按以下方式配置 "组 "字段的 Values：
 
-1. Click "Groups". A modal appears.
-2. Set the "Default if no value selected" field to "User Roles".
-3. Set the transform field (below it) to "Semicolon Delimited Input".
-4. Click "Save".
+1.单击 "组"。出现一个模态。
+2.将 "未选择值时的默认值 "字段设为 "用户角色"。
+3.将转换字段（在其下方）设为 "分号分隔输入"。
+4.点击 "保存"。
 
-When a user attempts to login to Argo with OneLogin, the User roles in OneLogin, say, Manager, ProductTeam, and TestEngineering, will be included in the Groups field in the token. These are the values needed for Argo to assign permissions.
+当用户尝试使用 OneLogin 登录 Argo 时，OneLogin 中的用户角色（如经理、产品团队和测试工程）将包含在令牌中的 Groups（组）字段中。 这些值是 Argo 分配权限所需的值。
 
-The groups field in the token will look similar to the following:
+令牌中的组字段将与下面的内容相似：
 
 ```
 "groups": [
@@ -68,43 +69,43 @@ The groups field in the token will look similar to the following:
   ],
 ```
 
-#### Rules Tab
+#### 规则选项卡
 
-To get up and running, you do not need to make modifications to any settings here.
+要开始运行，您无需修改此处的任何设置。
 
-#### SSO Tab
+#### SSO 标签
 
-This tab contains much of the information needed to be placed into your ArgoCD configuration file (API endpoints, client ID, client secret).
+该选项卡包含需要放入 ArgoCD 配置文件的大部分信息（API 端点、客户端 ID、客户端秘密）。
 
-Confirm "Application Type" is set to "Web".
+确认 "应用程序类型 "设置为 "Web"。
 
-Confirm "Token Endpoint" is set to "Basic".
+确认 "令牌端点 "设置为 "基本"。
 
-#### Access Tab
+#### 访问选项卡
 
-This tab controls who can see this application in the OneLogin portal.
+此选项卡控制谁可以在 OneLogin 门户中查看此应用程序。
 
-Select the roles you wish to have access to this application and click "Save".
+选择希望访问此应用程序的角色，然后点击 "保存"。
 
-#### Users Tab
+#### 用户选项卡
 
-This tab shows you the individual users that have access to this application (usually the ones that have roles specified in the Access Tab).
+此选项卡显示可访问此应用程序的单个用户（通常是在 "访问 "选项卡中指定角色的用户）。
 
-To get up and running, you do not need to make modifications to any settings here.
+要开始运行，您无需修改此处的任何设置。
 
-#### Privileges Tab
+#### 特权选项卡
 
-This tab shows which OneLogin users can configure this app.
+此选项卡显示哪些 OneLogin 用户可以配置此应用程序。
 
-To get up and running, you do not need to make modifications to any settings here.
+要开始运行，您无需修改此处的任何设置。
 
-## Updating OIDC configuration in ArgoCD
+## 在 ArgoCD 中更新 OIDC 配置
 
-Now that the OIDC application is configured in OneLogin, you can update Argo configuration to communicate with OneLogin, as well as control permissions for those users that authenticate via OneLogin.
+既然已在 OneLogin 中配置了 OIDC 应用程序，您就可以更新 Argo 配置，以便与 OneLogin 通信，并控制通过 OneLogin 验证的用户的权限。
 
-### Tell Argo where OneLogin is
+### 告诉 Argo OneLogin 的位置
 
-Argo needs to have its config map (argocd-cm) updated in order to communicate with OneLogin. Consider the following yaml:
+Argo 需要更新配置 maps (argocd-cm) 才能与 OneLogin 通信。 请看下面的 yaml：
 
 ```
 apiVersion: v1
@@ -126,19 +127,19 @@ data:
     requestedScopes: ["openid", "profile", "email", "groups"]
 ```
 
-The "url" key should have a value of the hostname of your Argo project.
+url "键的值应为 Argo 项目的主机名。
 
-The "clientID" is taken from the SSO tab of the OneLogin application.
+客户 ID "取自 OneLogin 应用程序的 SSO 选项卡。
 
-The “issuer” is taken from the SSO tab of the OneLogin application. It is one of the issuer api endpoints.
+签发人 "来自 OneLogin 应用程序的 SSO 标签，是签发人 api 端点之一。
 
-The "clientSecret" value is a client secret located in the SSO tab of the OneLogin application.
+clientSecret "值是位于 OneLogin 应用程序的 SSO 选项卡中的客户端秘密。
 
-!!! note "If you get an `invalid_client` error when trying the authenticate with OneLogin, there is a possibility that your client secret is not proper. Keep in mind that in previous versions `clientSecret` value had to be base64 encrypted, but it is not required anymore."
+注意："如果您在尝试使用 OneLogin 进行身份验证时出现 "invalid_client "错误，则有可能是您的客户秘密不正确。 请记住，在以前的版本中，"clientSecret "值必须经过 base64 加密，但现在已不再需要。
 
-### Configure Permissions for OneLogin Auth'd Users
+### 配置 OneLogin 验证用户的权限
 
-Permissions in ArgoCD can be configured by using the OneLogin role names that are passed in the Groups field in the token. Consider the following yaml in argocd-rbac-cm.yaml:
+ArgoCD 中的权限可通过使用令牌中 Groups 字段传递的 OneLogin 角色名称来配置。 请考虑 argocd-rbac-cm.yaml 中的以下 yaml：
 
 ```
 apiVersion: v1
@@ -161,4 +162,4 @@ data:
     g, TestEngineering, role:org-admin
 ```
 
-In OneLogin, a user with user role "TestEngineering" will receive ArgoCD admin privileges when they log in to Argo via OneLogin. All other users will receive the readonly role. The key takeaway here is that "TestEngineering" is passed via the Group field in the token (which is specified in the Parameters tab in OneLogin).
+在 OneLogin 中，具有用户角色 "TestEngineering "的用户通过 OneLogin 登录 Argo 时，将获得 ArgoCD 管理权限。 所有其他用户将获得只读角色。 这里的关键是，"TestEngineering "通过令牌中的组字段传递（在 OneLogin 的 "参数 "选项卡中指定）。

@@ -1,17 +1,18 @@
-# Selective Sync
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-A *selective sync* is one where only some resources are sync'd. You can choose which resources from the UI:
+# 选择性同步
 
-![selective sync](../assets/selective-sync.png)
+选择同步性您可以从用户界面选择同步的资源：
 
-When doing so, bear in mind:
+选择性同步](.../assets/selective-sync.png)
 
-* Your sync is not recorded in the history, and so rollback is not possible.
-* Hooks are not run.
+在这样做的时候，请记住
 
-## Selective Sync Option
+* 您的同步记录不会在历史记录中，因此无法进行回滚。
 
->v1.8
+## 选择性同步选项
 
-Turning on selective sync option which will sync only out-of-sync resources.
-See [sync options](sync-options.md#selective-sync) documentation for more details.
+&gt; v1.8
+
+打开选择性同步选项，只同步不同步的资源。 请参阅[同步选项](sync-options.md#selective-sync)更多详情，请查阅文档。

@@ -1,66 +1,41 @@
-# TLS configuration
+<!-- TRANSLATED by md-translate -->
+# TLS 配置
 
-Argo CD provides three inbound TLS endpoints that can be configured:
+Argo CD 提供三个可配置的入站 TLS 端点：
 
-* The user-facing endpoint of the `argocd-server` workload which serves the UI
-  and the API
-* The endpoint of the `argocd-repo-server`, which is accessed by `argocd-server`
-  and `argocd-application-controller` workloads to request repository
-  operations.
-* The endpoint of the `argocd-dex-server`, which is accessed by `argocd-server`
-  to handle OIDC authentication.
+* argocd-server "工作负载面向用户的端点，为用户界面和应用程序接口提供服务
+* argocd-repo-server "的端点，由 "argocd-server "和 "argocd-application-controller "工作负载访问，以请求存储库操作。
+* argocd-dex-server "的端点，由 "argocd-server "访问，以处理 OIDC 验证。
 
-By default, and without further configuration, these endpoints will be
-set-up to use an automatically generated, self-signed certificate. However,
-most users will want to explicitly configure the certificates for these TLS
-endpoints, possibly using automated means such as `cert-manager` or using
-their own dedicated Certificate Authority.
+默认情况下，无需进一步配置，这些端点将被设置为使用自动生成的自签名证书。 不过，大多数用户都希望为这些 TLS 端点明确配置证书，可以使用自动方法（如 "cert-manager"）或使用自己的专用证书颁发机构。
 
-## Configuring TLS for argocd-server
+## 为 argocd-server 配置 TLS
 
-### Inbound TLS options for argocd-server
+### argocd-server 的入站 TLS 选项
 
-You can configure certain TLS options for the `argocd-server` workload by
-setting command line parameters. The following parameters are available:
+通过设置命令行参数，可以为 `argocd-server` 工作负载配置某些 TLS 选项。 以下是可用参数：
 
-|Parameter|Default|Description|
-|---------|-------|-----------|
-|`--insecure`|`false`|Disables TLS completely|
-|`--tlsminversion`|`1.2`|The minimum TLS version to be offered to clients|
-|`--tlsmaxversion`|`1.3`|The maximum TLS version to be offered to clients|
-|`--tlsciphers`|`TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_RSA_WITH_AES_256_GCM_SHA384`|A colon separated list of TLS cipher suites to be offered to clients|
+|参数|默认值|描述| |---------|-------|-----------| |`--insecure`|`false`| 完全禁用 TLS| |`--tlsminversion`|`1.2`| 向客户提供的最小 TLS 版本| |`--tlsmaxversion`|`1.3`| 向客户提供的最大 TLS 版本| |`--tlsciphers`|`TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_RSA_WITH_AES_256_GCM_SHA384`| 向客户提供的 TLS 密码套件的冒号分隔列表
 
-### TLS certificates used by argocd-server
+### argocd-server 被引用的 TLS 证书
 
-There are two ways to configure the TLS certificates used by `argocd-server`:
+有两种方法可以配置 `argocd-server` 被引用的 TLS 证书：
 
-* Setting the `tls.crt` and `tls.key` keys in the `argocd-server-tls` secret
-  to hold PEM data of the certificate and the corresponding private key. The
-  `argocd-server-tls` secret may be of type `tls`, but does not have to be.
-* Setting the `tls.crt` and `tls.key` keys in the `argocd-secret` secret to
-  hold PEM data of the certificate and the corresponding private key. This
-  method is considered deprecated, and only exists for purposes of backwards
-  compatibility. Changing `argocd-secret` should not be used to override the
-  TLS certificate anymore.
+* 设置 `argocd-server-tls` secret 中的 `tls.crt` 和 `tls.key` 密钥，以保存证书的 PEM 数据和相应的私钥。argocd-server-tls` secret 可以是 `tls` 类型，但并非必须如此。
+* 设置 `argocd-secret` secret 中的 `tls.crt` 和 `tls.key` 密钥，以保存证书的 PEM 数据和相应的私钥。此方法已被弃用，仅用于向后兼容。不应再使用更改 `argocd-secret` 来覆盖 TLS 证书。
 
-Argo CD decides which TLS certificate to use for the endpoint of
-`argocd-server` as follows:
+Argo CD 决定为 `argocd-server` 的端点使用哪种 TLS 证书的方法如下：
 
-* If the `argocd-server-tls` secret exists and contains a valid key pair in the
-  `tls.crt` and `tls.key` keys, this will be used for the certificate of the
-  endpoint of `argocd-server`.
-* Otherwise, if the `argocd-secret` secret contains a valid key pair in the
- `tls.crt` and `tls.key` keys, this will be used as certificate for the
-  endpoint of `argocd-server`.
-* If no `tls.crt` and `tls.key` keys are found in neither of the two mentioned
-  secrets, Argo CD will generate a self-signed certificate and persist it in
-  the `argocd-secret` secret.
+* 如果 `argocd-server-tls` secret 存在，并且在 `tls.crt` 和 `tls.key` 密钥中包含有效的密钥对，这将被引用为 `argocd-server` 端点的证书。
+* 否则，如果 `argocd-secret` secret 中的
 
-The `argocd-server-tls` secret contains only information for TLS configuration
-to be used by `argocd-server` and is safe to be managed via third-party tools
-such as `cert-manager` or `SealedSecrets`
+tls.crt "和 "tls.key "密钥，这将被引用为 `argocd-server` 端点的证书。
 
-To create this secret manually from an existing key pair, you can use `kubectl`:
+* 如果在上述两个秘密中都没有找到`tls.crt`和`tls.key`密钥，Argo CD 将生成一个自签名证书，并将其保存在`argocd-secret`秘密中。
+
+argocd-server-tls "秘密只包含 TLS 配置信息，供 "argocd-server "使用，可通过第三方工具（如 "cert-manager "或 "SealedSecrets"）安全管理。
+
+要从现有的密钥对中手动创建该秘密，可以使用 `kubectl`：
 
 ```shell
 kubectl create -n argocd secret tls argocd-server-tls \
@@ -68,15 +43,13 @@ kubectl create -n argocd secret tls argocd-server-tls \
   --key=/path/to/key.pem
 ```
 
-Argo CD will pick up changes to the `argocd-server-tls` secret automatically
-and will not require restart of the pods to use a renewed certificate.
+Argo CD 会自动被引用 "argocd-server-tls "secret 的更改，无需重启 pod 以使用更新的证书。
 
-## Configuring inbound TLS for argocd-repo-server
+## 为 argocd-repo-server 配置入站 TLS
 
-### Inbound TLS options for argocd-repo-server
+### argocd-repo-server 的入站 TLS 选项
 
-You can configure certain TLS options for the `argocd-repo-server` workload by
-setting command line parameters. The following parameters are available:
+通过设置命令行参数，可以为 `argocd-repo-server` 工作负载配置某些 TLS 选项。 下列参数可用：
 
 |Parameter|Default|Description|
 |---------|-------|-----------|
@@ -85,15 +58,11 @@ setting command line parameters. The following parameters are available:
 |`--tlsmaxversion`|`1.3`|The maximum TLS version to be offered to clients|
 |`--tlsciphers`|`TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384:TLS_RSA_WITH_AES_256_GCM_SHA384`|A colon separated list of TLS cipher suites to be offered to clients|
 
-### Inbound TLS certificates used by argocd-repo-server
+### argocd-repo-server 被引用的入站 TLS 证书
 
-To configure the TLS certificate used by the `argocd-repo-server` workload,
-create a secret named `argocd-repo-server-tls` in the namespace where Argo CD
-is running in with the certificate's key pair stored in `tls.crt` and
-`tls.key` keys. If this secret does not exist, `argocd-repo-server` will
-generate and use a self-signed certificate.
+要配置 `argocd-repo-server` 工作负载使用的 TLS 证书，请在运行 Argo CD 的 namespace 中创建名为 `argocd-repo-server-tls` 的秘密，证书的密钥对存储在 `tls.crt` 和 `tls.key` 密钥中。 如果该秘密不存在，`argocd-repo-server` 将生成并使用自签名证书。
 
-To create this secret, you can use `kubectl`:
+要创建此秘密，可以使用 `kubectl`：
 
 ```shell
 kubectl create -n argocd secret tls argocd-repo-server-tls \
@@ -101,38 +70,25 @@ kubectl create -n argocd secret tls argocd-repo-server-tls \
   --key=/path/to/key.pem
 ```
 
-If the certificate is self-signed, you will also need to add `ca.crt` to the secret
-with the contents of your CA certificate.
+如果证书是自签名的，还需要在秘密中添加 `ca.crt` 和 CA 证书的内容。
 
-Please note, that as opposed to `argocd-server`, the `argocd-repo-server` is
-not able to pick up changes to this secret automatically. If you create (or
-update) this secret, the `argocd-repo-server` pods need to be restarted.
+请注意，与 `argocd-server` 不同的是，`argocd-repo-server` 无法自动获取对该秘密的更改。 如果创建（或更新）了该秘密，则需要重新启动`argocd-repo-server` pod。
 
-Also note, that the certificate should be issued with the correct SAN entries
-for the `argocd-repo-server`, containing at least the entries for
-`DNS:argocd-repo-server` and `DNS:argocd-repo-server.argo-cd.svc` depending
-on how your workloads connect to the repository server.
+还需注意的是，签发证书时应为 `argocd-repo-server` 添加正确的 SAN 条目，至少包含 `DNS:argocd-repo-server` 和 `DNS:argocd-repo-server.argo-cd.svc` 条目，具体取决于工作负载连接版本库服务器的方式。
 
-## Configuring inbound TLS for argocd-dex-server
+## 为 argocd-dex-server 配置入站 TLS
 
-### Inbound TLS options for argocd-dex-server
+### argocd-dex-server 的入站 TLS 选项
 
-You can configure certain TLS options for the `argocd-dex-server` workload by
-setting command line parameters. The following parameters are available:
+通过设置命令行参数，可以为 `argocd-dex-server` 工作负载配置某些 TLS 选项。 以下是可用参数：
 
-|Parameter|Default|Description|
-|---------|-------|-----------|
-|`--disable-tls`|`false`|Disables TLS completely|
+|参数|默认值|描述| |---------|-------|-----------| |`--disable-tls`|`false`| 完全禁用 TLS
 
-### Inbound TLS certificates used by argocd-dex-server
+### argocd-dex-server 被引用的入站 TLS 证书
 
-To configure the TLS certificate used by the `argocd-dex-server` workload,
-create a secret named `argocd-dex-server-tls` in the namespace where Argo CD
-is running in with the certificate's key pair stored in `tls.crt` and
-`tls.key` keys. If this secret does not exist, `argocd-dex-server` will
-generate and use a self-signed certificate.
+要配置 `argocd-dex-server` 工作负载使用的 TLS 证书，请在 Argo CD 运行所在的 namespace 中创建名为 `argocd-dex-server-tls` 的秘密，并将证书的密钥对存储在 `tls.crt` 和 `tls.key` 密钥中。 如果该秘密不存在，`argocd-dex-server` 将生成并使用自签名证书。
 
-To create this secret, you can use `kubectl`:
+要创建此秘密，可以使用 `kubectl`：
 
 ```shell
 kubectl create -n argocd secret tls argocd-dex-server-tls \
@@ -140,122 +96,64 @@ kubectl create -n argocd secret tls argocd-dex-server-tls \
   --key=/path/to/key.pem
 ```
 
-If the certificate is self-signed, you will also need to add `ca.crt` to the secret
-with the contents of your CA certificate.
+如果证书是自签名的，还需要在秘密中添加 `ca.crt` 和 CA 证书的内容。
 
-Please note, that as opposed to `argocd-server`, the `argocd-dex-server` is
-not able to pick up changes to this secret automatically. If you create (or
-update) this secret, the `argocd-dex-server` pods need to be restarted.
+请注意，相对于 `argocd-server` 而言，`argocd-dex-server` 无法自动接收对该秘密的更改。 如果创建（或更新）了该秘密，则需要重新启动`argocd-dex-server` pod。
 
-Also note, that the certificate should be issued with the correct SAN entries
-for the `argocd-dex-server`, containing at least the entries for
-`DNS:argocd-dex-server` and `DNS:argocd-dex-server.argo-cd.svc` depending
-on how your workloads connect to the repository server.
+还要注意的是，证书应为 `argocd-dex-server` 分配正确的 SAN 条目，至少包含 `DNS:argocd-dex-server` 和 `DNS:argocd-dex-server.argo-cd.svc` 条目，具体取决于工作负载连接到版本库服务器的方式。
 
-## Configuring TLS between Argo CD components
+## 在 Argo CD 组件之间配置 TLS
 
-### Configuring TLS to argocd-repo-server
+### 为 argocd-repo-server 配置 TLS
 
-Both `argocd-server` and `argocd-application-controller` communicate with the
-`argocd-repo-server` using a gRPC API over TLS. By default,
-`argocd-repo-server` generates a non-persistent, self signed certificate
-to use for its gRPC endpoint on startup. Because the `argocd-repo-server` has
-no means to connect to the K8s control plane API, this certificate is not
-being available to outside consumers for verification. Both, the
-`argocd-server` and `argocd-application-server` will use a non-validating
-connection to the `argocd-repo-server` for this reason.
+argocd-server "和 "argocd-application-controller "都使用通过 TLS 的 gRPC API 与 "argocd-repo-server "通信。 默认情况下，"argocd-repo-server "会生成一个非持久、自签名的证书，在启动时用于其 gRPC 端点。 由于 "argocd-repo-server "无法连接到 k8s 控制平面 API，因此外部用户无法使用该证书进行验证。 出于这个原因，"argocd-server "和 "argocd-application-server "都将使用与 "argocd-repo-server "的非验证连接。
 
-To change this behavior to be more secure by having the `argocd-server` and
-`argocd-application-controller` validate the TLS certificate of the
-`argocd-repo-server` endpoint, the following steps need to be performed:
+要改变这种行为，让 `argocd-server` 和 `argocd-application-controller` 验证 `argocd-repo-server` 端点的 TLS 证书，使其更加安全，需要执行以下步骤：
 
-* Create a persistent TLS certificate to be used by `argocd-repo-server`, as
-  shown above
-* Restart the `argocd-repo-server` pod(s)
-* Modify the pod startup parameters for `argocd-server` and
-  `argocd-application-controller` to include the `--repo-server-strict-tls`
-  parameter.
+* 创建持久 TLS 证书供 `argocd-repo-server` 使用，如上所示
+* 重启 `argocd-repo-server` pod
+* 修改 `argocd-server` 和 `argocd-application-controller` 的 pod 启动参数，加入 `--repo-server-strict-tls` 参数。
 
-The `argocd-server` and `argocd-application-controller` workloads will now
-validate the TLS certificate of the `argocd-repo-server` by using the
-certificate stored in the `argocd-repo-server-tls` secret.
+现在，"argocd-server "和 "argocd-application-controller "工作负载将通过使用存储在 "argocd-repo-server-tls "secret 中的证书来验证 "argocd-repo-server "的 TLS 证书。
 
-!!!note "Certificate expiry"
-    Please make sure that the certificate has a proper life time. Keep in
-    mind that when you have to replace the certificate, all workloads have
-    to be restarted in order to properly work again.
+注意 "证书过期" 请确保证书有适当的有效期。 请记住，当您必须更换证书时，所有工作负载都必须重新启动才能再次正常工作。
 
-### Configuring TLS to argocd-dex-server
+### 为 argocd-dex-server 配置 TLS
 
-`argocd-server` communicates with the `argocd-dex-server` using an HTTPS API
-over TLS. By default, `argocd-dex-server` generates a non-persistent, self
-signed certificate to use for its HTTPS endpoint on startup. Because the 
-`argocd-dex-server` has no means to connect to the K8s control plane API,
-this certificate is not being available to outside consumers for verification.
-The `argocd-server` will use a non-validating connection to the `argocd-dex-server`
-for this reason.
+argocd-server "使用通过 TLS 的 HTTPS API 与 "argocd-dex-server "通信。 默认情况下，"argocd-dex-server "会生成一个非持久、自签名的证书，以便在启动时用于其 HTTPS 端点。 由于 "argocd-dex-server "无法连接到 k8s 控制平面 API，因此外部用户无法使用该证书进行验证。 为此，"argocd-server "将使用一个非验证连接连接到 "argocd-dex-server"。
 
-To change this behavior to be more secure by having the `argocd-server` validate 
-the TLS certificate of the `argocd-dex-server` endpoint, the following steps need
-to be performed:
+要改变这种行为，让 `argocd-server` 验证 `argocd-dex-server` 端点的 TLS 证书，使其更加安全，需要执行以下步骤：
 
-* Create a persistent TLS certificate to be used by `argocd-dex-server`, as
-  shown above
-* Restart the `argocd-dex-server` pod(s)
-* Modify the pod startup parameters for `argocd-server` to include the 
-`--dex-server-strict-tls` parameter.
+* 创建持久 TLS 证书供 `argocd-dex-server` 使用，如上所示
+* 重启 `argocd-dex-server` pod
+* 修改 `argocd-server` 的 pod 启动参数，以包含
 
-The `argocd-server` workload will now validate the TLS certificate of the
-`argocd-dex-server` by using the certificate stored in the `argocd-dex-server-tls`
-secret.
+`--dex-server-strict-tls` 参数。
 
-!!!note "Certificate expiry"
-    Please make sure that the certificate has a proper life time. Keep in
-    mind that when you have to replace the certificate, all workloads have
-    to be restarted in order to properly work again.
+现在，"argocd-server "工作负载将通过使用存储在 "argocd-dex-server-tls "存储秘密中的证书来验证 "argocd-dex-server "的 TLS 证书。
 
-### Disabling TLS to argocd-repo-server
+注意 "证书过期" 请确保证书有适当的有效期。 请记住，当您必须更换证书时，所有工作负载都必须重新启动才能再次正常工作。
 
-In some scenarios where mTLS through side-car proxies is involved (e.g.
-in a service mesh), you may want configure the connections between the
-`argocd-server` and `argocd-application-controller` to `argocd-repo-server`
-to not use TLS at all.
+### 停用连接 argocd-repo-server 的 TLS
 
-In this case, you will need to:
+在某些涉及通过侧车代理使用 mTLS 的情况下（例如在服务网格中），您可能希望将 `argocd-server` 和 `argocd-application-controller` 到 `argocd-repo-server` 之间的连接配置为完全不使用 TLS。
 
-* Configure `argocd-repo-server` with TLS on the gRPC API disabled by specifying
-  the `--disable-tls` parameter to the pod container's startup arguments.
-  Also, consider restricting listening addresses to the loopback interface by specifying
-  `--listen 127.0.0.1` parameter, so that insecure endpoint is not exposed on
-  the pod's network interfaces, but still available to the side-car container.
-* Configure `argocd-server` and `argocd-application-controller` to not use TLS
-  for connections to the `argocd-repo-server` by specifying the parameter
-  `--repo-server-plaintext` to the pod container's startup arguments
-* Configure `argocd-server` and `argocd-application-controller` to connect to
-  the side-car instead of directly to the `argocd-repo-server` service by
-  specifying its address via the `--repo-server <address>` parameter
+在这种情况下，您需要
 
-After this change, the `argocd-server` and `argocd-application-controller` will
-use a plain text connection to the side-car proxy, that will handle all aspects
-of TLS to the `argocd-repo-server`'s TLS side-car proxy.
+* 在配置 `argocd-repo-server` 时，通过在 pod 容器的启动参数中指定 `--disable-tls`参数，禁用 gRPC API 上的 TLS。此外，还可考虑通过指定 `--listen 127.0.0.1` 参数，将监听地址限制为环回接口，这样不安全的端点就不会暴露在 pod 的网络接口上，但仍可供侧车容器使用。
+* 通过在 pod 容器的启动参数中指定参数 `--repo-server-plaintext`，配置 `argocd-server` 和 `argocd-application-controller` 在连接到 `argocd-repo-server` 时不使用 TLS。
+* 配置 `argocd-server` 和 `argocd-application-controller` 连接到侧车，而不是直接连接到 `argocd-repo-server` 服务，方法是通过 `--repo-server<address>` 参数指定其地址。
 
-### Disabling TLS to argocd-dex-server
+更改后，"argocd-server "和 "argocd-application-controller "将使用纯文本连接到侧车代理，该代理将处理与 "argocd-repo-server "的 TLS 侧车代理之间的所有 TLS 事宜。
 
-In some scenarios where mTLS through side-car proxies is involved (e.g.
-in a service mesh), you may want configure the connections between
-`argocd-server` to `argocd-dex-server` to not use TLS at all.
+### 停用连接 argocd-dex-server 的 TLS
 
-In this case, you will need to:
+在某些涉及通过侧车代理使用 mTLS 的情况下（例如在服务网格中），您可能希望将 `argocd-server` 与 `argocd-dex-server` 之间的连接配置为完全不使用 TLS。
 
-* Configure `argocd-dex-server` with TLS on the HTTPS API disabled by specifying
-  the `--disable-tls` parameter to the pod container's startup arguments
-* Configure `argocd-server` to not use TLS for connections to the `argocd-dex-server` 
-  by specifying the parameter `--dex-server-plaintext` to the pod container's startup
-  arguments
-* Configure `argocd-server` to connect to the side-car instead of directly to the 
-  `argocd-dex-server` service by specifying its address via the `--dex-server <address>`
-  parameter
+在这种情况下，您需要
 
-After this change, the `argocd-server` will use a plain text connection to the side-car 
-proxy, that will handle all aspects of TLS to the `argocd-dex-server`'s TLS side-car proxy.
+* 通过在 pod 容器的启动参数中指定 `--disable-tls` 参数，配置 `argocd-dex-server` 禁用 HTTPS API 上的 TLS
+* 通过在 pod 容器的启动参数中指定 `--dex-server-plaintext` 参数，将 `argocd-server` 配置为不使用 TLS 连接到 `argocd-dex-server` 。
+* 配置 `argocd-server` 以连接到边车，而不是直接连接到 `argocd-dex-server` 服务，方法是通过 `--dex-server<address>` 参数指定其地址
 
+更改后，"argocd-server "将使用纯文本连接到侧车代理，它将处理到 "argocd-dex-server "的 TLS 侧车代理的所有方面。

@@ -1,64 +1,50 @@
-# Notifications Overview
+<!-- TRANSLATED by md-translate -->
+# 通知概述
 
-Argo CD Notifications continuously monitors Argo CD applications and provides a flexible way to notify
-users about important changes in the application state. Using a flexible mechanism of
-[triggers](triggers.md) and [templates](templates.md) you can configure when the notification should be sent as
-well as notification content. Argo CD Notifications includes the [catalog](catalog.md) of useful triggers and templates.
-So you can just use them instead of reinventing new ones.
+Argo CD Notifications 可持续监控 Argo CD 应用程序，并提供灵活的方式通知用户应用程序状态的重要变化。 使用灵活的 [触发器](triggers.md) 和 [模板](templates.md) 机制，您可以配置何时发送通知以及通知内容。 Argo CD Notifications 包含有用的触发器和模板的 [目录](catalog.md)。 因此，您只需引用这些触发器和模板，而无需重新发明新的触发器和模板。
 
-## Getting Started
+## 开始
 
-* Install Triggers and Templates from the catalog
-
+* 从目录中安装触发器和模板
     ```bash
     kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/notifications_catalog/install.yaml
     ```
-
-* Add Email username and password token to `argocd-notifications-secret` secret
-
+* 在 `argocd-notifications-secret` secret 中添加电子邮件用户名和密码令牌
     ```bash
     EMAIL_USER=<your-username>
-    PASSWORD=<your-password>
+    密码=<your-password>
     
-    kubectl apply -n argocd -f - << EOF
+    kubectl apply -n argocd -f - &lt;&lt; EOF
     apiVersion: v1
     kind: Secret
-    metadata:
+    元数据：
       name: argocd-notifications-secret
-    stringData:
-      email-username: $EMAIL_USER
-      email-password: $PASSWORD
-    type: Opaque
+    stringData：
+      电子邮件用户名：$EMAIL_USER
+      电子邮件密码：$PASSWORD
+    类型：不透明
     EOF
     ```
-
-* Register Email notification service
-
+* 注册电子邮件通知服务
     ```bash
-    kubectl patch cm argocd-notifications-cm -n argocd --type merge -p '{"data": {"service.email.gmail": "{ username: $email-username, password: $email-password, host: smtp.gmail.com, port: 465, from: $email-username }" }}'
+    kubectl patch cm argocd-notifications-cm -n argocd --type merge -p '{"data"：{"service.email.gmail"："{ username: $email-username, password: $email-password, host: smtp.gmail.com, port：465, from: $email-username }"}}'
+    ```
+* 通过在 Argo CD 应用程序或项目中添加 `notations.argoproj.io/subscribe.on-sync-succeeded.slack` 注解来订阅通知：
+    ``bash
+    kubectl patch app<my-app> -n argocd -p '{"metadata"：{"Annotations"：{"notifications.argoproj.io/subscribe.on-sync-succeeded.slack":"<my-channel>"}}}' --合并类型
     ```
 
-* Subscribe to notifications by adding the `notifications.argoproj.io/subscribe.on-sync-succeeded.slack` annotation to the Argo CD application or project:
+尝试同步应用程序，以便在同步完成后获得通知。
 
-    ```bash
-    kubectl patch app <my-app> -n argocd -p '{"metadata": {"annotations": {"notifications.argoproj.io/subscribe.on-sync-succeeded.slack":"<my-channel>"}}}' --type merge
-    ```
+## 基于 namespace 的配置
 
-Try syncing an application to get notified when the sync is completed.
+Argo CD 通知的常见安装方法是将其安装在管理整个集群的专用命名空间中。 在这种情况下，一般只有管理员可以在该命名空间中配置通知。 但在某些情况下，需要允许最终用户为其 Argo CD 应用程序配置通知。 例如，最终用户可以在其可以访问且其 Argo CD 应用程序正在运行的命名空间中为其 Argo CD 应用程序配置通知。
 
-## Namespace based configuration
+该功能基于任意名称空间中的应用程序。 更多信息请参见 [任意名称空间中的应用程序](../app-any-namespace.md) 页面。
 
-A common installation method for Argo CD Notifications is to install it in a dedicated namespace to manage a whole cluster. In this case, the administrator is the only
-person who can configure notifications in that namespace generally. However, in some cases, it is required to allow end-users to configure notifications
-for their Argo CD applications. For example, the end-user can configure notifications for their Argo CD application in the namespace where they have access to and their Argo CD application is running in.
+要启用此功能，Argo CD 管理员必须重新配置 argocd-notification-controller 工作负载，在容器的启动命令中添加 `--application-namespaces` 和 `-self-service-notification-enabled` 参数。
 
-This feature is based on applications in any namespace. See [applications in any namespace](../app-any-namespace.md) page for more information.
-
-In order to enable this feature, the Argo CD administrator must reconfigure the argocd-notification-controller workloads to add  `--application-namespaces` and `--self-service-notification-enabled` parameters to the container's startup command.
-`--application-namespaces` controls the list of namespaces that Argo CD applications are in. `--self-service-notification-enabled` turns on this feature.
-
-The startup parameters for both can also be conveniently set up and kept in sync by specifying
-the `application.namespaces` and `notificationscontroller.selfservice.enabled` in the argocd-cmd-params-cm ConfigMap instead of changing the manifests for the respective workloads. For example:
+通过在 argocd-cmd-params-cm ConfigMap 中指定 "application.namespaces "和 "notificationscontroller.selfservice.enabled"，而不是更改相应工作负载的配置清单，也可以方便地设置两者的启动参数并保持同步。 例如：
 
 ```yaml
 apiVersion: v1
@@ -70,14 +56,14 @@ data:
   notificationscontroller.selfservice.enabled: "true"
 ```
 
-To use this feature, you can deploy configmap named `argocd-notifications-cm` and possibly a secret `argocd-notifications-secret` in the namespace where the Argo CD application lives.
+要使用此功能，您可以在 Argo CD 应用程序所在的 namespace 中部署名为 `argocd-notifications-cm` 的 configmaps 和可能的 secret `argocd-notifications-secret` 。
 
-When it is configured this way the controller will send notifications using both the controller level configuration (the configmap located in the same namespaces as the controller) as well as
-the configuration located in the same namespace where the Argo CD application is at.
+这样配置后，控制器将使用控制器级配置（与控制器位于同一 namespace 中的 configmap）以及 Argo CD 应用程序所在的同一 namespace 中的配置发送通知。
 
-Example: Application team wants to receive notifications using PagerDutyV2, when the controller level configuration is only supporting Slack.
+示例：应用团队希望使用 PagerDutyV2 接收通知，而控制器级配置只支持 Slack。
 
-The following two resources are deployed in the namespace where the Argo CD application lives.
+以下两个资源部署在 Argo CD 应用程序所在的 namespace 中。
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -89,6 +75,7 @@ data:
       my-service: $pagerduty-key-my-service
 ...
 ```
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -99,7 +86,8 @@ data:
   pagerduty-key-my-service: <pd-integration-key>
 ```
 
-When an Argo CD application has the following subscriptions, user receives application sync failure message from pager duty.
+当 Argo CD 应用程序有以下订阅时，用户会收到呼叫器值班发送的应用程序同步失败消息。
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -108,8 +96,6 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-failed.pagerdutyv2: "<serviceID for Pagerduty>"
 ```
 
-!!! note
-    When the same notification service and trigger are defined in controller level configuration and application level configuration,
-    both notifications will be sent according to its own configuration.
+注意 当控制器级配置和应用程序级配置中定义了相同的通知服务和触发器时，将根据各自的配置发送通知。
 
-[Defining and using secrets within notification templates](templates.md/#defining-and-using-secrets-within-notification-templates) function is not available when flag `--self-service-notification-enable` is on.
+[在通知模板中定义和使用秘密](templates.md/#defining-and-using-secrets-within-notification-templates) 功能在启用"-self-service-notification-enable "标志时不可用。

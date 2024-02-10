@@ -1,6 +1,7 @@
-# argocd-secret.yaml example
+<!-- TRANSLATED by md-translate -->
+# argocd-secret.yaml 示例
 
-An example of an argocd-secret.yaml file:
+argocd-secret.yaml 文件的示例：
 
 ```yaml
 {!docs/operator-manual/argocd-secret.yaml!}

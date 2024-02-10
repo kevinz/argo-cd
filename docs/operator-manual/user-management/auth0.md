@@ -1,33 +1,30 @@
+<!-- TRANSLATED by md-translate -->
 # Auth0
 
-## User-definitions
+## 用户定义
 
-User-definitions in Auth0 is out of scope for this guide. Add them directly in Auth0 database, use an enterprise registry, or "social login".
-*Note*: all users have access to all Auth0 defined apps unless you restrict access via configuration - keep this in mind if argo is exposed on the internet or else anyone can login.
+在 Auth0 中定义用户不在本指南的讨论范围之内。 直接在 Auth0 数据库中添加用户、使用企业注册表或 "社交登录"。 注意：除非通过配置限制访问权限，否则所有用户都可以访问所有 Auth0 定义的应用程序--如果 Argo 暴露在互联网上，或任何人都可以登录，请牢记这一点。
 
-## Registering the app with Auth0
+## 使用 Auth0 注册应用程序
 
-Follow the [register app](https://auth0.com/docs/dashboard/guides/applications/register-app-spa) instructions to create the argocd app in Auth0. In the app definition:
+按照 [register app](https://auth0.com/docs/dashboard/guides/applications/register-app-spa) 说明在 Auth0 中创建 argocd 应用程序：
 
-* Take note of the _clientId_ and _clientSecret_ values.
-* Register login url as https://your.argoingress.address/login
-* Set allowed callback url to https://your.argoingress.address/auth/callback
-* Under connections, select the user-registries you want to use with argo.
+* 注意 _clientId_ 和 _clientSecret_ 值。
+* 将登录网址注册为 https://your.argoingress.address/login
+* 将允许的回调网址设为 https://your.argoingress.address/auth/callback
+* 在连接下，选择要与 Argo 一起使用的用户注册表。
 
-Any other settings are non-essential for the authentication to work.
+任何其他设置都不是身份验证工作所必需的。
 
+## 为 Auth0 添加授权规则
 
-## Adding authorization rules to Auth0
+按照 Auth0 [授权指南](https://auth0.com/docs/authorization) 设置授权。这里需要注意的是，群成员资格是一个非标准的权利要求，因此需要放在一个 FQDN 权利要求名称下，例如 `http://your.domain/groups`。
 
-Follow Auth0 [authorization guide](https://auth0.com/docs/authorization) to setup authorization.
-The important part to note here is that group-membership is a non-standard claim, and hence is required to be put under a FQDN claim name, for instance `http://your.domain/groups`.
+## 配置 Argo
 
-## Configuring argo
+### 为 ArgoCD 配置 OIDC
 
-
-### Configure OIDC for ArgoCD
-
-`kubectl edit configmap argocd-cm`
+kubectl edit configmap argocd-cm
 
 ```
 ...
@@ -48,10 +45,10 @@ data:
 ...
 ```
 
+### 为 ArgoCD 配置 RBAC
 
-### Configure RBAC for ArgoCD
+`kubectl edit configmap argocd-rbac-cm`（或被引用 helm 值）。
 
-`kubectl edit configmap argocd-rbac-cm` (or use helm values).
 ```
 ...
 data:
@@ -69,5 +66,4 @@ data:
 
 <br>
 
-!!! note "Storing Client Secrets"
-    Details on storing your clientSecret securely and correctly can be found on the [User Management Overview page](index.md#sensitive-data-and-sso-client-secrets).
+注意 "存储客户秘密" 有关安全、正确存储客户秘密的详细信息，请参阅 [用户管理概览] 页面（index.md#sensitive-data-and-sso-client-secrets）。

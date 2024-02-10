@@ -1,93 +1,90 @@
-# Applications in any namespace
+<!-- TRANSLATED by md-translate -->
+# 任何 namespace 中的应用程序
 
-**Current feature state**: Beta
+**当前功能状态**：测试版
 
-!!! warning
-    Please read this documentation carefully before you enable this feature. Misconfiguration could lead to potential security issues.
+警告 在启用此功能之前，请仔细阅读本文档。 配置错误可能会导致潜在的安全问题。
 
-## Introduction
+## 简介
 
-As of version 2.5, Argo CD supports managing `Application` resources in namespaces other than the control plane's namespace (which is usually `argocd`), but this feature has to be explicitly enabled and configured appropriately.
+从 2.5 版开始，Argo CD 支持在控制平面名称空间（通常是 `argocd`）以外的名称空间中管理 `Application` 资源，但必须显式启用此功能并进行适当配置。
 
-Argo CD administrators can define a certain set of namespaces where `Application` resources may be created, updated and reconciled in. However, applications in these additional namespaces will only be allowed to use certain `AppProjects`, as configured by the Argo CD administrators. This allows ordinary Argo CD users (e.g. application teams) to use patterns like declarative management of `Application` resources, implementing app-of-apps and others without the risk of a privilege escalation through usage of other `AppProjects` that would exceed the permissions granted to the application teams.
+Argo CD 管理员可以定义特定的命名空间，在这些命名空间中可以创建、更新和调节 "应用程序 "资源。 但是，这些附加命名空间中的应用程序只能使用 Argo CD 管理员配置的特定 "应用程序项目"。 这样，Argo CD 的普通用户（如应用程序团队）就可以使用声明式管理 "应用程序 "资源、实施应用程序的应用程序等模式，而不会因为使用其他 "应用程序项目 "而产生权限升级的风险，因为这超出了授予应用程序团队的权限。
 
-Some manual steps will need to be performed by the Argo CD administrator in order to enable this feature. 
+Argo CD 管理员需要执行一些手动步骤才能启用该功能。
 
-!!! note
-    This feature is considered beta as of now. Some of the implementation details may change over the course of time until it is promoted to a stable status. We will be happy if early adopters use this feature and provide us with bug reports and feedback.
+注意：此功能目前还属于测试版。 在升级到稳定版之前，部分实施细节可能会随时间推移而改变。 如果早期用户使用此功能并向我们提供错误报告和反馈，我们将非常高兴。
 
+在任何名称空间中采用应用程序的一个额外优势是允许终端用户在 Argo CD 应用程序所在的名称空间中为其 Argo CD 应用程序配置通知。 更多信息请参见通知 [基于名称空间的配置](notifications/index.md#namespace-based-configuration) 页面。
 
-One additional advantage of adopting applications in any namespace is to allow end-users to configure notifications for their Argo CD application in the namespace where Argo CD application is running in. See notifications [namespace based configuration](notifications/index.md#namespace-based-configuration) page for more information.
+## 先决条件
 
-## Prerequisites
+### 集群范围的 Argo CD 安装
 
-### Cluster-scoped Argo CD installation
+该功能只有在 Argo CD 作为集群范围实例安装时才能启用和使用，因此它拥有在集群范围内列出和操作资源的权限。 该功能无法在以 namespace-scoped 模式安装的 Argo CD 上使用。
 
-This feature can only be enabled and used when your Argo CD is installed as a cluster-wide instance, so it has permissions to list and manipulate resources on a cluster scope. It will not work with an Argo CD installed in namespace-scoped mode.
+### 切换资源跟踪方法
 
-### Switch resource tracking method
+此外，虽然从技术上讲没有必要，但我们强烈建议您将应用程序跟踪方法从默认的 "标签 "设置切换为 "注解 "或 "注解+标签"。 这样做的原因是，应用程序名称将是名称空间名称和 "应用程序 "名称的合成，这很容易超出标签值的 63 个字符长度限制。 注释的长度限制明显更大。
 
-Also, while technically not necessary, it is strongly suggested that you switch the application tracking method from the default `label` setting to either `annotation` or `annotation+label`. The reasoning for this is, that application names will be a composite of the namespace's name and the name of the `Application`, and this can easily exceed the 63 characters length limit imposed on label values. Annotations have a notably greater length limit.
+要启用基于 Annotations 的资源跟踪，请参阅有关[资源跟踪方法]的文档（.../.../user-guide/resource_tracking/）。
 
-To enable annotation based resource tracking, refer to the documentation about [resource tracking methods](../../user-guide/resource_tracking/)
+## 实施细节
 
-## Implementation details
+#### 概览
 
-### Overview
+要在 Argo CD 控制平面名称空间之外管理和调节应用程序，必须满足两个先决条件：
 
-In order for an application to be managed and reconciled outside the Argo CD's control plane namespace, two prerequisites must match:
+1.对于 `argocd-application-controller` 和 `argocd-server` 工作负载，必须使用 `--application-namespaces` 参数显式启用 `Application` 的命名空间。该参数控制 Argo CD 允许从 global 中获取`应用程序`资源的 namespace 列表。任何未在此配置的 namespace 都不能被任何 `AppProject` 引用。
+2.应用程序 "的".spec.project "字段引用的 "AppProject "必须在其".spec.sourceNamespaces "字段中列出名称空间。此设置将决定一个 `Application` 是否可以引用某个 `AppProject`。如果一个`应用程序`指定了一个不允许使用的`AppProject`，Argo CD 将拒绝处理该`应用程序`。如上所述，在 `.spec.sourceNamespaces` 字段中配置的任何 namespace 也必须在 global 中启用。
 
-1. The `Application`'s namespace must be explicitly enabled using the `--application-namespaces` parameter for the `argocd-application-controller` and `argocd-server` workloads. This parameter controls the list of namespaces that Argo CD will be allowed to source `Application` resources from globally. Any namespace not configured here cannot be used from any `AppProject`.
-1. The `AppProject` referenced by the `.spec.project` field of the `Application` must have the namespace listed in its `.spec.sourceNamespaces` field. This setting will determine whether an `Application` may use a certain `AppProject`. If an `Application` specifies an `AppProject` that is not allowed, Argo CD refuses to process this `Application`. As stated above, any namespace configured in the `.spec.sourceNamespaces` field must also be enabled globally.
+不同命名空间中的 "应用程序 "可以像之前 "argocd "命名空间中的其他 "应用程序 "一样，通过声明式或 Argo CD API（例如使用 CLI、Web UI、REST API 等）来创建和管理。
 
-`Applications` in different namespaces can be created and managed just like any other `Application` in the `argocd` namespace previously, either declaratively or through the Argo CD API (e.g. using the CLI, the web UI, the REST API, etc).
+#### 重新配置 Argo CD 以允许使用某些 namespace
 
-### Reconfigure Argo CD to allow certain namespaces
+#### 更改工作负载启动参数
 
-#### Change workload startup parameters
+为了启用此功能，Argo CD 管理员必须重新配置 `argocd-server` 和 `argocd-application-controller` 工作负载，以便在容器的启动命令中添加 `--application-namespaces` 参数。
 
-In order to enable this feature, the Argo CD administrator must reconfigure the `argocd-server` and `argocd-application-controller` workloads to add the `--application-namespaces` parameter to the container's startup command.
+application-namespaces "参数是一个以逗号分隔的名称空间列表，其中的 "应用程序 "将被允许进入。 列表中的每个条目都支持 shell 风格的通配符，如 "*"，因此，例如，条目 "app-team-*"将匹配 "app-team-one "和 "app-team-two"。 要启用 Argo CD 所在集群上的所有名称空间，可以直接指定 "*"，即"--application-namespaces=*"。
 
-The `--application-namespaces` parameter takes a comma-separated list of namespaces where `Applications` are to be allowed in. Each entry of the list supports shell-style wildcards such as `*`, so for example the entry `app-team-*` would match `app-team-one` and `app-team-two`. To enable all namespaces on the cluster where Argo CD is running on, you can just specify `*`, i.e. `--application-namespaces=*`.
-
-The startup parameters for both, the `argocd-server` and the `argocd-application-controller` can also be conveniently set up and kept in sync by specifying the `application.namespaces` settings in the `argocd-cmd-params-cm` ConfigMap _instead_ of changing the manifests for the respective workloads. For example:
+argocd 服务器 "和 "argocd 应用程序控制器 "的启动参数也可以通过在 "argocd-cmd-params-cm "配置地图中指定 "application.namespaces "设置来方便地设置并保持同步，而不是更改各自工作负载的配置清单。 例如，在 "argocd-cmd-params-cm "配置地图中指定 "application.namespaces "设置：
 
 ```yaml
 data:
   application.namespaces: app-team-one, app-team-two
 ```
 
-would allow the `app-team-one` and `app-team-two` namespaces for managing `Application` resources. After a change to the `argocd-cmd-params-cm` namespace, the appropriate workloads need to be restarted:
+将允许 `app-team-one` 和 `app-team-two` 命名空间管理 `Application` 资源。 在更改 `argocd-cmd-params-cm` 命名空间后，需要重新启动相应的工作负载：
 
 ```bash
 kubectl rollout restart -n argocd deployment argocd-server
 kubectl rollout restart -n argocd statefulset argocd-application-controller
 ```
 
-#### Adapt Kubernetes RBAC
+#### 适配 Kubernetes RBAC
 
-We decided to not extend the Kubernetes RBAC for the `argocd-server` workload by default for the time being. If you want `Applications` in other namespaces to be managed by the Argo CD API (i.e. the CLI and UI), you need to extend the Kubernetes permissions for the `argocd-server` ServiceAccount.
+我们决定暂时不为 `argocd-server` 工作负载扩展 Kubernetes RBAC。 如果你想让其他 namespace 中的 `Applications` 由 Argo CD API（即 CLI 和 UI）管理，就需要为 `argocd-server` ServiceAccount 扩展 Kubernetes 权限。
 
-We supply a `ClusterRole` and `ClusterRoleBinding` suitable for this purpose in the `examples/k8s-rbac/argocd-server-applications` directory. For a default Argo CD installation (i.e. installed to the `argocd` namespace), you can just apply them as-is:
+我们在`examples/k8s-rbac/argocd-server-applications`目录中提供了适用于这一目的的`ClusterRole`和`ClusterRoleBinding`。 对于默认的 Argo CD 安装（即安装到`argocd`namespace），您可以直接应用它们：
 
 ```shell
 kubectl apply -k examples/k8s-rbac/argocd-server-applications/
 ```
 
-`argocd-notifications-controller-rbac-clusterrole.yaml` and `argocd-notifications-controller-rbac-clusterrolebinding.yaml` are used to support notifications controller to notify apps in all namespaces.
+`argocd-notifications-controller-rbac-clusterrole.yaml` 和 `argocd-notifications-controller-rbac-clusterrolebinding.yaml` 被引用以支持通知控制器通知所有 namespace 中的应用程序。
 
-!!! note
-    At some later point in time, we may make this cluster role part of the default installation manifests.
+注意 在以后的某个时间点，我们可能会将此集群角色作为默认安装配置清单的一部分。
 
-### Allowing additional namespaces in an AppProject
+### 允许在 AppProject 中添加 namespace
 
-Any user with Kubernetes access to the Argo CD control plane's namespace (`argocd`), especially those with permissions to create or update `Applications` in a declarative way, is to be considered an Argo CD admin.
+任何拥有 Kubernetes 访问 Argo CD 控制平面名称空间（"argocd"）权限的用户，尤其是拥有以声明式方式创建或更新 "应用程序 "权限的用户，都应被视为 Argo CD 管理员。
 
-This prevented unprivileged Argo CD users from declaratively creating or managing `Applications` in the past. Those users were constrained to using the API instead, subject to Argo CD RBAC which ensures only `Applications` in allowed `AppProjects` were created.
+因此，Argo CD 的非特权用户过去无法声明式地创建或管理 "应用程序"。 这些用户只能使用应用程序接口（API），并受 Argo CD RBAC 的限制，该 RBAC 可确保只创建允许的 "应用程序项目 "中的 "应用程序"。
 
-For an `Application` to be created outside the `argocd` namespace, the `AppProject` referred to in the `Application`'s `.spec.project` field must include the `Application`'s namespace in its `.spec.sourceNamespaces` field.
+要在 `argocd` 名称空间之外创建一个 `Application`，该 `Application` 的 `.spec.project` 字段中引用的 `AppProject` 必须在其 `.spec.sourceNamespaces` 字段中包含该 `Application` 的名称空间。
 
-For example, consider the two following (incomplete) `AppProject` specs:
+例如，考虑以下两个（不完整的）"AppProject "规格：
 
 ```yaml
 kind: AppProject
@@ -100,7 +97,7 @@ spec:
   - namespace-one
 ```
 
-and
+和
 
 ```yaml
 kind: AppProject
@@ -113,49 +110,47 @@ spec:
   - namespace-two
 ```
 
-In order for an Application to set `.spec.project` to `project-one`, it would have to be created in either namespace `namespace-one` or `argocd`. Likewise, in order for an Application to set `.spec.project` to `project-two`, it would have to be created in either namespace `namespace-two` or `argocd`.
+如果应用程序要将 `.spec.project` 设置为 `project-one`，则必须在名称空间 `namespace-one` 或 `argocd` 中创建。 同样，如果应用程序要将 `.spec.project` 设置为 `project-two`，则必须在名称空间 `namespace-two` 或 `argocd` 中创建。
 
-If an Application in `namespace-two` would set their `.spec.project` to `project-one` or an Application in `namespace-one` would set their `.spec.project` to `project-two`, Argo CD would consider this as a permission violation and refuse to reconcile the Application.
+如果 "namespace-two "中的应用程序将其".spec.project "设置为 "project-one"，或者 "namespace-one "中的应用程序将其".spec.project "设置为 "project-two"，Argo CD 将认为这违反了权限，并拒绝对应用程序进行对账。
 
-Also, the Argo CD API will enforce these constraints, regardless of the Argo CD RBAC permissions.
+此外，无论 Argo CD RBAC 权限如何，Argo CD API 都将执行这些限制。
 
-The `.spec.sourceNamespaces` field of the `AppProject` is a list that can contain an arbitrary amount of namespaces, and each entry supports shell-style wildcard, so that you can allow namespaces with patterns like `team-one-*`.
+AppProject "的".spec.sourceNamespaces "字段是一个列表，可以包含任意数量的 namespace，每个条目都支持 shell 风格的通配符，因此可以允许使用 "team-one-*"等模式的 namespace。
 
-!!! warning
-    Do not add user controlled namespaces in the `.spec.sourceNamespaces` field of any privileged AppProject like the `default` project. Always make sure that the AppProject follows the principle of granting least required privileges. Never grant access to the `argocd` namespace within the AppProject.
+!!! 警告 不要在任何有权限的 AppProject（如`default`项目）的`.spec.sourceNamespaces`字段中添加用户控制的命名空间。 始终确保 AppProject 遵循授予最少所需权限的原则。 切勿在 AppProject 中授予对`argocd`命名空间的访问权限。
 
-!!! note
-    For backwards compatibility, Applications in the Argo CD control plane's namespace (`argocd`) are allowed to set their `.spec.project` field to reference any AppProject, regardless of the restrictions placed by the AppProject's `.spec.sourceNamespaces` field.
-  
-### Application names
+注意 为了向后兼容，Argo CD 控制平面名称空间 (`argocd`)中的应用程序可以设置其`.spec.project`字段引用任何 AppProject，而不受 AppProject 的`.spec.sourceNamespaces`字段的限制。
 
-For the CLI and UI, applications are now referred to and displayed as in the format `<namespace>/<name>`. 
+### 应用名称
 
-For backwards compatibility, if the namespace of the Application is the control plane's namespace (i.e. `argocd`), the `<namespace>` can be omitted from the application name when referring to it. For example, the application names `argocd/someapp` and `someapp` are semantically the same and refer to the same application in the CLI and the UI.
+在 CLI 和用户界面中，应用程序现在以 `<namespace>/<name>` 的格式被提及和显示。
 
-### Application RBAC
+为实现向后兼容性，如果应用程序的命名空间是控制平面的命名空间（即 `argocd`），则在引用应用程序时可省略应用程序名称中的 `<namespace>`。例如，应用程序名称 `argocd/someapp` 和 `someapp` 在语义上是相同的，在 CLI 和 UI 中引用的是同一个应用程序。
 
-The RBAC syntax for Application objects has been changed from `<project>/<application>` to `<project>/<namespace>/<application>` to accommodate the need to restrict access based on the source namespace of the Application to be managed.
+### 应用 RBAC
 
-For backwards compatibility, Applications in the `argocd` namespace can still be refered to as `<project>/<application>` in the RBAC policy rules.
+应用程序对象的 RBAC 语法已从 `<project>/<application>` 改为 `<project>/<namespace>/<application>`，以适应根据要管理的应用程序的源名称空间限制访问的需要。
 
-Wildcards do not make any distinction between project and application namespaces yet. For example, the following RBAC rule would match any application belonging to project `foo`, regardless of the namespace it is created in:
+为了向后兼容，在 RBAC 策略规则中，"argocd "名称空间中的应用程序仍可称为 "<project>/<application>"。
+
+通配符尚未区分项目和应用程序名称空间。 例如，以下 RBAC 规则将匹配属于项目 `foo` 的任何应用程序，而不管它是在哪个名称空间创建的：
 
 ```
 p, somerole, applications, get, foo/*, allow
 ```
 
-If you want to restrict access to be granted only to `Applications` in project `foo` within namespace `bar`, the rule would need to be adapted as follows:
+如果要限制只对名称空间 `bar` 中项目 `foo` 的 `Applications` 授予访问权限，则需要对规则作如下调整：
 
 ```
 p, somerole, applications, get, foo/bar/*, allow
 ```
-  
-## Managing applications in other namespaces
 
-### Declaratively
+## 管理其他 namespace 中的应用程序
 
-For declarative management of Applications, just create the Application from a YAML or JSON manifest in the desired namespace. Make sure that the `.spec.project` field refers to an AppProject that allows this namespace. For example, the following (incomplete) Application manifest creates an Application in the namespace `some-namespace`:
+#### 声明式
+
+对于声明式管理应用程序，只需在所需名称空间中通过 YAML 或 JSON 配置清单创建应用程序。 确保 `.spec.project` 字段指向允许此名称空间的 AppProject。 例如，以下（不完整的）应用程序配置清单在名称空间 `some-namespace` 中创建了一个应用程序：
 
 ```yaml
 kind: Application
@@ -168,7 +163,7 @@ spec:
   # ...
 ```
 
-The project `some-project` will then need to specify `some-namespace` in the list of allowed source namespaces, e.g.
+然后，项目 `some-project` 需要在允许的源名称空间列表中指定 `some-namespace` ，例如
 
 ```yaml
 kind: AppProject
@@ -181,17 +176,17 @@ spec:
     - some-namespace
 ```
 
-### Using the CLI
+### 使用 CLI
 
-You can use all existing Argo CD CLI commands for managing applications in other namespaces, exactly as you would use the CLI to manage applications in the control plane's namespace.
+您可以使用所有现有的 Argo CD CLI 命令来管理其他 namespace 中的应用程序，就像使用 CLI 管理控制平面 namespace 中的应用程序一样。
 
-For example, to retrieve the `Application` named `foo` in the namespace `bar`, you can use the following CLI command:
+例如，要检索名称空间 `bar` 中名为 `foo` 的 `Application` ，可以使用以下 CLI 命令：
 
 ```shell
 argocd app get foo/bar
 ```
 
-Likewise, to manage this application, keep referring to it as `foo/bar`:
+同样，要管理此应用程序，请继续将其称为 `foo/bar`：
 
 ```bash
 # Create an application
@@ -204,22 +199,22 @@ argocd app delete foo/bar
 argocd app manifests foo/bar
 ```
 
-As stated previously, for applications in the Argo CD's control plane namespace, you can omit the namespace from the application name.
+如前所述，对于 Argo CD 控制平面名称空间中的应用程序，可以从应用程序名称中省略名称空间。
 
-### Using the UI
+### 使用用户界面
 
-Similar to the CLI, you can refer to the application in the UI as `foo/bar`.
+与 CLI 类似，您可以在用户界面中将应用程序称为 `foo/bar`。
 
-For example, to create an application named `bar` in the namespace `foo` in the web UI, set the application name in the creation dialogue's _Application Name_ field to `foo/bar`. If the namespace is omitted, the control plane's namespace will be used.
+例如，要在 Web UI 的名称空间 "foo "中创建名为 "bar "的应用程序，则应将创建对话的 _Application Name_ 字段中的应用程序名称设置为 "foo/bar"。 如果省略名称空间，则会被引用控制平面的名称空间。
 
-### Using the REST API
+### 使用 REST API
 
-If you are using the REST API, the namespace for `Application` cannot be specified as the application name, and resources need to be specified using the optional `appNamespace` query parameter. For example, to work with the `Application` resource named `foo` in the namespace `bar`, the request would look like follows:
+如果使用的是 REST API，则不能将 `Application` 的 namespace 指定为应用程序名称，而需要使用可选的 `appNamespace` 查询参数指定资源。 例如，要处理命名空间 `bar` 中名为 `foo` 的 `Application` 资源，请求将如下所示：
 
 ```bash
 GET /api/v1/applications/foo?appNamespace=bar
 ```
 
-For other operations such as `POST` and `PUT`, the `appNamespace` parameter must be part of the request's payload.
+对于其他操作，如 `POST` 和 `PUT`，`appNamespace` 参数必须是请求有效载荷的一部分。
 
-For `Application` resources in the control plane namespace, this parameter can be omitted.
+对于控制平面 namespace 中的 "Application "资源，此参数可以省略。

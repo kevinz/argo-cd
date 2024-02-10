@@ -1,5 +1,6 @@
-# Roadmap
+<!-- TRANSLATED by md-translate -->
+# 路线图
 
-The Argo CD roadmap is maintained in [a GitHub Project](https://github.com/orgs/argoproj/projects/25/views/14).
+Argo CD 路线图由 [a GitHub Project](https://github.com/orgs/argoproj/projects/25/views/14) 维护。
 
-Releases are planned according to the [Release Process and Cadence](developer-guide/release-process-and-cadence.md) doc.
+发布是根据 [Release Process and Cadence](developer-guide/release-process-and-cadence.md) 文档计划的。

@@ -1,41 +1,37 @@
-# Webex Teams
+<!-- TRANSLATED by md-translate -->
+# Webex 团队
 
-## Parameters
+## 参数
 
-The Webex Teams notification service configuration includes following settings:
+Webex Teams 通知服务配置包括以下设置：
 
-* `token` - the app token
+* `token` - 应用程序令牌
 
-## Configuration
+## 配置
 
-1. Create a Webex [Bot](https://developer.webex.com/docs/bots)
-1. Copy the bot access [token](https://developer.webex.com/my-apps) and store it in the `argocd-notifications-secret` Secret and configure Webex Teams integration in `argocd-notifications-cm` ConfigMap
-
-    ``` yaml
+1.创建 Webex [机器人](https://developer.webex.com/docs/bots)
+2.复制机器人访问 [token](https://developer.webex.com/my-apps) 并将其存储在 `argocd-notifications-secret` Secret 中，并在 `argocd-notifications-cm` ConfigMap 中配置 Webex Teams 集成
+    yaml
     apiVersion: v1
-    kind: Secret
-    metadata:
-    name: <secret-name>
-    stringData:
-    webex-token: <bot access token>
-    ```
-
-    ``` yaml
+    类型: Secret
+    元数据：
+    name：<secret-name>
+    stringData：
+    webex-token：<bot access token>
+    `````` yaml
     apiVersion: v1
-    kind: ConfigMap
-    metadata:
-    name: <config-map-name>
-    data:
-    service.webex: |
+    kind：configmaps
+    metadata：
+    name：<config-map-name>
+    data：
+    service.webex：|
         token: $webex-token
     ```
-
-1. Create subscription for your Webex Teams integration
-
+3.为 Webex Teams 集成创建订阅
     ``` yaml
     apiVersion: argoproj.io/v1alpha1
-    kind: Application
-    metadata:
-    annotations:
-        notifications.argoproj.io/subscribe.<trigger-name>.webex: <personal email or room id>
+    类型：应用程序
+    元数据：
+    Annotations：
+        notifications.argoproj.io/subscribe.<trigger-name>.webex：<personal email or room id>
     ```

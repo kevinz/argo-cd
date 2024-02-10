@@ -1,57 +1,47 @@
-# Deep Links
+<!-- TRANSLATED by md-translate -->
+# 深度链接
 
-Deep links allow users to quickly redirect to third-party systems, such as Splunk, Datadog, etc. from the Argo CD
-user interface.
+深度链接允许用户从 Argo CD 用户界面快速重定向到第三方系统，如 Splunk、Datadog 等。
 
-Argo CD administrator will be able to configure links to third-party systems by providing 
-deep link templates configured in `argocd-cm`. The templates can be conditionally rendered and are able 
-to reference different types of resources relating to where the links show up, this includes projects, applications,
-or individual resources (pods, services, etc.).
+Argo CD 管理员可以通过 Provider-cm 中配置的深度链接模板来配置与第三方系统的链接。 这些模板可以有条件地渲染，并能够引用与链接显示位置相关的不同类型资源，其中包括项目、应用程序或单个资源（pod、服务等）。
 
-## Configuring Deep Links
+## 配置深度链接
 
-The configuration for Deep Links is present in `argocd-cm` as `<location>.links` fields where 
-`<location>` determines where it will be displayed. The possible values for `<location>` are:
+深度链接的配置在 `argocd-cm` 中以 `<location>.links` 字段的形式存在，其中 `<location>` 决定在哪里显示。 `<location>` 的可能值是：
 
-- `project`: all links under this field will show up in the project tab in the Argo CD UI
-- `application`: all links under this field will show up in the application summary tab
-- `resource`: all links under this field will show up in the resource (deployments, pods, services, etc.) summary tab
+* 项目"：该字段下的所有链接将显示在 Argo CD 用户界面的项目选项卡中
+* 应用程序"：该字段下的所有链接将显示在应用程序摘要选项卡中
+* 资源"：此字段下的所有链接将显示在资源（部署、pod、服务等）摘要选项卡中
 
-Each link in the list has five subfields:
+列表中的每个链接都有五个子字段：
 
-1. `title`: title/tag that will be displayed in the UI corresponding to that link
-2. `url`: the actual URL where the deep link will redirect to, this field can be templated to use data from the
-   corresponding application, project or resource objects (depending on where it is located). This uses [text/template](https://pkg.go.dev/text/template) pkg for templating
-3. `description` (optional): a description for what the deep link is about
-4. `icon.class` (optional): a font-awesome icon class to be used when displaying the links in dropdown menus
-5. `if` (optional): a conditional statement that results in either `true` or `false`, it also has access to the same
-   data as the `url` field. If the condition resolves to `true` the deep link will be displayed - else it will be hidden. If
-   the field is omitted, by default the deep links will be displayed. This uses [antonmedv/expr](https://github.com/antonmedv/expr/tree/master/docs) for evaluating conditions
+1.title"： 该链接对应的用户界面中将显示的标题/标记
+2.`url`：深层链接将重定向到的实际 URL，该字段可以模板化，以使用相应应用程序、项目或资源对象（取决于其位置）中的数据。这被引用 [text/template](https://pkg.go.dev/text/template) pkg 进行模板化
+3.description`（可选）：关于深层链接的描述
+4.icon.class`（可选）：在下拉菜单中显示链接时被引用的字体漂亮的图标类
+5.if`（可选）：结果为`true`或`false`的条件语句，它也可以访问与`url`字段相同的数据。如果条件解析为 `true`，则显示深层链接，否则隐藏。如果省略该字段，默认情况下将显示深层链接。这被引用 [antonmedv/expr](https://github.com/antonmedv/expr/tree/master/docs) 来评估条件
 
-!!!note
-    For resources of kind Secret the data fields are redacted but other fields are accessible for templating the deep links.
+注意：对于 Secret 类型的资源，数据字段被编辑，但其他字段可用于模板化深层链接。
 
-!!!warning
-    Make sure to validate the url templates and inputs to prevent data leaks or possible generation of any malicious links.
+警告 请确保验证 url 模板和输入，以防止数据泄漏或可能生成任何恶意链接。
 
-As mentioned earlier the links and conditions can be templated to use data from the resource, each category of links can access different types of data linked to that resource.
-Overall we have these 4 resources available for templating in the system:
+如前所述，链接和条件可以通过模板化来使用资源中的数据，每类链接都可以访问与该资源链接的不同类型的数据。 总体而言，我们在系统中拥有这 4 种可供模板化的资源：
 
-- `app` or `application`: this key is used to access the application resource data.
-- `resource`: this key is used to access values for the actual k8s resource.
-- `cluster`: this key is used to access the related destination cluster data like name, server, namespaces etc.
-- `project`: this key is used to access the project resource data.
+* app "或 "application"：该键被引用用于访问应用程序资源数据。
+* `resource`: 该键被用来引用实际 k8s 资源的值。
+* `cluster`: 该键用于访问相关的目标集群数据，如名称、服务器、namespace 等。
+* project`：该键被引用用于访问项目资源数据。
 
-The above resources are accessible in particular link categories, here's a list of resources available in each category:
+可通过特定链接类别访问上述资源，以下是每个类别的可用资源列表：
 
-- `resource.links`: `resource`, `application`, `cluster` and `project`
-- `application.links`: `app`/`application` and `cluster`
-- `project.links`: `project`
+* 资源链接"："资源"、"应用程序"、"集群 "和 "项目
+* `application.links`: `app`/`application` 和 `cluster
+* `project.links`: `project` 项目
 
-An example `argocd-cm.yaml` file with deep links and their variations :
+包含深度链接及其变化的示例文件 `argocd-cm.yaml` ：
 
 ```yaml
-  # sample project level links
+# sample project level links
   project.links: |
     - url: https://myaudit-system.com?project={{.project.metadata.name}}
       title: Audit

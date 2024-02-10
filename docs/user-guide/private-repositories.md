@@ -1,186 +1,133 @@
-# Private Repositories
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-!!!note
-    Some Git hosters - notably GitLab and possibly on-premise GitLab instances as well - require you to
-    specify the `.git` suffix in the repository URL, otherwise they will send a HTTP 301 redirect to the
-    repository URL suffixed with `.git`. Argo CD will **not** follow these redirects, so you have to
-    adapt your repository URL to be suffixed with `.git`.
+# 私人存储库
 
-## Credentials
+注意 有些 Git 托管程序（特别是 GitLab，也可能是内部部署的 GitLab 实例）要求您指定`.git`后缀的版本库 URL，否则它们将发送 HTTP 301 重定向到以`.git`Argo CD 将**不**遵循这些重定向，因此您必须调整版本库 URL，使其后缀为`.git`。
 
-If application manifests are located in private repository then repository credentials have to be configured. Argo CD supports both HTTPS and SSH Git credentials.
+## 全权证书
 
-### HTTPS Username And Password Credential
+Argo CD 支持 HTTPS 和 SSH Git 认证。
 
-Private repositories that require a username and password typically have a URL that start with `https://` rather than `git@` or `ssh://`. 
+### https 用户名和密码证书
 
-Credentials can be configured using Argo CD CLI:
+需要用户名和密码的私有存储库的 URL 开头通常为`https://`而不是`git@`或`ssh://`。
+
+可使用 Argo CD CLI 配置凭据：
 
 ```bash
 argocd repo add https://github.com/argoproj/argocd-example-apps --username <username> --password <password>
 ```
 
-or UI:
+或用户界面：
 
-1. Navigate to `Settings/Repositories`
+1.导航至 "设置/仓库" ![connect repo overview](../assets/repo-add-overview.png) 2.点击 "Connect Repo using HTTPS "按钮并输入凭据 ![connect repo](../assets/repo-add-https.png)_ 注：截图中的用户名仅供参考，我们与此 GitHub 账户（如果存在）没有任何关系。
 
-    ![connect repo overview](../assets/repo-add-overview.png)
+连接 repo](../assets/connect-repo.png)
 
-2. Click `Connect Repo using HTTPS` button and enter credentials 
+#### 访问令牌
 
-    ![connect repo](../assets/repo-add-https.png)
+您可以使用访问令牌来代替用户名和密码，请按照 Git 托管服务的说明生成令牌：
 
-    *Note: username in screenshot is for illustration purposes only , we have no relationship to this GitHub account should it exist.*
+* [GitHub](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line) * [GitLab](https://docs.gitlab.com/ee/user/project/deploy_tokens/) * [Bitbucket](https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html) * [Azure Repos](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&amp;tabs=preview-page)
 
-3. Click `Connect` to test the connection and have the repository added 
+然后，使用任意非空字符串作为用户名，使用访问令牌值作为密码，连接存储库。
 
-![connect repo](../assets/connect-repo.png)
+注意 对于某些服务，您可能必须指定账户名作为用户名，而不是任何字符串。
 
-#### Access Token
+### 用于 https 存储库的 tls 客户端证书
 
-Instead of using username and password you might use access token. Following instructions of your Git hosting service to generate the token:
-
-* [GitHub](https://help.github.com/en/articles/creating-a-personal-access-token-for-the-command-line)
-* [GitLab](https://docs.gitlab.com/ee/user/project/deploy_tokens/)
-* [Bitbucket](https://confluence.atlassian.com/bitbucketserver/personal-access-tokens-939515499.html)
-* [Azure Repos](https://docs.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?view=azure-devops&tabs=preview-page)
-
-Then, connect the repository using any non-empty string as username and the access token value as a password. 
-
-!!!note
-    For some services, you might have to specify your account name as the username instead of any string.
-
-### TLS Client Certificates for HTTPS repositories
-
-If your repository server requires you to use TLS client certificates for authentication, you can configure Argo CD repositories to make use of them. For this purpose, `--tls-client-cert-path` and `--tls-client-cert-key-path` switches to the `argocd repo add` command can be used to specify the files on your local system containing client certificate and the corresponding key, respectively:
+如果您的版本库服务器要求您使用 TLS 客户端证书进行身份验证，您可以配置 Argo CD 版本库以利用这些证书。 为此，您可以`--tls-client-cert-path`和`--tls-client-cert-key-path`切换到`argocd repo add`命令被用来引用本地系统中分别包含客户端证书和相应密钥的文件： Argo
 
 ```
 argocd repo add https://repo.example.com/repo.git --tls-client-cert-path ~/mycert.crt --tls-client-cert-key-path ~/mycert.key
 ```
 
-Of course, you can also use this in combination with the `--username` and `--password` switches, if your repository server should require this. The options `--tls-client-cert-path` and `--tls-client-cert-key-path` must always be specified together.
+当然，您也可以将其与被引用的`--username`和`--password`开关，如果版本库服务器需要的话。 选项`--tls-client-cert-path`和`--tls-client-certkey-path`必须始终一起指定。
 
-Your TLS client certificate and corresponding key can also be configured using the UI, see instructions for adding Git repos using HTTPS.
+TLS 客户端证书和相应密钥也可通过用户界面配置，请参阅使用 HTTPS 添加 Git 仓库的说明。
 
-!!! note
-    Your client certificate and key data must be in PEM format, other formats (such as PKCS12) are not understood. Also make sure that your certificate's key is not password protected, otherwise it cannot be used by Argo CD.
+注意 您的客户证书和密钥数据必须是 PEM 格式，其他格式（如 PKCS12）不被理解。 此外，请确保您的证书密钥未受密码保护，否则 Argo CD 无法引用。
 
-!!! note
-    When pasting TLS client certificate and key in the text areas in the web UI, make sure they contain no unintended line breaks or additional characters.
+注意 在网络用户界面的文本区域粘贴 tls 客户证书和密钥时，确保不包含意外换行或附加字符。
 
-### SSH Private Key Credential
+### SSH 私钥证书
 
-Private repositories that require an SSH private key have a URL that typically start with `git@` or `ssh://` rather than `https://`.  
+需要 SSH 私钥的私有存储库的 URL 一般以`git@`或`ssh://`而不是`https://`。
 
-You can configure your Git repository using SSH either using the CLI or the UI.
+你可以通过 CLI 或用户界面使用 SSH 配置 Git 仓库。
 
-!!! note
-    Argo CD 2.4 upgraded to OpenSSH 8.9. OpenSSH 8.8 
-    [dropped support for the `ssh-rsa` SHA-1 key signature algorithm](https://www.openssh.com/txt/release-8.8).
-    See the [2.3 to 2.4 upgrade guide](../operator-manual/upgrading/2.3-2.4.md) for details about testing SSH servers 
-    for compatibility with Argo CD and for working around servers that do not support newer algorithms.
+注意 Argo CD 2.4 已升级到 OpenSSH 8.9。[放弃了对](https://www.openssh.com/txt/release-8.8)见[2.3 至 2.4 升级指南](./operator-manual/upgrading/2.3-2.4.md)了解测试 SSH 服务器与 Argo CD 兼容性的详情，以及如何解决不支持更新算法的服务器的问题。
 
-Using the CLI:
+被引用 CLI：
 
 ```
 argocd repo add git@github.com:argoproj/argocd-example-apps.git --ssh-private-key-path ~/.ssh/id_rsa
 ```
 
-Using the UI:
+被引用的用户界面：
 
-1. Navigate to `Settings/Repositories`
+1.2.Click `Connect Repo using SSH` button, enter the URL and paste the SSH private key ![connect repo](../assets/repo-add-ssh.png) 3.Click `Connect` to test the connection and have the repository added
 
-    ![connect repo overview](../assets/repo-add-overview.png)
+注意 在用户界面粘贴 ssh 私钥时，确保文本区域没有意外的换行或附加字符
 
-2. Click `Connect Repo using SSH` button, enter the URL and paste the SSH private key 
+注意 当 SSH 版本库从非标准端口提供服务时，必须使用`ssh://`-样式的 URL 来指定您的版本库。 scp 样式的`git@yourgit.com:yourrepo`URL 可以**不**支持端口指定，并将任何端口号视为版本库路径的一部分。
 
-    ![connect repo](../assets/repo-add-ssh.png)
+### GitHub 应用程序证书
 
-3. Click `Connect` to test the connection and have the repository added 
+在 GitHub.com 或 GitHub Enterprise 上托管的私有仓库可使用来自 GitHub 应用程序的引用进行访问。 请查阅[GitHub 文档](https://docs.github.com/en/developers/apps/about-apps#about-github-apps)如何创建应用程序。
 
-!!!note
-    When pasting SSH private key in the UI, make sure there are no unintended line breaks or additional characters in the text area
+注意 确保您的应用程序至少有`Read-only`权限`Contents`这是最低要求。
 
-!!!note 
-    When your SSH repository is served from a non-standard port, you have to use `ssh://`-style URLs to specify your repository. The scp-style `git@yourgit.com:yourrepo` URLs do **not** support port specification, and will treat any port number as part of the repository's path.
+你可以通过 CLI 或用户界面，使用 GitHub App 方法配置对 GitHub.com 或 GitHub Enterprise 托管的 Git 仓库的访问。
 
-### GitHub App Credential
-
-Private repositories that are hosted on GitHub.com or GitHub Enterprise can be accessed using credentials from a GitHub Application. Consult the [GitHub documentation](https://docs.github.com/en/developers/apps/about-apps#about-github-apps) on how to create an application.
-
-!!!note
-    Ensure your application has at least `Read-only` permissions to the `Contents` of the repository. This is the minimum requirement.
-
-You can configure access to your Git repository hosted by GitHub.com or GitHub Enterprise using the GitHub App method by either using the CLI or the UI.
-
-Using the CLI:
+被引用 CLI：
 
 ```
 argocd repo add https://github.com/argoproj/argocd-example-apps.git --github-app-id 1 --github-app-installation-id 2 --github-app-private-key-path test.private-key.pem
 ```
 
-Using the UI:
+被引用的用户界面：
 
-1. Navigate to `Settings/Repositories`
+1.导航至 "设置/版本库" ![connect repo overview](../assets/repo-add-overview.png) 2.点击 "Connect Repo using GitHub App "按钮，输入 URL、App Id、Installation Id 和应用程序的私钥。 ![connect repo](../assets/repo-add-github-app.png) 3.点击 "Connect "连接测试并添加版本库。
 
-    ![connect repo overview](../assets/repo-add-overview.png)
+注意 在用户界面粘贴 GitHub 应用程序私钥时，确保文本区域没有意外的换行或附加字符
 
-2. Click `Connect Repo using GitHub App` button, enter the URL, App Id, Installation Id, and the app's private key.
+### 谷歌云源
 
-    ![connect repo](../assets/repo-add-github-app.png)
+可以使用 JSON 格式的 Google Cloud 服务账户密钥访问托管在 Google Cloud Source 上的私有存储库。 咨询[谷歌云文档](https://cloud.google.com/iam/docs/creating-managing-service-accounts)了解如何创建服务账户。
 
-3. Click `Connect` to test the connection and have the repository added
+注意 确保您的应用程序至少有`Source Repository Reader`这是最低要求。
 
-!!!note
-    When pasting GitHub App private key in the UI, make sure there are no unintended line breaks or additional characters in the text area
+您可以使用 CLI 或用户界面配置对托管在 Google Cloud Source 上的 Git 仓库的访问权限。
 
-### Google Cloud Source
-
-Private repositories hosted on Google Cloud Source can be accessed using Google Cloud service account key in JSON format. Consult [Google Cloud documentation](https://cloud.google.com/iam/docs/creating-managing-service-accounts) on how to create a service account.
-
-!!!note
-    Ensure your application has at least `Source Repository Reader` permissions for the Google Cloud project. This is the minimum requirement.
-
-You can configure access to your Git repository hosted on Google Cloud Source using the CLI or the UI.
-
-Using the CLI:
+被引用 CLI：
 
 ```
 argocd repo add https://source.developers.google.com/p/my-google-cloud-project/r/my-repo --gcp-service-account-key-path service-account-key.json
 ```
 
-Using the UI:
+被引用的用户界面：
 
-1. Navigate to `Settings/Repositories`
+1.导航至 `Settings/Repositories` ![connect repo overview](../assets/repo-add-overview.png) 2.单击 "Connect Repo using Google Cloud Source "按钮，以 JSON 格式输入 URL 和 Google Cloud 服务账户。 3.单击 "Connect "以测试连接并添加版本库。
 
-   ![connect repo overview](../assets/repo-add-overview.png)
+## 证书模板
 
-2. Click `Connect Repo using Google Cloud Source` button, enter the URL and the Google Cloud service account in JSON format.
+您还可以设置凭证作为连接存储库的模板，而无需重复凭证配置。`https://github.com/argoproj`，这些凭据将被引用到以该 url 为前缀的所有版本库（例如`https://github.com/argoproj/argocd-example-apps`）没有配置自己的证书。
 
-   ![connect repo](../assets/repo-add-google-cloud-source.png)
+要使用 Web UI 设置凭证模板，只需在***使用 SSH 连接软件仓库***或***使用 HTTPS 连接软件仓库***对话框（如上所述），但选择***保存为证书模板***而不是***连接***保存凭证模板。 请确保只输入前缀 URL（即`https://github.com/argoproj`），而不是完整的版本库 URL（即`https://github.com/argoproj/argocd-example-apps`）在实地***存储库 URL**。
 
-3. Click `Connect` to test the connection and have the repository added
+要使用 CLI 管理凭证模板，请使用`repocreds`子命令，例如`argocd repocreds add https://github.com/argoproj --username youruser --password yourpass`会为 URL 前缀设置一个证书模板`https://github.com/argoproj`使用被引用的用户名/密码组合。`repo`子命令，还可以使用`argocd repocreds list`和`argocd repocreds rm`命令。
 
-## Credential templates
+要让 Argo CD 使用任何给定资源库的凭证模板，必须满足以下条件： Argo CD
 
-You can also set up credentials to serve as templates for connecting repositories, without having to repeat credential configuration. For example, if you setup credential templates for the URL prefix `https://github.com/argoproj`, these credentials will be used for all repositories with this URL as prefix (e.g. `https://github.com/argoproj/argocd-example-apps`) that do not have their own credentials configured.
+* 为凭证模板配置的 url（如 `https://github.com/argoproj` ）必须与版本库 url（如 `https://github.com/argoproj/argocd-example-apps` ）的前缀相匹配。
 
-To set up a credential template using the Web UI, simply fill in all relevant credential information in the __Connect repo using SSH__ or __Connect repo using HTTPS__ dialogues (as described above), but select __Save as credential template__ instead of __Connect__ to save the credential template. Be sure to only enter the prefix URL (i.e. `https://github.com/argoproj`) instead of the complete repository URL (i.e. `https://github.com/argoproj/argocd-example-apps`) in the field __Repository URL__
+注意 只有在设置了匹配的版本库凭证后，才能使用 CLI 或 Web UI 添加需要验证的版本库，而无需指定凭证
 
-To manage credential templates using the CLI, use the `repocreds` sub-command, for example `argocd repocreds add https://github.com/argoproj --username youruser --password yourpass` would setup a credential template for the URL prefix `https://github.com/argoproj` using the specified username/password combination. Similar to the `repo` sub-command, you can also list and remove repository credentials using the `argocd repocreds list` and `argocd repocreds rm` commands, respectively.
+注意，匹配凭证模板 URL 前缀是在一个最佳匹配与 v1.4 之前的配置相比，定义的顺序并不重要。
 
-In order for Argo CD to use a credential template for any given repository, the following conditions must be met:
-
-* The repository must either not be configured at all, or if configured, must not contain any credential information 
-* The URL configured for a credential template (e.g. `https://github.com/argoproj`) must match as prefix for the repository URL (e.g. `https://github.com/argoproj/argocd-example-apps`). 
-
-!!! note
-    Repositories that require authentication can be added using CLI or Web UI without specifying credentials only after a matching repository credential has been set up
-
-!!! note
-    Matching credential template URL prefixes is done on a _best match_ effort, so the longest (best) match will take precedence. The order of definition is not important, as opposed to pre v1.4 configuration.
-
-The following is an example CLI session, depicting repository credential set-up:
+下面是一个 cli 会话示例，描述了存储库凭据的设置：
 
 ```bash
 # Try to add a private repository without specifying credentials, will fail
@@ -202,170 +149,132 @@ $ argocd repo add https://docker-build/repos/example-apps-part-two --username te
 FATA[0000] rpc error: code = Unknown desc = authentication required
 ```
 
-## Self-signed & Untrusted TLS Certificates
+### 自签名和不可信任的 TLS 证书
 
-If you are connecting a repository on a HTTPS server using a self-signed certificate, or a certificate signed by a custom Certificate Authority (CA) which are not known to Argo CD, the repository will not be added due to security reasons. This is indicated by an error message such as `x509: certificate signed by unknown authority`.
+如果使用自签证书或 Argo CD 不知道的自定义证书颁发机构 (CA) 签发的证书连接 HTTPS 服务器上的版本库，由于安全原因，版本库将无法添加。 这将通过错误信息显示，例如`x509: certificate signed by unknown authority`。
 
-1. You can let ArgoCD connect the repository in an insecure way, without verifying the server's certificate at all. This can be accomplished by using the `--insecure-skip-server-verification` flag when adding the repository with the `argocd` CLI utility. However, this should be done only for non-production setups, as it imposes a serious security issue through possible man-in-the-middle attacks.
+1.你可以让 ArgoCD 以不安全的方式连接版本库，而无需验证服务器证书。这可以在使用 `argocd` CLI 工具添加版本库时被引用 `--insecure-skip-server-verification`（不安全地跳过服务器验证）"flag。不过，这只适用于非生产性设置，因为它可能会带来严重的中间人攻击安全问题。 2.您可以使用 `argocd` CLI 工具中的 `cert add-tls` 命令配置 ArgoCD 使用自定义证书来验证服务器证书。这是推荐的方法，适合在生产中使用。为此，您需要 PEM 格式的服务器证书或被引用签署服务器证书的 CA 的证书。
 
-2. You can configure ArgoCD to use a custom certificate for the verification of the server's certificate using the `cert add-tls` command of the `argocd` CLI utility. This is the recommended method and suitable for production use. In order to do so, you will need the server's certificate, or the certificate of the CA used to sign the server's certificate, in PEM format.
+注意 对于无效的服务器证书，如不匹配服务器名称或过期的证书，添加 CA 证书将无济于事。 在这种情况下，您唯一的选择是使用`--insecure-skip-server-verification`强烈建议您在版本库服务器上被引用有效证书，或敦促服务器管理员用有效证书替换有问题的证书。
 
-!!! note
-    For invalid server certificates, such as those without matching server name, or those that are expired, adding a CA certificate will not help. In this case, your only option will be to use the `--insecure-skip-server-verification` flag to connect the repository. You are strongly urged to use a valid certificate on the repository server, or to urge the server's administrator to replace the faulty certificate with a valid one.
+注意 tls 证书是按服务器配置的，而不是按存储库配置的。 如果从同一服务器连接多个存储库，则只需为该服务器配置一次证书。
 
-!!! note
-    TLS certificates are configured on a per-server, not on a per-repository basis. If you connect multiple repositories from the same server, you only have to configure the certificates once for this server.
+注意，可能需要几分钟的时间才能完成更改。`argocd cert`命令会在集群中传播，具体取决于 Kubernetes 设置。
 
-!!! note
-    It can take up to a couple of minutes until the changes performed by the `argocd cert` command are propagated across your cluster, depending on your Kubernetes setup.
+##使用 cli 管理 tls 证书
 
-### Managing TLS certificates using the CLI
-
-You can list all configured TLS certificates by using the `argocd cert list` command using the `--cert-type https` modifier:
+您可以通过被引用的`argocd cert list`命令，被引用为`--cert-type https`修改器：
 
 ```bash
 $ argocd cert list --cert-type https
-HOSTNAME      TYPE   SUBTYPE  FINGERPRINT/SUBJECT
-docker-build  https  rsa      CN=ArgoCD Test CA
-localhost     https  rsa      CN=localhost
+HOSTNAME TYPE SUBTYPE FINGERPRINT/SUBJECT
+docker-build https rsa CN=ArgoCD Test CA
+localhost https rsa CN=localhost
 ```
 
-Example for adding  a HTTPS repository to ArgoCD without verifying the server's certificate (**Caution:** This is **not** recommended for production use):
+向 ArgoCD 添加 HTTPS 软件源而不验证服务器证书的示例 (**注意：**这是**不**被引用用于生产）：
 
 ```bash
 argocd repo add --insecure-skip-server-verification https://git.example.com/test-repo
-
 ```
 
-Example for adding a CA certificate contained in file `~/myca-cert.pem` to properly verify the repository server:
+添加文件中 CA 证书的示例`~/myca-cert.pem`以正确验证版本库服务器：
 
 ```bash
 argocd cert add-tls git.example.com --from ~/myca-cert.pem
 argocd repo add https://git.example.com/test-repo
 ```
 
-You can also add more than one PEM for a server by concatenating them into the input stream. This might be useful if the repository server is about to replace the server certificate, possibly with one signed by a different CA. This way, you can have the old (current) as well as the new (future) certificate co-existing. If you already have the old certificate configured, use the `--upsert` flag and add the old and the new one in a single run:
+如果版本库服务器即将更换服务器证书，可能是更换由不同 CA 签发的证书，这可能会很有用。 这样，您就可以让旧（当前）和新（未来）证书同时存在。 如果您已经配置了旧证书，请使用`--upsert`标记，并在一次运行中添加新旧标记：。
 
 ```bash
 cat cert1.pem cert2.pem | argocd cert add-tls git.example.com --upsert
 ```
 
-!!! note
-    To replace an existing certificate for a server, use the `--upsert` flag to the `cert add-tls` CLI command. 
+注意 要替换服务器的现有证书，请使用`--upsert`标志到`cert add-tls`CLI 命令。
 
-Finally, TLS certificates can be removed using the `argocd cert rm` command with the `--cert-type https` modifier:
+最后，可以通过被引用的`argocd cert rm`命令与`--cert-type https`修改器：
 
 ```bash
 argocd cert rm --cert-type https localhost
 ```
 
-### Managing TLS certificates using the ArgoCD web UI
+### 使用 ArgoCD 网页用户界面管理 TLS 证书
 
-It is possible to add and remove TLS certificates using the ArgoCD web UI:
+可以使用 ArgoCD 网页用户界面添加和删除 TLS 证书：
 
-1. In the navigation pane to the left, click on "Settings" and choose "Certificates" from the settings menu
+1.在左侧导航窗格中点击 "设置"，然后从设置菜单中选择 "证书 "2。下面的页面列出了当前配置的所有证书，并提供了添加新 TLS 证书或 SSH 已知条目的选项： ![管理证书](../assets/cert-management-overview.png) 3. 点击 "添加 TLS 证书"，填写相关数据并点击 "创建"。注意只指定版本库服务器的 FQDN（而不是 URL），并将 TLS 证书的完整 PEM 复制到文本区域字段，包括 `----BEGIN CERTIFICATE----` 和 `----END CERTIFICATE----` 行： ！[添加 tls 证书](.../assets/cert-management-add-tls.png) 4.要删除证书，请点击证书条目旁边的小三点按钮，从弹出菜单中选择 "删除"，并在下面的对话框中确认删除。![删除证书](../assets/cert-management-remove.png)
 
-2. The following page lists all currently configured certificates and provides you with the option to add either a new TLS certificate or SSH known entries: 
+### 使用声明式配置管理 tls 证书
 
-    ![manage certificates](../assets/cert-management-overview.png)
+您也可以在声明式、自我管理的 ArgoCD 设置中管理 TLS 证书。 所有 TLS 证书都存储在 ConfigMap 对象中`argocd-tls-certs-cm`请参阅[操作手册](.../.../operator-manual/declarative-setup/#repositories-using-self-signed-tls-certificates-or--are-signed-by-custom-ca)了解更多信息。
 
-3. Click on "Add TLS certificate", fill in relevant data and click on "Create". Take care to specify only the FQDN of your repository server (not the URL) and that you C&P the complete PEM of your TLS certificate into the text area field, including the `----BEGIN CERTIFICATE----` and `----END CERTIFICATE----` lines:
+## 未知 SSH 主机
 
-    ![add tls certificate](../assets/cert-management-add-tls.png)
+如果您通过 SSH 使用的是私有托管的 Git 服务，那么您有以下选项：
 
-4. To remove a certificate, click on the small three-dotted button next to the certificate entry, select "Remove" from the pop-up menu and confirm the removal in the following dialogue.
+1.你可以让 ArgoCD 以不安全的方式连接版本库，而无需验证服务器的 SSH 主机密钥。这可以在使用 `argocd` CLI 工具添加版本库时被引用 `--insecure-skip-server-verification`（不安全地跳过服务器验证）"flag。不过，这只适用于非生产性设置，因为它可能通过中间人攻击带来严重的安全问题。 2.你可以使用 `argocd` CLI 工具中的 `cert add-ssh` 命令让 ArgoCD 知道服务器的 SSH 公钥。这是推荐的方法，适合在生产中使用。为此，你需要服务器的 SSH 公共主机密钥，格式为`ssh`理解的`known_hosts`。例如，你可以通过使用 `ssh-keyscan` 工具来引用服务器的 SSH 公共主机密钥。
 
-    ![remove certificate](../assets/cert-management-remove.png)
+注意，可能需要几分钟的时间才能完成更改。`argocd cert`命令会在集群中传播，具体取决于 Kubernetes 设置。
 
-### Managing TLS certificates using declarative configuration
+请注意，这将破坏 CLI 和 UI 证书管理，因此一般不建议使用。
 
-You can also manage TLS certificates in a declarative, self-managed ArgoCD setup. All TLS certificates are stored in the ConfigMap object `argocd-tls-certs-cm`.
-Please refer to the [Operator Manual](../../operator-manual/declarative-setup/#repositories-using-self-signed-tls-certificates-or-are-signed-by-custom-ca) for more information.
+### 使用 cli 管理 ssh 已知主机
 
-## Unknown SSH Hosts
-
-If you are using a privately hosted Git service over SSH, then you have the following  options:
-
-1. You can let ArgoCD connect the repository in an insecure way, without verifying the server's SSH host key at all. This can be accomplished by using the `--insecure-skip-server-verification` flag when adding the repository with the `argocd` CLI utility. However, this should be done only for non-production setups, as it imposes a serious security issue through possible man-in-the-middle attacks.
-
-2. You can make the server's SSH public key known to ArgoCD by using the `cert add-ssh` command of the `argocd` CLI utility. This is the recommended method and suitable for production use. In order to do so, you will need the server's SSH public host key, in the `known_hosts` format understood by `ssh`. You can get the server's public SSH host key e.g. by using the `ssh-keyscan` utility.
-
-!!! note
-    It can take up to a couple of minutes until the changes performed by the `argocd cert` command are propagated across your cluster, depending on your Kubernetes setup.
-  
-!!! note
-    When importing SSH known hosts key from a `known_hosts` file, the hostnames or IP addresses in the input data must **not** be hashed. If your `known_hosts` file contains hashed entries, it cannot be used as input source for adding SSH known hosts - neither in the CLI nor in the UI. If you absolutely wish to use hashed known hosts data, the only option will be using declarative setup (see below). Be aware that this will break CLI and UI certificate management, so it is generally not recommended.
-
-### Managing SSH Known Hosts using the CLI
-
-You can list all configured SSH known host entries using the `argocd cert list` command with the `--cert-type ssh` modifier:
+您可以通过使用`argocd cert list`命令与`--cert-type ssh`修改器：
 
 ```bash
 $ argocd cert list --cert-type ssh
-HOSTNAME                 TYPE  SUBTYPE              FINGERPRINT/SUBJECT
-bitbucket.org            ssh   ssh-rsa              SHA256:46OSHA1Rmj8E8ERTC6xkNcmGOw9oFxYr0WF6zWW8l1E
-github.com               ssh   ssh-rsa              SHA256:uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s
-gitlab.com               ssh   ecdsa-sha2-nistp256  SHA256:HbW3g8zUjNSksFbqTiUWPWg2Bq1x8xdGUrliXFzSnUw
-gitlab.com               ssh   ssh-ed25519          SHA256:eUXGGm1YGsMAS7vkcx6JOJdOGHPem5gQp4taiCfCLB8
-gitlab.com               ssh   ssh-rsa              SHA256:ROQFvPThGrW4RuWLoL9tq9I9zJ42fK4XywyRtbOz/EQ
-ssh.dev.azure.com        ssh   ssh-rsa              SHA256:ohD8VZEXGWo6Ez8GSEJQ9WpafgLFsOfLOtGGQCQo6Og
-vs-ssh.visualstudio.com  ssh   ssh-rsa              SHA256:ohD8VZEXGWo6Ez8GSEJQ9WpafgLFsOfLOtGGQCQo6Og
+HOSTNAME TYPE SUBTYPE FINGERPRINT/SUBJECT
+bitbucket.org ssh ssh-rsa SHA256:46OSHA1Rmj8E8ERTC6xkNcmGOw9oFxYr0WF6zWW8l1E
+github.com ssh ssh-rsa SHA256:uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s
+gitlab.com ssh ecdsa-sha2-nistp256 SHA256:HbW3g8zUjNSksFbqTiUWPWg2Bq1x8xdGUrliXFzSnUw
+gitlab.com ssh ssh-ed25519 SHA256:eUXGGm1YGsMAS7vkcx6JOJdOGHPem5gQp4taiCfCLB8
+gitlab.com ssh ssh-rsa SHA256:ROQFvPThGrW4RuWLoL9tq9I9zJ42fK4XywyRtbOz/EQ
+ssh.dev.azure.com ssh ssh-rsa SHA256:ohD8VZEXGWo6Ez8GSEJQ9WpafgLFsOfLOtGGQCQo6Og
+vs-ssh.visualstudio.com ssh ssh-rsa SHA256:ohD8VZEXGWo6Ez8GSEJQ9WpafgLFsOfLOtGGQCQo6Og
 ```
 
-For adding SSH known host entries, the `argocd cert add-ssh` command can be used. You can either add from a file (using the `--from <file>` modifier), or by reading `stdin` when the `--batch` modifier was specified. In both cases, input must be in `known_hosts` format as understood by the OpenSSH client.
+要添加 SSH 已知主机条目，可使用`argocd cert add-ssh`您可以从文件中添加（使用`--from<file>`修改器），或通过读取`stdin`当`-batch`在这两种情况下，输入必须以`known_hosts`的格式。
 
-Example for adding all available SSH public host keys for a server to ArgoCD, as collected by `ssh-keyscan`:
+将服务器上所有可用的 SSH 公共主机密钥添加到 ArgoCD 的示例，这些密钥通过以下方式收集`ssh-keyscan`：
 
 ```bash
-ssh-keyscan server.example.com | argocd cert add-ssh --batch 
-
+ssh-keyscan server.example.com | argocd cert add-ssh --batch
 ```
 
-Example for importing an existing `known_hosts` file to ArgoCD:
+导入现有`known_hosts`文件到 ArgoCD：
 
 ```bash
 argocd cert add-ssh --batch --from /etc/ssh/ssh_known_hosts
 ```
 
-Finally, SSH known host entries can be removed using the `argocd cert rm` command with the `--cert-type ssh` modifier:
+最后，可以使用被引用的`argocd cert rm`命令与`--cert-type ssh`修改器：
 
 ```bash
 argocd cert rm bitbucket.org --cert-type ssh
 ```
 
-If you have multiple SSH known host entries for a given host with different key sub-types (e.g. as for gitlab.com in the example above, there are keys of sub-types `ssh-rsa`, `ssh-ed25519` and `ecdsa-sha2-nistp256`) and you want to only remove one of them, you can further narrow down the selection using the `--cert-sub-type` modifier:
+如果给定主机有多个 SSH 已知主机条目，且密钥子类型不同（例如上例中的 gitlab.com，其密钥子类型为`ssh-rsa`,`ssh-ed25519`和`ecdsa-sha2-nistp256`），并且只想删除其中一个，您可以使用被引用的`-cert-sub-type`修改器：。
 
 ```bash
 argocd cert rm gitlab.com --cert-type ssh --cert-sub-type ssh-ed25519
 ```
 
-### Managing SSH known hosts data using the ArgoCD web UI
+### 使用 ArgoCD 网页用户界面管理 SSH 已知主机数据
 
-It is possible to add and remove SSH known hosts entries using the ArgoCD web UI:
+可以使用 ArgoCD 网页用户界面添加和删除 SSH 已知主机条目：
 
-1. In the navigation pane to the left, click on "Settings" and choose "Certificates" from the settings menu
+1.在左侧导航窗格中点击 "设置"，然后从设置菜单中选择 "证书 "2。以下页面列出了当前配置的所有证书，并提供了添加新 TLS 证书或 SSH 已知条目的选项： ![管理证书](../assets/cert-management-overview.png) 3. 点击 "添加 SSH 已知主机"，并在以下掩码中粘贴 SSH 已知主机数据。 **重要**：粘贴数据时，确保条目（密钥数据）中没有换行符。然后点击 "创建"。![管理 ssh 已知主机](../assets/cert-management-add-ssh.png) 4. 要删除证书，请点击证书条目旁边的小三点按钮，从弹出菜单中选择 "删除"，并在下面的对话框中确认删除。![删除证书](../assets/cert-management-remove.png)
 
-2. The following page lists all currently configured certificates and provides you with the option to add either a new TLS certificate or SSH known entries: 
+### 使用声明式设置管理 ssh 已知主机数据
 
-    ![manage certificates](../assets/cert-management-overview.png)
+您还可以在声明式、自我管理的 ArgoCD 设置中管理 SSH 已知主机条目。 所有 SSH 公共主机密钥都存储在 ConfigMap 对象中`argocd-ssh-known-hosts-cm`更多详情，请参阅[操作手册](../operator-manual/declarative-setup.md#ssh-known-host-public-keys)。
 
-3. Click on "Add SSH known hosts" and paste your SSH known hosts data in the following mask. **Important**: Make sure there are no line breaks in the entries (key data) when you paste the data. Afterwards, click on "Create".
+## Git 子模块
 
-    ![manage ssh known hosts](../assets/cert-management-add-ssh.png)
+支持子模块，并会自动拾取。 如果子模块版本库需要身份验证，则凭据需要与父版本库的凭据相匹配。 设置 ARGOCD_GIT_MODULES_ENABLED= false 可禁用子模块支持。
 
-4. To remove a certificate, click on the small three-dotted button next to the certificate entry, select "Remove" from the pop-up menu and confirm the removal in the following dialogue.
+## 声明式配置
 
-    ![remove certificate](../assets/cert-management-remove.png)
-
-### Managing SSH known hosts data using declarative setup
-
-You can also manage SSH known hosts entries in a declarative, self-managed ArgoCD setup. All SSH public host keys are stored in the ConfigMap object `argocd-ssh-known-hosts-cm`. For more details, please refer to the [Operator Manual](../operator-manual/declarative-setup.md#ssh-known-host-public-keys).
-
-## Git Submodules
-
-Submodules are supported and will be picked up automatically. If the submodule repository requires authentication then the credentials will need to match the credentials of the parent repository. Set ARGOCD_GIT_MODULES_ENABLED=false to disable submodule support
-
-## Declarative Configuration
-
-See [declarative setup](../operator-manual/declarative-setup.md#repositories)
-
+参见[声明式设置](.../operator-manual/declarative-setup.md#repositories)

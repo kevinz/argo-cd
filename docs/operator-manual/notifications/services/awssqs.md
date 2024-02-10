@@ -1,21 +1,23 @@
-# AWS SQS 
+<!-- TRANSLATED by md-translate -->
+# AWS SQS
 
-## Parameters
+## 参数
 
-This notification service is capable of sending simple messages to AWS SQS queue. 
+该通知服务能够向 AWS SQS 队列发送简单信息。
 
-* `queue` - name of the queue you are intending to send messages to. Can be overridden with target destination annotation.
-* `region` - region of the sqs queue can be provided via env variable AWS_DEFAULT_REGION
-* `key` - optional, aws access key must be either referenced from a secret via variable or via env variable AWS_ACCESS_KEY_ID
-* `secret` - optional, aws access secret must be either referenced from a secret via variable or via env variable AWS_SECRET_ACCESS_KEY
-* `account` optional, external accountId of the queue
-* `endpointUrl` optional, useful for development with localstack
+* queue` - 发送信息的队列名称。可通过目标目的地 Annotations 重载。
+* `region` - sqs 队列的区域，可通过环境变量 AWS_DEFAULT_REGION Provider。
+* `key` - 可选，AWS 访问密钥必须通过变量或环境变量 AWS_ACCESS_KEY_ID 从 secret 中引用
+* `secret` - 可选，AWS 访问秘密必须通过变量或环境变量 AWS_SECRET_ACCESS_KEY 从秘密中引用
+* `account` - 可选，队列的外部 accountId
+* `endpointUrl` 可选，用于使用 localstack 开发
 
-## Example
+## 示例
 
-### Using Secret for credential retrieval:
+#### 使用 Secret 进行证书引用：
 
-Resource Annotation:
+资源 Annotations：
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -25,7 +27,8 @@ metadata:
     notifications.argoproj.io/subscribe.on-deployment-ready.awssqs: "overwrite-myqueue"
 ```
 
-* ConfigMap
+* 配置地图
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -47,9 +50,10 @@ data:
     - when: any(obj.status.conditions, {.type == 'Available' && .status == 'True'})
       send: [deployment-ready]
     - oncePer: obj.metadata.annotations["generation"]
-
 ```
- Secret
+
+秘密
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -60,13 +64,11 @@ stringData:
   awsaccess_secret: test
 ```
 
+### 使用 AWS Env 变量进行最低配置
 
-### Minimal configuration using AWS Env variables
+确保通过 OIDC 或其他方法注入以下环境变量列表，并假设 SQS 位于账户本地。 对于敏感数据，可以不使用 secret，也可以省略其他参数（通过 configmaps 设置参数优先）。
 
-Ensure following list of environment variables are injected via OIDC, or other method. And assuming SQS is local to the account.
-You may skip usage of secret for sensitive data and omit other parameters. (Setting parameters via ConfigMap takes precedent.)
-
-Variables:
+变量
 
 ```bash
 export AWS_ACCESS_KEY_ID="test"
@@ -74,7 +76,8 @@ export AWS_SECRET_ACCESS_KEY="test"
 export AWS_DEFAULT_REGION="us-east-1"
 ```
 
-Resource Annotation:
+资源 Annotations：
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -84,7 +87,8 @@ metadata:
     notifications.argoproj.io/subscribe.on-deployment-ready.awssqs: ""
 ```
 
-* ConfigMap
+* 配置地图
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -102,5 +106,4 @@ data:
     - when: any(obj.status.conditions, {.type == 'Available' && .status == 'True'})
       send: [deployment-ready]
     - oncePer: obj.metadata.annotations["generation"]
-
 ```

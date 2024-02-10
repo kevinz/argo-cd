@@ -1,27 +1,23 @@
-The notification services represent integration with services such as slack, email or custom webhook. Services are configured in `argocd-notifications-cm` ConfigMap
-using `service.<type>.(<custom-name>)` keys and might reference sensitive data from `argocd-notifications-secret` Secret. Following example demonstrates slack
-service configuration:
+<!-- TRANSLATED by md-translate -->
+通知服务代表了与服务（如 slack、电子邮件或自定义 webhook）的集成。服务在 `argocd-notifications-cm` ConfigMap 中使用 `service.<type>.(<custom-name>)` 键进行配置，并可能引用 `argocd-notifications-secret` Secret 中的敏感数据。 以下示例演示了 slack 服务配置：
 
 ```yaml
-  service.slack: |
+service.slack: |
     token: $slack-token
 ```
 
+slack "表示服务发送松弛通知；名称缺失，默认为 "slack"。
 
-The `slack` indicates that service sends slack notification; name is missing and defaults to `slack`.
+## 敏感数据
 
-## Sensitive Data
+身份验证令牌等敏感数据应存储在 `<secret-name>` Secret 中，并可在服务配置中使用 `$<secret-key>` 格式引用。例如，"$slack-token "引用了 `<secret-name>` Secret 中的密钥 "slack-token "的值。
 
-Sensitive data like authentication tokens should be stored in `<secret-name>` Secret and can be referenced in
-service configuration using `$<secret-key>` format. For example `$slack-token` referencing value of key `slack-token` in
-`<secret-name>` Secret.
+## 自定义名称
 
-## Custom Names
-
-Service custom names allow configuring two instances of the same service type.
+服务自定义名称允许配置相同服务类型的两个实例。
 
 ```yaml
-  service.slack.workspace1: |
+service.slack.workspace1: |
     token: $slack-token-workspace1
   service.slack.workspace2: |
     token: $slack-token-workspace2
@@ -36,10 +32,10 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.workspace2: my-channel
 ```
 
-## Service Types
+## 服务类型
 
 * [AwsSqs](./awssqs.md)
-* [Email](./email.md)
+* [电子邮件](./email.md)
 * [GitHub](./github.md)
 * [Slack](./slack.md)
 * [Mattermost](./mattermost.md)
@@ -47,8 +43,8 @@ metadata:
 * [Grafana](./grafana.md)
 * [Webhook](./webhook.md)
 * [Telegram](./telegram.md)
-* [Teams](./teams.md)
-* [Google Chat](./googlechat.md)
+* [团队](./teams.md)
+* [谷歌聊天](./googlechat.md)
 * [Rocket.Chat](./rocketchat.md)
 * [Pushover](./pushover.md)
 * [Alertmanager](./alertmanager.md)

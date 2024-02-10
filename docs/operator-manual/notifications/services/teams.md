@@ -1,18 +1,19 @@
-# Teams
+<!-- TRANSLATED by md-translate -->
+# 团队
 
-## Parameters
+## 参数
 
-The Teams notification service send message notifications using Teams bot and requires specifying the following settings:
+团队通知服务使用团队机器人发送消息通知，需要指定以下设置：
 
-* `recipientUrls` - the webhook url map, e.g. `channelName: https://example.com`
+* `recipientUrls` - 网络钩子网址映射，例如 `channelName: https://example.com`
 
-## Configuration
+## 配置
 
-1. Open `Teams` and goto `Apps`
-2. Find `Incoming Webhook` microsoft app and click on it
-3. Press `Add to a team` -> select team and channel -> press `Set up a connector`
-4. Enter webhook name and upload image (optional)
-5. Press `Create` then copy webhook url and store it in `argocd-notifications-secret` and define it in `argocd-notifications-cm`
+1.打开 "团队"，转到 "应用程序"。
+2.找到 `Incoming Webhook` microsoft 应用程序并点击它
+3.按 "添加到团队 "键 -&gt; 选择团队和频道 -&gt; 按 "设置连接器 "键
+4.输入 webhook 名称并上传镜像（可选）
+5.按 "创建"，然后复制 webhook 网址并将其存储在 "argocd-notifications-secret "中，并在 "argocd-notifications-cm "中对其进行定义
 
 ```yaml
 apiVersion: v1
@@ -34,7 +35,7 @@ stringData:
   channel-teams-url: https://example.com
 ```
 
-6. Create subscription for your Teams integration:
+6.为团队集成创建订阅：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -44,11 +45,11 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
 ```
 
-## Templates
+## 模板
 
 ![](https://user-images.githubusercontent.com/18019529/114271500-9d2b8880-9a4c-11eb-85c1-f6935f0431d5.png)
 
-[Notification templates](../templates.md) can be customized to leverage teams message sections, facts, themeColor, summary and potentialAction [feature](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using).
+[通知模板](.../templates.md) 可以自定义，以利用团队消息部分、事实、themeColor、摘要和 potentialAction [功能](https://docs.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/connectors-using)。
 
 ```yaml
 template.app-sync-succeeded: |
@@ -81,9 +82,9 @@ template.app-sync-succeeded: |
     summary: "{{.app.metadata.name}} sync succeeded"
 ```
 
-### facts field
+###事实领域
 
-You can use `facts` field instead of `sections` field.
+您可以使用 "facts "字段代替 "sections "字段。
 
 ```yaml
 template.app-sync-succeeded: |
@@ -99,9 +100,9 @@ template.app-sync-succeeded: |
       }]
 ```
 
-### theme color field
+### 主题颜色区域
 
-You can set theme color as hex string for the message.
+您可以将主题颜色设置为信息的十六进制字符串。
 
 ![](https://user-images.githubusercontent.com/1164159/114864810-0718a900-9e24-11eb-8127-8d95da9544c1.png)
 
@@ -111,9 +112,9 @@ template.app-sync-succeeded: |
     themeColor: "#000080"
 ```
 
-### summary field
+#### 摘要栏
 
-You can set a summary of the message that will be shown on Notification & Activity Feed 
+您可以设置将显示在通知和活动反馈上的信息摘要
 
 ![](https://user-images.githubusercontent.com/6957724/116587921-84c4d480-a94d-11eb-9da4-f365151a12e7.jpg)
 

@@ -1,66 +1,51 @@
-# Parameter Overrides
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Argo CD provides a mechanism to override the parameters of Argo CD applications that leverages config management
-tools. This provides flexibility in having most of the application manifests defined in Git, while leaving room
-for *some* parts of the  k8s manifests determined dynamically, or outside of Git. It also serves as an alternative way of
-redeploying an application by changing application parameters via Argo CD, instead of making the 
-changes to the manifests in Git.
+# 参数覆盖
 
-!!! tip
-    Many consider this mode of operation as an anti-pattern to GitOps, since the source of
-    truth becomes a union of the Git repository, and the application overrides. The Argo CD parameter
-    overrides feature is provided mainly as a convenience to developers and is intended to be used in
-    dev/test environments, vs. production environments.
+Argo CD 提供了一种利用配置管理工具覆盖 Argo CD 应用程序参数的机制。 这为在 Git 中定义大部分应用程序清单提供了灵活性，同时也为有些这也是通过 Argo CD 更改应用程序参数，而不是在 Git 中更改清单来重新部署应用程序的另一种方式。
 
-To use parameter overrides, run the `argocd app set -p (COMPONENT=)PARAM=VALUE` command:
+提示 许多人认为这种操作模式与 GitOps 模式相悖，因为真相的来源变成了 Git 仓库和应用程序重写的结合。 Argo CD 参数重写功能主要是为开发人员提供方便，旨在用于开发/测试环境，而非生产环境。
+
+要被引用参数覆盖，请运行`argocd app set -p (COMPONENT=)PARAM=VALUE`指挥：
 
 ```bash
 argocd app set guestbook -p image=example/guestbook:abcd123
 argocd app sync guestbook
 ```
 
-The `PARAM` is expected to be a normal YAML path
+参数`预计是一个正常的 yaml 路径
 
 ```bash
 argocd app set guestbook -p ingress.enabled=true
 argocd app set guestbook -p ingress.hosts[0]=guestbook.myclusterurl
 ```
 
-The `argocd app set` [command](./commands/argocd_app_set.md) supports more tool-specific flags such as `--kustomize-image`, `--jsonnet-ext-var-str` etc
-flags. You can also specify overrides directly in the source field on application spec. Read more about supported options in corresponded tool [documentation](./application_sources.md).
+`argocd app set`[指挥部](./commands/argocd_app_set.md)支持更多针对特定工具的标记，例如`--kustomize-image`,`--jsonnet-ext-var-str`您也可以直接在应用程序规格的源字段中指定覆盖。 了解相应工具中支持选项的更多信息[文献资料](./application_sources.md)。
 
 ## When To Use Overrides?
 
-The following are situations where parameter overrides would be useful:
+以下是参数重载被引用的情况：
 
-1. A team maintains a "dev" environment, which needs to be continually updated with the latest
-version of their guestbook application after every build in the tip of master. To address this use
-case, the application would expose a parameter named `image`, whose value used in the `dev`
-environment contains a placeholder value (e.g. `example/guestbook:replaceme`). The placeholder value
-would be determined externally (outside of Git) such as a build system. Then, as part of the build
-pipeline, the parameter value of the `image` would be continually updated to the freshly built image
-(e.g. `argocd app set guestbook -p image=example/guestbook:abcd123`). A sync operation
-would result in the application being redeployed with the new image.
+1.一个团队维护一个 "开发 "环境，该环境需要不断用最新的
 
-2. A repository of Helm manifests is already publicly available (e.g. https://github.com/helm/charts).
-Since commit access to the repository is unavailable, it is useful to be able to install charts from
-the public repository and customize the deployment with different parameters, without resorting to
-forking the repository to make the changes. For example, to install Redis from the Helm chart
-repository and customize the database password, you would run:
+为了解决这个用例，应用程序将暴露一个名为`image`中被引用的值。`dev`环境中包含一个占位符值（例如`example/guestbook:replaceme`占位符的值将由外部（Git 以外）确定，例如由构建系统确定。 然后，作为构建流水线的一部分，该占位符的参数值将由`image`将不断更新为新构建的映像（例如`argocd app set guestbook -p image=example/guestbook:abcd123`同步操作将导致应用程序使用新映像重新部署。
+
+2.Helm 清单库已经公开（如 https://github.com/helm/charts）。
+
+由于无法获得对版本库的提交访问权限，因此能够从公共版本库安装图表并使用不同的参数自定义部署，而无需分叉版本库来进行更改，是非常有用的。 例如，要从 helm 图表版本库安装 Redis 并自定义数据库密码，您可以运行
 
 ```bash
 argocd app create redis --repo https://github.com/helm/charts.git --path stable/redis --dest-server https://kubernetes.default.svc --dest-namespace default -p password=abc123
 ```
 
-## Store Overrides In Git
+## 将重写存储在 Git 中
 
-The config management tool specific overrides can be specified in `.argocd-source.yaml` file stored in the source application
-directory in the Git repository.
+配置管理工具的特定重载可在`.argocd-source.yaml`文件存储在 Git 仓库的源程序目录中。
 
-The `.argocd-source.yaml` file is used during manifest generation and overrides
-application source fields, such as `kustomize`, `helm` etc.
+.argocd-source.yaml`文件在清单生成过程中被引用，并覆盖应用程序源字段，如`kustomize`,`helm`等等。
 
-Example:
+例如
 
 ```yaml
 kustomize:
@@ -68,20 +53,18 @@ kustomize:
     - gcr.io/heptio-images/ks-guestbook-demo:0.2
 ```
 
-The `.argocd-source` is trying to solve two following main use cases:
+.argocd-source`正试图解决以下两个主要被引用的案例：
 
-- Provide the unified way to "override" application parameters in Git and enable the "write back" feature
-for projects like [argocd-image-updater](https://github.com/argoproj-labs/argocd-image-updater).
-- Support "discovering" applications in the Git repository by projects like [applicationset](https://github.com/argoproj/applicationset)
-(see [git files generator](https://github.com/argoproj/argo-cd/blob/master/applicationset/examples/git-generator-files-discovery/git-generator-files.yaml))
+* 提供在 Git 中 "覆盖 "应用程序参数的统一方式，并启用 "回写 "功能
 
-You can also store parameter overrides in an application specific file, if you
-are sourcing multiple applications from a single path in your repository.
+等项目[argocd-镜像-updater](https://github.com/argoproj-labs/argocd-image-updater)。
 
-The application specific file must be named `.argocd-source-<appname>.yaml`,
-where `<appname>` is the name of the application the overrides are valid for.
+* 支持通过 [applicationset](https://github.com/argoproj/applicationset) 等项目在 Git 仓库中 "发现 "应用程序
 
-If there exists an non-application specific `.argocd-source.yaml`, parameters
-included in that file will be merged first, and then the application specific
-parameters are merged, which can also contain overrides to the parameters
-stored in the non-application specific file.
+(见[git 文件生成器](https://github.com/argoproj/argo-cd/blob/master/applicationset/examples/git-generator-files-discovery/git-generator-files.yaml))
+
+如果要从资源库中的单一路径获取多个应用程序，也可以将参数重载存储在特定应用程序文件中。
+
+应用程序专用文件必须命名为`.argocd-source-<appname>.yaml`其中`<appname>`是覆盖有效的应用程序名称。
+
+如果存在一个非应用程序特定的`.argocd-source.yaml`首先合并该文件中包含的参数，然后合并应用程序特定参数，这些参数也可以包含对存储在非应用程序特定文件中的参数的覆盖。

@@ -1,36 +1,33 @@
-# Automated Sync Policy
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Argo CD has the ability to automatically sync an application when it detects differences between
-the desired manifests in Git, and the live state in the cluster. A benefit of automatic sync is that
-CI/CD pipelines no longer need direct access to the Argo CD API server to perform the deployment.
-Instead, the pipeline makes a commit and push to the Git repository with the changes to the
-manifests in the tracking Git repo.
+# 自动同步政策
 
-To configure automated sync run:
+当 Argo CD 检测到 Git 中的预期清单与集群中的实时状态存在差异时，它能够自动同步应用程序。 自动同步的一个好处是，CI/CD 管道不再需要直接访问 Argo CD API 服务器来执行部署。 相反，管道会进行提交，并将跟踪 Git 仓库中清单的变更推送到 Git 仓库。
+
+配置自动同步运行：
+
 ```bash
 argocd app set <APPNAME> --sync-policy automated
 ```
 
-Alternatively, if creating the application an application manifest, specify a syncPolicy with an
-`automated` policy.
+或者，如果创建应用程序清单，可指定一个同步策略，该策略应带有`automated`政策。
+
 ```yaml
 spec:
   syncPolicy:
     automated: {}
 ```
 
-## Automatic Pruning
+## 自动修剪
 
-By default (and as a safety mechanism), automated sync will not delete resources when Argo CD detects
-the resource is no longer defined in Git. To prune the resources, a manual sync can always be
-performed (with pruning checked). Pruning can also be enabled to happen automatically as part of the
-automated sync by running:
+默认情况下（作为一种安全机制），当 Argo CD 检测到 Git 中不再定义资源时，自动同步将不会删除该资源。 要修剪资源，可始终执行手动同步（选中修剪）。 也可通过运行启用修剪，使其作为自动同步的一部分自动执行： Argo CD。
 
 ```bash
 argocd app set <APPNAME> --auto-prune
 ```
 
-Or by setting the prune option to true in the automated sync policy:
+或者在自动同步策略中将剪枝选项设置为 true： true
 
 ```yaml
 spec:
@@ -39,16 +36,15 @@ spec:
       prune: true
 ```
 
-## Automatic Pruning with Allow-Empty (v1.8)
+## 使用 Allow-Empty 自动剪枝（v1.8）
 
-By default (and as a safety mechanism), automated sync with prune have a protection from any automation/human errors 
-when there are no target resources. It prevents application from having empty resources. To allow applications have empty resources, run:
+默认情况下（作为一种安全机制），当没有目标资源时，使用剪枝的自动同步具有防止任何自动/人为错误的功能。 它可以防止应用程序出现空资源。 要允许应用程序出现空资源，请运行
 
 ```bash
 argocd app set <APPNAME> --allow-empty
 ```
 
-Or by setting the allow empty option to true in the automated sync policy:
+或者在自动同步策略中将允许清空选项设置为 true： true
 
 ```yaml
 spec:
@@ -58,15 +54,15 @@ spec:
       allowEmpty: true
 ```
 
-## Automatic Self-Healing
-By default, changes that are made to the live cluster will not trigger automated sync. To enable automatic sync 
-when the live cluster's state deviates from the state defined in Git, run:
+## 自动自愈
+
+默认情况下，对实时集群所做的更改不会触发自动同步。 要在实时集群的状态偏离 Git 中定义的状态时启用自动同步，请运行
 
 ```bash
 argocd app set <APPNAME> --self-heal
 ```
 
-Or by setting the self heal option to true in the automated sync policy:
+或者在自动同步策略中将自愈选项设置为 true： true
 
 ```yaml
 spec:
@@ -75,17 +71,10 @@ spec:
       selfHeal: true
 ```
 
-## Automated Sync Semantics
+## 自动同步语义
 
-* An automated sync will only be performed if the application is OutOfSync. Applications in a
-  Synced or error state will not attempt automated sync.
-* Automated sync will only attempt one synchronization per unique combination of commit SHA1 and
-  application parameters. If the most recent successful sync in the history was already performed
-  against the same commit-SHA and parameters, a second sync will not be attempted, unless `selfHeal` flag is set to true.
-* If `selfHeal` flag is set to true then sync will be attempted again after self heal timeout (5 seconds by default)
-which is controlled by `--self-heal-timeout-seconds` flag of `argocd-application-controller` deployment.
-* Automatic sync will not reattempt a sync if the previous sync attempt against the same commit-SHA
-  and parameters had failed.
+* 只有当应用程序处于 "不同步"（OutOfSync）状态时，才会执行自动同步。 处于 "已同步"（Synced）或错误状态的应用程序不会尝试自动同步。 如果历史记录中最近一次成功的同步已针对相同的提交-SHA 和参数执行，则不会尝试第二次同步，除非 "自愈"（selfHeal）标志设置为 true。
 
-* Rollback cannot be performed against an application with automated sync enabled.
-* The automatic sync interval is determined by [the `timeout.reconciliation` value in the `argocd-cm` ConfigMap](../faq.md#how-often-does-argo-cd-check-for-changes-to-my-git-or-helm-repository), which defaults to `180s` (3 minutes).
+由`--selfheal-timeout-seconds`国旗`argocd-application-controller`部署。
+
+* 自动同步将不会重新尝试同步，如果之前针对相同提交-SHA 和参数的同步尝试失败的话。 自动同步的时间间隔由[`argocd-cm` 配置表中的 `timeout.reconciliation` 值](../faq.md#how-often-does-argo-cd-check-for-changes-to-my-git-or-helm-repository)决定，默认值为 `180s`（3 分钟）。

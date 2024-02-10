@@ -1,7 +1,9 @@
-# Directory
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-A directory-type application loads plain manifest files from `.yml`, `.yaml`, and `.json` files. A directory-type
-application may be created from the UI, CLI, or declaratively. This is the declarative syntax:
+# 目录
+
+目录类型的应用程序会从`.yml`,`.yaml`和`.json`目录类型应用程序可以通过用户界面、CLI 或声明方式创建。 这是声明语法：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -19,20 +21,19 @@ spec:
     targetRevision: HEAD
 ```
 
-It's unnecessary to explicitly add the `spec.source.directory` field except to add additional configuration options.
-Argo CD will automatically detect that the source repository/path contains plain manifest files.
+无需明确添加`spec.source.directory`Argo CD 会自动检测源代码库/路径是否包含纯文件清单。
 
-## Enabling Recursive Resource Detection
+## 启用递归资源检测
 
-By default, directory applications will only include the files from the root of the configured repository/path.
+默认情况下，目录应用程序只包含配置的存储库/路径根目录下的文件。
 
-To enable recursive resource detection, set the `recurse` option.
+要启用递归资源检测，请设置`递归`选择。
 
 ```bash
 argocd app set guestbook --directory-recurse
 ```
 
-To do the same thing declaratively, use this syntax:
+以声明方式做同样的事情，请使用以下语法：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -43,39 +44,35 @@ spec:
       recurse: true
 ```
 
-!!! warning
-    Directory-type applications only work for plain manifest files. If Argo CD encounters Kustomize, Helm, or Jsonnet files when directory: is set, it will fail to render the manifests.
+!!! 警告 Directory 类型的应用程序仅适用于普通清单文件。 如果 Argo CD 在设置目录: 时遇到 Kustomize、 helm 或 Jsonnet 文件，它将无法渲染清单。
 
-## Including/Excluding Files
+## 包括/排除文件
 
-### Including Only Certain Files
+### 只包括某些文件
 
-To include only certain files/directories in a directory application, set the `include` option. The value is a glob
-pattern.
+要在目录应用程序中只包含某些文件/目录，请设置`include`值是一个 glob 模式。
 
-For example, if you want to include only `.yaml` files, you can use this pattern:
+例如，如果您只想包含`.yaml`文件，就可以被引用这种模式：
 
 ```shell
 argocd app set guestbook --directory-include "*.yaml"
 ```
 
-!!! note
-    It is important to quote `*.yaml` so that the shell does not expand the pattern before sending it to Argo CD.
+注意，必须引用`*.yaml`这样，外壳在将图案发送到 Argo CD 之前就不会扩展图案。
 
-It is also possible to include multiple patterns. Wrap the patterns with `{}` and separate them with commas. To include
-`.yml` and `.yaml` files, use this pattern:
+也可以包含多个模式。`{}`要包括`.yml`和`.yaml`文件时，被引用这种模式：
 
 ```shell
 argocd app set guestbook --directory-include "{*.yml,*.yaml}"
 ```
 
-To include only a certain directory, use a pattern like this:
+只包含某个目录，请使用类似这样的模式：
 
 ```shell
 argocd app set guestbook --directory-include "some-directory/*"
 ```
 
-To accomplish the same thing declaratively, use this syntax:
+以声明的方式完成同样的任务，请使用以下语法：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -86,23 +83,21 @@ spec:
       include: 'some-directory/*'
 ```
 
-### Excluding Certain Files
+### 排除某些文件
 
-It is possible to exclude files matching a pattern from directory applications. For example, in a repository containing
-some manifests and also a non-manifest YAML file, you could exclude the config file like this:
+例如，在包含一些清单和一个非清单 yaml 文件的版本库中，可以像这样排除配置文件：
 
 ```shell
 argocd app set guestbook --directory-exclude "config.yaml"
 ```
 
-It is possible to exclude more than one pattern. For example, a config file and an irrelevant directory:
+可以排除多个模式，例如配置文件和无关目录：
 
 ```shell
 argocd app set guestbook --directory-exclude "{config.yaml,env-use2/*}"
 ```
 
-If both `include` and `exclude` are specified, then the Application will include all files which match the `include`
-pattern and do not match the `exclude` pattern. For example, consider this source repository:
+如果两个`include`和`exclude`则应用程序将包含符合`include`模式，并且不符合`exclude`例如，请看这个源码库：
 
 ```
 config.json
@@ -113,13 +108,13 @@ env-usw2/
   configmap.yaml
 ```
 
-To exclude `config.json` and the `env-usw2` directory, you could use this combination of patterns:
+排除`config.json`和`env-usw2`目录，可以被引用这种组合模式：
 
 ```shell
 argocd app set guestbook --directory-include "*.yaml" --directory-exclude "{config.json,env-usw2/*}"
 ```
 
-This would be the declarative syntax:
+这就是声明式语法：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

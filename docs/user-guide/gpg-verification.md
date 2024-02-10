@@ -1,158 +1,113 @@
-# GnuPG signature verification
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-## Overview
+# GnuPG 签名验证
 
-As of v1.7 it is possible to configure ArgoCD to only sync against commits
-that are signed in Git using GnuPG. Signature verification is configured on
-project level.
+## 概览
 
-If a project is configured to enforce signature verification, all applications
-associated with this project must have the commits in the source repositories
-signed with a GnuPG public key known to ArgoCD. ArgoCD will refuse to sync to
-any revision that does not have a valid signature made by one of the configured
-keys. The controller will emit a `ResourceComparison` error if it tries to sync
-to a revision that is either not signed, or is signed by an unknown or not
-allowed public key.
+从 v1.7 开始，ArgoCD 可以配置为只与 Git 中使用 GnuPG 签名的提交同步。 签名验证在项目级别进行配置。
 
-By default, signature verification is enabled but not enforced. If you wish to
-completely disable the GnuPG functionality in ArgoCD, you have to set the
-environment variable `ARGOCD_GPG_ENABLED` to `"false"` in the pod templates of
-the `argocd-server`, `argocd-repo-server` and `argocd-application-controller`
-deployment manifests.
+如果某个项目被配置为强制签名验证，则与该项目相关的所有应用程序都必须在源代码库中使用 ArgoCD 已知的 GnuPG 公钥对提交内容进行签名。 ArgoCD 将拒绝同步任何未使用配置密钥进行有效签名的修订版本。
 
-Verification of GnuPG signatures is only supported with Git repositories. It is
-not possible using Helm repositories.
+默认情况下，签名验证是启用的，但并不强制执行。 如果您希望完全禁用 ArgoCD 中的 GnuPG 功能，则必须设置环境变量`ARGOCD_GPG_ENABLED`至`"false"`的 pod 模板中的`argocd-server`,`argocd-repo-server`和`argocd-application-controller`部署清单。
 
-!!!note "A few words about trust"
-    ArgoCD uses a very simple trust model for the keys you import: Once the key
-    is imported, ArgoCD will trust it. ArgoCD does not support more complex
-    trust models, and it is not necessary (nor possible) to sign the public keys
-    you are going to import into ArgoCD.
+GnuPG 签名验证仅被 Git 软件源引用，无法使用 Helm 软件源。
 
-## Signature verification targets
+注意 "关于信任的几句话" ArgoCD 对您被引用的密钥使用非常简单的信任模型：一旦密钥被导入，ArgoCD 就会信任它。 ArgoCD 不支持更复杂的信任模型，也没有必要（也不可能）对您要导入 ArgoCD 的公钥进行签名。
 
-If signature verification is enforced, ArgoCD will verify the signature using
-following strategy:
+## 签名验证目标
 
-* If `target revision` is a pointer to a commit object (i.e. a branch name, the
-  name of a reference such as `HEAD` or a commit SHA), ArgoCD will perform the
-  signature verification on the commit object the name points to, i.e. a commit.
+如果执行签名验证，ArgoCD 将使用以下策略验证签名：
 
-* If `target revision` resolves to a tag and the tag is a lightweight tag, the
-  behaviour is same as if `target revision` would be a pointer to a commit
-  object. However, if the tag is annotated, the target revision will point to
-  a *tag* object and thus, the signature verification is performed on the tag
-  object, i.e. the tag itself must be signed (using `git tag -s`).
+* 如果 `target revision` 是指向提交对象的指针（即分支名称、引用名称（如 `HEAD` 或提交 SHA）），ArgoCD 将对该名称指向的提交对象（即提交）执行签名验证。 如果 `target revision` 解析到一个标签，且该标签是一个轻量级标签，则行为与target revision` 指向提交对象的指针相同。 但是，如果该标签是注释的，则 target revision 将指向 _tag_ 对象，因此签名验证将在标签对象上执行，即标签本身必须签名（使用 `git tags`）。
 
-## Enforcing signature verification
+## 执行签名验证
 
-To configure enforcing of signature verification, the following steps must be
-performed:
+要配置执行签名验证，必须执行以下步骤：
 
-* Import the GnuPG public key(s) used for signing commits in ArgoCD
-* Configure a project to enforce signature verification for given keys
+* 在 ArgoCD 中导入被引用用于签名提交的 GnuPG 公钥 * 配置项目以强制对给定密钥进行签名验证
 
-Once you have configured one or more keys to be required for verification for
-a given project, enforcement is active for all applications associated with
-this project.
+一旦为某个项目配置了一个或多个验证所需的密钥，则与此项目相关的所有应用程序都会启用强制执行。
 
-!!!warning
-    If signature verification is enforced, you will not be able to sync from
-    local sources (i.e. `argocd app sync --local`) anymore.
+警告 如果执行签名验证，您将无法从本地来源同步（即`argocd app sync --local`）了。
 
-## RBAC rules for managing GnuPG keys
+## 管理 GnuPG 密钥的 RBAC 规则
 
-The appropriate resource notation for Argo CD's RBAC implementation to allow
-the managing of GnuPG keys is `gpgkeys`.
+Argo CD 的 RBAC 实现允许管理 GnuPG 密钥的适当资源符号是`gpgkeys`。
 
-To allow listing of keys for a role named `role:myrole`, use:
+允许列出名为`role:myrole`, 被引用：
 
 ```
 p, role:myrole, gpgkeys, get, *, allow
 ```
 
-To allow adding keys for a role named `role:myrole`, use:
+要允许为名为`role:myrole`, 被引用：
 
 ```
 p, role:myrole, gpgkeys, create, *, allow
 ```
 
-And finally, to allow deletion of keys for a role named `role:myrole`, use:
+最后，允许删除名为`role:myrole`, 被引用：
 
 ```
 p, role:myrole, gpgkeys, delete, *, allow
 ```
 
-## Importing GnuPG public keys
+## 导入 GnuPG 公钥
 
-You can configure the GnuPG public keys that ArgoCD will use for verification
-of commit signatures using either the CLI, the web UI or configuring it using
-declarative setup.
+您可以使用 CLI、Web UI 或声明式设置配置 ArgoCD 用于验证提交签名的 GnuPG 公钥。
 
-!!!note
-    After you have imported a GnuPG key, it may take a while until the key is
-    propagated within the cluster, even if listed as configured. If you still
-    cannot sync to commits signed by the already imported key, please see the
-    troubleshooting section below.
+注意 在导入 GnuPG 密钥后，即使已按配置列出，也可能需要一段时间才能在集群内传播该密钥。 如果仍无法同步到已导入密钥签名的提交，请参阅下面的故障排除部分。
 
-Users wanting to manage the GnuPG public key configuration require the RBAC
-permissions for `gpgkeys` resources.
+要管理 GnuPG 公钥配置的用户需要具备以下 RBAC 权限`gpgkeys`资源
 
-### Manage public keys using the CLI
+##使用 CLI 管理公钥
 
-To configure GnuPG public keys using the CLI, use the `argocd gpg` command.
+要使用 CLI 配置 GnuPG 公钥，请使用`argocd gpg`指挥。
 
-#### Listing all configured keys
+#### 列出所有已配置的密钥
 
-To list all configured keys known to ArgoCD, use the `argocd gpg list`
-sub-command:
+要列出 ArgoCD 已知的所有配置密钥，请使用`argocd gpg list`子命令：
 
 ```bash
 argocd gpg list
 ```
 
-#### Show information about a certain key
+#### 显示有关某个键的信息
 
-To get information about a specific key, use the `argocd gpg get` sub-command:
+要获取特定密钥的信息，请使用`argocd gpg get`子命令：
 
 ```bash
 argocd gpg get <key-id>
 ```
 
-#### Importing a key
+#### 导入密钥
 
-To import a new key to ArgoCD, use the `argocd gpg add` sub-command:
+要将新密钥引用到 ArgoCD，请使用`argocd gpg add`子命令：
 
 ```bash
 argocd gpg add --from <path-to-key>
 ```
 
-The key to be imported can be either in binary or ASCII-armored format.
+要导入的密钥可以是二进制格式，也可以是 ascii 加密格式。
 
-#### Removing a key from configuration
+#### 从配置中删除密钥
 
-To remove a previously configured key from the configuration, use the
-`argocd gpg rm` sub-command:
+要从配置中删除先前配置的密钥，请使用`argocd gpg rm`子命令：
 
 ```bash
 argocd gpg rm <key-id>
 ```
 
-### Manage public keys using the Web UI
+###使用网络用户界面管理公钥
 
-Basic key management functionality for listing, importing and removing GnuPG
-public keys is implemented in the Web UI. You can find the configuration
-module from the **Settings** page in the **GnuPG keys** module.
+用于列出、导入和删除 GnuPG 公钥的基本密钥管理功能在 Web UI 中实现。**设置**页面中的**GnuPG 密钥**模块。
 
-Please note that when you configure keys using the Web UI, the key must be
-imported in ASCII armored format for now.
+请注意，使用 Web UI 配置密钥时，密钥必须暂时以 ASCII 装甲格式引用。
 
-### Manage public keys in declarative setup
+#### 在声明式设置中管理公钥
 
-ArgoCD stores public keys internally in the `argocd-gpg-keys-cm` ConfigMap
-resource, with the public GnuPG key's ID as its name and the ASCII armored
-key data as string value, i.e. the entry for the GitHub's web-flow signing
-key would look like follows:
+ArgoCD 在内部将公钥存储在`argocd-gpg-keys-cm`ConfigMap 资源，以 GnuPG 公钥的 ID 作为名称，以 ASCII 加密密钥数据作为字符串值，即 GitHub 的网络流签名密钥条目如下所示： GnuPG 公钥的 ID 作为名称，以 ASCII 加密密钥数据作为字符串值，即 GitHub 的网络流签名密钥条目如下所示
 
 ```yaml
 4AEE18F83AFDEB23: |
@@ -175,38 +130,31 @@ key would look like follows:
     -----END PGP PUBLIC KEY BLOCK-----
 ```
 
-## Configuring a project to enforce signature verification
+## 配置项目以执行签名验证
 
-Once you have imported the GnuPG keys to ArgoCD, you must now configure the
-project to enforce the verification of commit signatures with the imported
-keys.
+将 GnuPG 密钥导入 ArgoCD 后，现在必须对项目进行配置，以便使用导入的密钥强制验证提交签名。
 
-### Configuring using the CLI
+###使用 CLI 进行配置
 
-#### Adding a key ID to list of allowed keys
+#### 在允许的密钥列表中添加密钥 id
 
-To add a key ID to the list of allowed GnuPG keys for a project, you can use
-the `argocd proj add-signature-key` command, i.e. the following command would
-add the key ID `4AEE18F83AFDEB23` to the project named `myproj`:
+要将密钥 ID 添加到项目允许使用的 GnuPG 密钥列表中，可以使用`argocd proj add-signature-key`命令，即以下命令将添加密钥 ID`4AEE18F83AFDEB23`到名为`myproj`：
 
 ```bash
 argocd proj add-signature-key myproj 4AEE18F83AFDEB23
 ```
 
-#### Removing a key ID from the list of allowed keys
+#### 从允许密钥列表中删除密钥 id
 
-Similarly, you can remove a key ID from the list of allowed GnuPG keys for a
-project using the `argocd proj remove-signature-key` command, i.e. to remove
-the key added above from project `myproj`, use the command:
+同样，您可以使用`argocd proj remove-signature-key`命令，即从项目`myproj`, 使用该命令： 删除-signature-key`命令。
 
 ```bash
 argocd proj remove-signature-key myproj 4AEE18F83AFDEB23
 ```
 
-#### Showing allowed key IDs for a project
+#### 显示项目允许的密钥 ID
 
-To see which key IDs are allowed for a given project, you can inspect the
-output of the `argocd proj get` command, i.e for a project named `gpg`:
+要查看特定项目允许使用哪些密钥 ID，可以检查`argocd proj get`命令，即对于名为`gpg`：
 
 ```bash
 $ argocd proj get gpg
@@ -220,35 +168,25 @@ Signature keys:              4AEE18F83AFDEB23, 07E34825A909B250
 Orphaned Resources:          disabled
 ```
 
-#### Override list of key IDs
+#### 覆盖密钥 ID 列表
 
-You can also explicitly set the currently allowed keys with one or more new keys
-using the `argocd proj set` command in combination with the `--signature-keys`
-flag, which you can use to specify a comma separated list of allowed key IDs:
+您还可以通过使用`argocd proj set`命令与`--signature-keys`标志，可以用它来指定一个逗号分隔的允许密钥 ID 列表：
 
 ```bash
 argocd proj set myproj --signature-keys 4AEE18F83AFDEB23,07E34825A909B250
 ```
 
-The `--signature-keys` flag can also be used on project creation, i.e. the
-`argocd proj create` command.
+--签名密钥`标记也可在创建项目时被引用，即`argocd proj create`指挥。
 
-### Configure using the Web UI
+###使用 Web UI 进行配置
 
-You can configure the GnuPG key IDs required for signature verification using
-the web UI, in the Project configuration. Navigate to the **Settings** page
-and select the **Projects** module, then click on the project you want to
-configure.
+您可以使用 Web UI 在项目配置中配置签名验证所需的 GnuPG 密钥 ID。 导航至***设置**页面，然后选择***项目***模块，然后单击要配置的项目。
 
-From the project's details page, click **Edit** and find the
-**Required signature keys** section, where you can add or remove the key IDs
-for signature verification. After you have modified your project, click
-**Update** to save the changes.
+在项目详细信息页面，点击***编辑***并找到*** 所需的签名密钥***部分，您可以在此添加或删除用于签名验证的密钥 id。 修改项目后，单击***更新**保存更改。
 
-### Configure using declarative setup
+###使用声明式设置进行配置
 
-You can specify the key IDs required for signature verification in the project
-manifest within the `signatureKeys` section, i.e:
+您可以在项目清单的`signatureKeys`节，即
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -273,56 +211,38 @@ spec:
   - '*'
 ```
 
-`signatureKeys` is an array of `SignatureKey` objects, whose only property is
-`keyID` at the moment.
+signatureKeys`是一个`SignatureKey`对象，其唯一属性是`keyID`现在
 
-## Troubleshooting
+## 疑难解答
 
-### Disabling the feature
+### 禁用该功能
 
-The GnuPG feature can be completely disabled if desired. In order to disable it,
-set the environment variable `ARGOCD_GPG_ENABLED` to `false` for the pod
-templates of the `argocd-server`, `argocd-repo-server` and
- `argocd-application-controller` deployments.
+如果需要，可以完全禁用 GnuPG 功能。 要禁用它，请设置环境变量`ARGOCD_GPG_ENABLED`至`false`的 pod 模板的`argocd-server`,`argocd-repo-server`和`argocd-application-controller`部署。
 
-After the pods have been restarted, the GnuPG feature is disabled.
+重新启动 pod 后，GnuPG 功能将被禁用。
 
-### GnuPG key ring
+### GnuPG 钥匙圈
 
-The GnuPG key ring used for signature verification is maintained within the
-pods of `argocd-repo-server`. The keys in the keyring are synchronized to the
-configuration stored in the `argocd-gpg-keys-cm` ConfigMap resource, which is
-volume-mounted to the `argocd-repo-server` pods.
+用于签名验证的 GnuPG 密钥环维护在`argocd-repo-server`密钥环中的密钥与存储在`argocd-gpg-keys-cm`ConfigMap 资源，该资源的卷挂载到`argocd-repo-server`豆荚。
 
-!!!note
-    The GnuPG key ring in the pods is transient and gets recreated from the
-    configuration on each restart of the pods. You should never add or remove
-    keys manually to the key ring, because your changes will be lost. Also,
-    any of the private keys found in the key ring are transient and will be
-    regenerated upon each restart. The private key is only used to build the
-    trust DB for the running pod.
+注意 pod 中的 GnuPG 密钥环是瞬时的，每次重启 pod 时都会根据配置重新创建。 千万不要手动添加或删除密钥环中的密钥，因为您所做的更改会丢失。 此外，密钥环中的任何私钥都是瞬时的，每次重启时都会重新生成。 私钥仅被用于为运行中的 pod 建立信任 DB。
 
-To check whether the keys are actually in sync, you can `kubectl exec` into the
-repository server's pods and inspect the key ring, which is located at path
-`/app/config/gpg/keys`
+要检查密钥是否真正同步，可以`kubectl exec`进入版本库服务器的 pod，检查位于路径`/app/config/gpg/keys`中。
 
 ```bash
 $ kubectl exec -it argocd-repo-server-7d6bdfdf6d-hzqkg bash
 argocd@argocd-repo-server-7d6bdfdf6d-hzqkg:~$ GNUPGHOME=/app/config/gpg/keys gpg --list-keys
 /app/config/gpg/keys/pubring.kbx
 --------------------------------
-pub   rsa2048 2020-06-15 [SC] [expires: 2020-12-12]
+pub rsa2048 2020-06-15 [SC] [expires: 2020-12-12]
       D48F075D818A813C436914BC9324F0D2144753B1
 uid           [ultimate] Anon Ymous (ArgoCD key signing key) <noreply@argoproj.io>
 
-pub   rsa2048 2017-08-16 [SC]
+pub rsa2048 2017-08-16 [SC]
       5DE3E0509C47EA3CF04A42D34AEE18F83AFDEB23
 uid           [ultimate] GitHub (web-flow commit signing) <noreply@github.com>
 
 argocd@argocd-repo-server-7d6bdfdf6d-hzqkg:~$
 ```
 
-If the key ring stays out of sync with your configuration after you have added
-or removed keys for a longer period of time, you might want to restart your
-`argocd-repo-server` pods. If such a problem persists, please consider raising
-a bug report.
+如果在添加或删除钥匙较长时间后，钥匙圈仍与配置不同步，您可能需要重新启动您的`argocd-repo-server`如果问题仍然存在，请考虑提交错误报告。

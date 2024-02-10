@@ -1,41 +1,39 @@
-# Identity Center (AWS SSO)
+<!-- TRANSLATED by md-translate -->
+# 身份中心（AWS SSO）
 
-!!! note "Are you using this? Please contribute!"
-    If you're using this IdP please consider [contributing](../../developer-guide/site.md) to this document.
+!!! 注 "您正在使用吗？ 请贡献！" 如果您正在使用此 IdP，请考虑[贡献]（.../.../developer-guide/site.md）到此文档。
 
-A working Single Sign-On configuration using Identity Center (AWS SSO) has been achieved using the following method:
+使用身份中心（AWS SSO）的单点登录配置已通过以下方法实现：
 
-* [SAML (with Dex)](#saml-with-dex)
+* [SAML（带 Dex）](#saml-with-dex)
 
-## SAML (with Dex)
+## SAML（使用 Dex）
 
-1. Create a new SAML application in Identity Center and download the certificate.
-    * ![Identity Center SAML App 1](../../assets/identity-center-1.png)
-    * ![Identity Center SAML App 2](../../assets/identity-center-2.png)
-2. Click `Assign Users` after creating the application in Identity Center, and select the users or user groups you wish to grant access to this application.
-    * ![Identity Center SAML App 3](../../assets/identity-center-3.png)
-3. Copy the Argo CD URL into the `data.url` field in the `argocd-cm` ConfigMap.
-
-        data:
-          url: https://argocd.example.com
-
-4. Configure Attribute mappings.
-
-    !!! note "Group attribute mapping is not officially!"
-        Group attribute mapping is not officially supported in the AWS docs, however the workaround is currently working.
-
-    * ![Identity Center SAML App 4](../../assets/identity-center-4.png)
-    * ![Identity Center SAML App 5](../../assets/identity-center-5.png)
+1.在身份中心创建新的 SAML 应用程序并下载证书。
+    - 身份中心 SAML 应用程序 1](.../.../assets/identity-center-1.png)
+    - 身份中心 SAML 应用程序 2](./../assets/identity-center-2.png)
+2.在身份中心创建应用程序后点击 "分配用户"，选择您希望授予访问该应用程序权限的用户或用户组。
+    - ![身份中心 SAML 应用程序 3](../../assets/identity-center-3.png)
+3.将 Argo CD URL 复制到 ``argocd-cm` ConfigMap 中的 `data.url` 字段。
+    ```
+    数据：
+       url: https://argocd.example.com
+    ```
+4.配置属性映射。
+    注意："组属性映射并非官方支持！"
+         在AWS文档中，组属性映射不被官方支持，但目前该变通方法是可行的。
+    - ![Identity Center SAML App 5](../../assets/identity-center-5.png)
 
 <!-- markdownlint-enable MD046 -->
 
-5. Download the CA certificate to use in the `argocd-cm` configuration.
-    * If using the `caData` field, you'll need to base64-encode the entire certificate, including the `-----BEGIN CERTIFICATE-----` and `-----END CERTIFICATE-----` stanzas (e.g., `base64 my_cert.pem`).
-    * If using the `ca` field and storing the CA certificate separately as a secret, you will need to mount the secret onto the `dex` container in the `argocd-dex-server` Deployment.
-    * ![Identity Center SAML App 6](../../assets/identity-center-6.png)
-6. Edit the `argocd-cm` and configure the `data.dex.config` section:
+5.下载要在 `argocd-cm` 配置中使用的 CA 证书。
+    - 如果被引用 `caData` 字段，则需要对整个证书进行 base64 编码，包括 `-----BEGIN CERTIFICATE-----` 和 `-----END CERTIFICATE-----` 节（例如，`base64 my_cert.pem`）。
+    - 如果使用`ca`字段并将CA证书作为秘密单独存储，则需要将该秘密挂载到`argocd-dex-server`部署中的`dex`容器上。
+    - ![Identity Center SAML App 6](../../assets/identity-center-6.png)
+6.编辑 `argocd-cm` 并配置 `data.dex.config` 部分：
 
 <!-- markdownlint-disable MD046 -->
+
 ```yaml
 dex.config: |
   logger:
@@ -57,15 +55,19 @@ dex.config: |
       emailAttr: email
       groupsAttr: groups
 ```
+
 <!-- markdownlint-enable MD046 -->
 
-### Connect Identity Center Groups to Argo CD Roles
-Argo CD recognizes user memberships in Identity Center groups that match the **Group Attribute Statements** regex. 
+### 将身份中心组连接到 Argo CD 角色
 
- In the example above, the regex `argocd-*` is used, making Argo CD aware of a group named `argocd-admins`.
+Argo CD 可识别符合**组属性声明** regex的身份中心组中的用户成员身份。
 
-Modify the `argocd-rbac-cm` ConfigMap to connect the `ArgoCD-administrators` Identity Center group to the builtin Argo CD `admin` role.
+在上面的示例中，被引用的 regex `argocd-*` 使 Argo CD 意识到一个名为 `argocd-admins` 的组。
+
+修改 `argocd-rbac-cm` configmaps，将 `ArgoCD-administrators` Identity Center 组连接到内置的 Argo CD `admin` 角色。
+
 <!-- markdownlint-disable MD046 -->
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -76,4 +78,5 @@ data:
     g, <Identity Center Group ID>, role:admin
   scopes: '[groups, email]'
 ```
+
 <!-- markdownlint-enable MD046 -->

@@ -1,23 +1,22 @@
-# Cluster Management
+<!-- TRANSLATED by md-translate -->
+# 集群管理
 
-This guide is for operators looking to manage clusters on the CLI. If you want to use Kubernetes resources for this, check out [Declarative Setup](./declarative-setup.md#clusters).
+本指南适用于希望在 CLI 上管理集群的操作员。 如果你想为此使用 Kubernetes 资源，请查看 [声明式设置]（./declarative-setup.md#clusters）。
 
-Not all commands are described here, see the [argocd cluster Command Reference](../user-guide/commands/argocd_cluster.md) for all available commands.
+此处并未介绍所有命令，所有可用命令请参阅 [argocd 集群命令参考]（.../user-guide/commands/argocd_cluster.md）。
 
-## Adding a cluster
+## 添加一个集群
 
-Run `argocd cluster add context-name`.
+运行 `argocd cluster add context-name`。
 
-If you're unsure about the context names, run `kubectl config get-contexts` to get them all listed.
+如果不确定上下文名称，可运行 `kubectl config get-contexts` 查看所有上下文。
 
-This will connect to the cluster and install the necessary resources for ArgoCD to connect to it.
-Note that you will need privileged access to the cluster.
+这将连接到集群，并为 ArgoCD 安装必要的资源以连接到集群。 请注意，您需要对集群有权限访问。
 
-## Removing a cluster
+## 删除集群
 
-Run `argocd cluster rm context-name`.
+运行 `argocd 集群 rm context-name`。
 
-This removes the cluster with the specified name.
+删除指定名称的集群。
 
-!!!note "in-cluster cannot be removed"
-    The `in-cluster` cluster cannot be removed with this. If you want to disable the `in-cluster` configuration, you need to update your `argocd-cm` ConfigMap. Set [`cluster.inClusterEnabled`](./argocd-cm-yaml.md) to `"false"`
+!!注意 "集群内不能移除" `集群内`集群不能用此移除。 如果要禁用`集群内`配置，需要更新`argocd-cm` ConfigMap。 设置 [`cluster.inClusterEnabled`](./argocd-cm-yaml.md) 为`"false"`。

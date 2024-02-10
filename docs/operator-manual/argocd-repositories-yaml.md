@@ -1,6 +1,7 @@
-# argocd-repositories.yaml example
+<!-- TRANSLATED by md-translate -->
+# argocd-repositories.yaml 示例
 
-An example of an argocd-repositories.yaml file:
+argocd-repositories.yaml 文件的示例：
 
 ```yaml
 {!docs/operator-manual/argocd-repositories.yaml!}

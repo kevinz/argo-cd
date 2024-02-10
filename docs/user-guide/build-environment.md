@@ -1,20 +1,13 @@
-# Build Environment
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-[Custom tools](../operator-manual/config-management-plugins.md), [Helm](helm.md), [Jsonnet](jsonnet.md), and [Kustomize](kustomize.md) support the following build env vars:
+# 构建环境
 
-| Variable                            | Description                                                             |
-|-------------------------------------|-------------------------------------------------------------------------|
-| `ARGOCD_APP_NAME`                   | The name of the application.                                            |
-| `ARGOCD_APP_NAMESPACE`              | The destination namespace of the application.                           |
-| `ARGOCD_APP_REVISION`               | The resolved revision, e.g. `f913b6cbf58aa5ae5ca1f8a2b149477aebcbd9d8`. |
-| `ARGOCD_APP_REVISION_SHORT`         | The resolved short revision, e.g. `f913b6c`.                            |
-| `ARGOCD_APP_SOURCE_PATH`            | The path of the app within the source repo.                             |
-| `ARGOCD_APP_SOURCE_REPO_URL`        | The source repo URL.                                                    |
-| `ARGOCD_APP_SOURCE_TARGET_REVISION` | The target revision from the spec, e.g. `master`.                       |
-| `KUBE_VERSION`                      | The version of Kubernetes.                                              |
-| `KUBE_API_VERSIONS`                 | The version of the Kubernetes API.                                      |
+[定制工具](../operator-manual/config-management-plugins.md),[Helm](helm.md),[Jsonnet](jsonnet.md)和[kustomize](kustomize.md)支持以下构建环境变量
 
-In case you don't want a variable to be interpolated, `$` can be escaped via `$$`.
+| 变量 | 说明 | |-------------------------------------|-------------------------------------------------------------------------| | |`ARGOCD_APP_NAME`| 应用程序的名称。`ARGOCD_APP_NAMESPACE`| 应用程序的目标名称空间。`ARGOCD_APP_REVISION`| 已解决的修订，例如`f913b6cbf58aa5ae5ca1f8a2b149477aebcbd9d8`. | |`ARGOCD_APP_REVISION_SHORT`| 已解决的简短修订，例如`f913b6c`. | |`ARGOCD_APP_SOURCE_PATH`| 源版本中应用程序的路径。`ARGOCD_APP_SOURCE_REPO_URL`| 源软件仓库 URL。`ARGOCD_APP_SOURCE_TARGET_REVISION`| 规范中的目标修订，例如`master`. | |`KUBE_VERSION`| Kubernetes 的版本。`KUBE_API_VERSIONS`| Kubernetes API 的版本。
+
+如果您不希望对变量进行插值、`$`可以通过`$$`.
 
 ```
 command:

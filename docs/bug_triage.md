@@ -1,175 +1,125 @@
-# Bug triage proposal for ArgoCD
+<!-- TRANSLATED by md-translate -->
+# 关于 ArgoCD 的错误分流建议
 
-## Situation
+## 情况
 
-Lots of issues on our issue tracker. Many of them not bugs, but questions,
-or very environment related. It's easy to lose oversight.
+我们的问题跟踪器上有很多问题。 其中很多不是错误，而是问题，或者与环境密切相关。 很容易疏忽。
 
-Also, it's not obvious which bugs are important. Which bugs should be fixed
-first? Can we make a new release with the current inventory of open bugs?
-Is there still a bug that should make it to the new release?
+另外，哪些 Bug 是重要的也不明显。 哪些 Bug 应该先修复？ 我们可以用目前的未修复 Bug 清单来发布新版本吗？ 还有哪些 Bug 应该进入新版本？
 
-## Proposal
+## 建议
 
-We should agree upon a common issue triage process. The process must be lean
-and efficient, and should support us and the community looking into the GH
-issue tracker at making the following decisions:
+我们应该商定一个共同的问题分流流程，该流程必须精简、高效，并应支持我们和查看 GH 问题跟踪器的社区做出以下决定：
 
-* Is it even a real bug?
-* If it is a real bug, what is the current status of the bug (next to "open" or "closed")?
-* How important is it to fix the bug?
-* How urgent is it to fix the bug?
-* Who will be working to fix the bug?
+* 它是一个真正的错误吗？
+* 如果是一个真正的错误，那么该错误的当前状态是什么（是 "打开 "还是 "关闭"）？
+* 修复该错误有多重要？
+* 修复该错误的紧迫性如何？
+* 谁将负责修复该错误？
 
-We need new methods to classify our bugs, at least into these categories:
+我们需要新的方法来对我们的错误进行分类，至少要分为这几类：
 
-* validity: Does the issue indeed represent a true bug
-* severity: Denominates what impact the bug has
-* priority: Denominates the urgency of the fix
+* 有效性：问题是否确实代表一个真正的错误
+* 严重性：表示错误造成的影响
+* 优先级：表示修复的紧迫性
 
-## Triage process
+## 分流过程
 
-GH issue tracker provides us with the possibility to label issues. Using these
-labels is not perfect, but should give a good start. Each new issue created in
-our issue tracker should be correctly labeled during its lifecycle, so keeping
-an overview would be simplified by the ability to filter for labels.
+GH 问题跟踪器为我们提供了给问题贴标签的可能性。 使用这些标签并不完美，但应该是一个良好的开端。 在我们的问题跟踪器中创建的每个新问题都应该在其生命周期内被正确地贴上标签，因此，如果能对标签进行过滤，就能简化概览。
 
-The triage process could be as follows:
+分流流程如下
 
-1. A new bug issue is created by someone on the tracker
+1.有人在跟踪器上创建了一个新的错误问题
+2.核心团队中第一个看到它的人就会开始分流，将问题分类（见下文）。
+问题（见下文）。这将向创建者表明我们已经注意到该问题
+问题，而且这不是一个 "一烧了之 "的跟踪器。
+3.即使有很多信息还不清楚，也可以进行初步分类。
+在这种情况下，问题将被归类为在这种情况下，问题将被分类为此类（见下文）。
+这再次表明，有人已经注意到了这个问题，并且有活动
+正在获取所需信息。
+4.在问题的生命周期中，问题的分类可能会发生变化。但是，一旦
+问题的分类可以在其生命周期内发生变化。
+的 "占位符 "分类）后，对分类的更改
+应首先与最初对问题进行分类的人员进行讨论。
 
-1. The first person of the core team to see it will start the triage by classifying
-   the issue (see below). This will indicate the creator that we have noticed the
-   issue, and that it's not "fire & forget" tracker.
+## 分类
 
-1. Initial classification should be possible even when much of the information is
-   missing yet. In this case, the issue would be classified as such (see below).
-   Again, this indicates that someone has noticed the issue, and there is activity
-   in progress to get the required information.
+我们在 GH 问题跟踪器中引入了一些新标签，用于对错误问题进行分类。 这些标签以字符串 `bug/` 为前缀，应适用于跟踪器中的所有新问题。
 
-1. Classification of the issue can change over its life-cycle. However, once the
-   issue has been initially classified correctly (that is, with something else than
-   the "placeholder" classification discussed above), changes to the classification
-   should be discussed first with the person who initially classified the issue.
+### 分级需要更多信息
 
-## Classification
+如果还无法对错误进行分类，即需要更多信息才能对错误进行正确分类，则应始终设置标签 "bug/in-triage"，以明确指出分流过程已经开始但尚未完成。
 
-We have introduced some new labels in the GH issue tracker for classifying the
-bug issues. These labels are prefixed with the string `bug/`, and should be
-applied to all new issues in our tracker.
+### 问题类型
 
-### Classification requires more information
+如果一个错误问题显然不是一个错误，而是一个问题或寻求支持的请求，则应将其标记为 "错误"：
 
-If it is not yet possible to classify the bug, i.e. because more information is
-required to correctly classify the bug, you should always set the label
-`bug/in-triage` to make it clear that triage process has started but could not
-yet be completed.
+* 删除可能附加到问题上的任何前缀为 `bug/` 的标签
+* 从问题中移除标签 "bug
+* 将标签 "查询 "添加到问题中
 
-### Issue type
+如果查询结果是文件应涵盖但未涵盖的内容，则应采取以下措施：
 
-If it's clear that a bug issue is not a bug, but a question or reach for support,
-it should be marked as such:
+* 应调整问题的标题，使其明确错误影响的是文档而非代码
+* 问题应附加 "文档 "标签
 
-* Remove any of the labels prefixed `bug/` that might be attached to the issue
-* Remove the label `bug` from the issue
-* Add the label `inquiry` to the issue
+如果问题过于混乱（有可能发生），另一种可能是关闭问题，然后如上文所述创建一个新问题（用一个有意义的标题并附加 "文档 "标签）。
 
-If the inquiry turns out to be something that should be covered by the docs, but
-is not, the following actions should be taken:
+### 有效性
 
-* The title of the issue should be adapted that it will be clear that the bug
-  affects the docs, not the code
-* The label `documentation` should be attached to the issue
+有些报告的错误可能是无效的。 它可能是用户错误、配置错误或类似的错误。 如果很明显该错误属于这些类别之一：
 
-If the issue is too confusing (can happen), another possibility is to close the
-issue and create a new one as described in above (with a meaningful title and
-the label `documentation` attached to it).
+* 移除可能附加到问题上的任何前缀为 `bug/` 的标签
+* 为问题添加 "无效 "标签
+* 保留问题的 "bug "标签
+* 关闭问题
 
-### Validity
+关闭问题时，重要的是让请求者知道问题被关闭的原因。 最好的办法是在问题的注释中针对他的请求提供解决方案，或至少提供可能的解决方案。
 
-Some reported bugs may be invalid. It could be a user error, a misconfiguration
-or something along these lines. If it is clear that the bug falls into one of
-these categories:
+#### 回归
 
-* Remove any of the labels prefixed `bug/` that might be attached to the issue
-* Add the label `invalid` to the issue
-* Retain the `bug` label to the issue
-* Close the issue
+有时会出现这样的情况：在以前的发布版本中可以正常工作的东西，现在却不能正常工作了。 如果出现这种情况，应采取以下措施
 
-When closing the issue, it is important to let requester know why the issue
-has been closed. The optimum would be to provide a solution to his request
-in the comments of the issue, or at least pointers to possible solutions.
+* 在问题上添加 "回归 "标签
+* 继续分流
 
-### Regressions
+### 严重程度
 
-Sometimes it happens that something that worked in a previous release does
-not work now when it should still work. If this is the case, the following
-actions should be done
+为此，我们的跟踪器中存在以下标签：
 
-* Add the label `regression` to the issue
-* Continue with triage
+* bug/severity:minor`：错误的影响有限，可能只影响一个
+边缘情况。核心功能不受影响，也不涉及数据丢失。
+涉及。某些功能可能无法按预期运行。这类
+例如，CLI 命令无法按预期运行、用户界面出现故障、文档错误等。
+用户界面中的故障、错误的文档等。
+* bug/severity:major`：核心组件之一出现故障，影响
+大部分用户或 ArgoCD 的核心功能之一。不涉及
+不涉及数据丢失，但例如由于 ArgoCD 中的一个错误而导致同步无法工作（而不是由于 ArgoCD 中的一个错误而导致同步无法工作）。
+配置清单无法渲染等。
+* bug/severity:critical`：ArgoCD 中的严重错误，可能导致
+数据丢失、完整性破坏或整体功能严重降级。
 
-### Severity
+### 优先级
 
-It is important to find out how severe the impact of a bug is, and to label
-the bug with this information. For this purpose, the following labels exist
-in our tracker:
+一个问题的优先级表示该问题应多快得到修复和发布。 这些信息应有助于我们决定修复的目标发布版本，以及一个错误是否需要专门的补丁发布。 以下标签可被引用来划分错误的优先级：
 
-* `bug/severity:minor`: Bug has limited impact and maybe affects only an
-  edge-case. Core functionality is not affected, and there is no data loss
-  involved. Something might not work as expected. Example of these kind of
-  bugs could be a CLI command that is not working as expected, a glitch in
-  the UI, wrong documentation, etc.
+* bug/priority:low`：将在没有任何特定目标发布的情况下修复。
+* bug/priority:medium`：应在次发行版或主要发行版中修复，无论哪一个
+先修复。
+* 错误/优先级:高"：应在下一个补丁发布时修复。
+* 错误/优先级:紧急"：应立即修复，甚至可能需要
+专门发布补丁。
 
-* `bug/severity:major`: Malfunction in one of the core components, impacting
-  a majority of users or one of the core functionalities in ArgoCD. There is
-  no data loss involved, but for example a sync is not working due to a bug
-  in ArgoCD (and not due to user error), manifests fail to render, etc.
+优先级应根据修复的价值和所附的严重性来设定。 这意味着，当一个严重性为 "轻微 "的错误属于 "低垂的果实"（即该错误很容易修复且工作量较小）并对 ArgoCD 的整体用户体验有贡献时，仍可将其归类为优先级 "高"。
 
-* `bug/severity:critical`: A critical bug in ArgoCD, possibly resulting in
-  data loss, integrity breach or severe degraded overall functionality.
+同样，如果一个严重程度为 "重大 "的错误有可用的解决方法，可将该错误的影响减轻到可承受的程度，那么该错误的优先级仍可为 "中等"。
 
-### Priority
+严重性为 "critical "的错误很可能属于 "urgent "优先级，或者在有可用的解决方法时属于 "high "类别。
 
-The priority of an issue indicates how quickly the issue should be fixed and
-released. This information should help us in deciding the target release for
-the fix, and whether a bug would even justify a dedicated patch release. The
-following labels can be used to classify bugs into their priority:
+附加了 "回归 "标签（参见上文的 "回归"）的 Bug 通常应以更高的优先级处理，因此这类问题的优先级很可能是 "高 "或 "紧急"。
 
-* `bug/priority:low`: Will be fixed without any specific target release.
+## 摘要
 
-* `bug/priority:medium`: Should be fixed in the minor or major release, which
-  ever comes first.
+在使用问题跟踪器时，如果能应用一点纪律性，将极大地帮助我们做出明智的决定，决定何时修复哪些错误。 此外，它还能帮助我们清楚地了解，我们是否可以在不遗忘任何应发布的未决问题的情况下，发布一个新的次要版本。
 
-* `bug/priority:high`: Should be fixed with the next patch release.
-
-* `bug/priority:urgent`: Should be fixed immediately and might even justify a
-  dedicated patch release.
-
-The priority should be set according to the value of the fix and the attached
-severity. This means. a bug with a severity of `minor` could still be classified
-with priority `high`, when it is a *low hanging fruit* (i.e. the bug is easy to
-fix with low effort) and contributes to overall user experience of ArgoCD.
-
-Likewise, a bug classified with a severity of `major` could still have a
-priority of `medium`, if there is a workaround available for the bug which
-mitigates the effects of the bug to a bearable extend.
-
-Bugs classified with a severity of `critical` most likely belong to either
-the `urgent` priority, or to the `high` category when there is a workaround
-available.
-
-Bugs that have a `regression`label attached (see Regression above) should
-usually be handled with higher priority, so those kind of issues will most
-likely have a priority of `high` or `urgent` attached to it.
-
-## Summary
-
-Applying a little discipline when working with our issue tracker could greatly
-help us in making informed decision about which bugs to fix when. Also, it
-would help us to get a clear view whether we can do for example a new minor
-release without having forgot any outstanding issues that should make it into
-that release.
-
-If we are able to work with classification of bug issues, we might want to
-extend the triage for enhancement proposals and PRs as well.
+如果我们能够对错误问题进行分类，我们可能也想扩展自增强建议和 PR 的分流。

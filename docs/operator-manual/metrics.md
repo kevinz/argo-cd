@@ -1,9 +1,11 @@
-# Metrics
+<!-- TRANSLATED by md-translate -->
+# 衡量标准
 
-Argo CD exposes different sets of Prometheus metrics per server.
+Argo CD 为每台服务器提供不同的 Prometheus 指标集。
 
-## Application Controller Metrics
-Metrics about applications. Scraped at the `argocd-metrics:8082/metrics` endpoint.
+## 应用程序控制器指标
+
+从 `argocd-metrics:8082/metrics` 端点获取的应用程序指标。
 
 | Metric | Type | Description |
 |--------|:----:|-------------|
@@ -15,43 +17,32 @@ Metrics about applications. Scraped at the `argocd-metrics:8082/metrics` endpoin
 | `argocd_cluster_api_resource_objects` | gauge | Number of k8s resource objects in the cache. |
 | `argocd_cluster_api_resources` | gauge | Number of monitored Kubernetes API resources. |
 | `argocd_cluster_cache_age_seconds` | gauge | Cluster cache age in seconds. |
-| `argocd_cluster_connection_status` | gauge | The k8s cluster current connection status. |
-| `argocd_cluster_events_total` | counter | Number of processes k8s resource events. |
-| `argocd_cluster_info` | gauge | Information about cluster. |
-| `argocd_kubectl_exec_pending` | gauge | Number of pending kubectl executions |
-| `argocd_kubectl_exec_total` | counter | Number of kubectl executions |
-| `argocd_redis_request_duration` | histogram | Redis requests duration. |
-| `argocd_redis_request_total` | counter | Number of redis requests executed during application reconciliation |
+| `argocd_cluster_connection_status` | gauge | The k8s cluster current connection status.
 
-If you use Argo CD with many application and project creation and deletion,
-the metrics page will keep in cache your application and project's history.
-If you are having issues because of a large number of metrics cardinality due
-to deleted resources, you can schedule a metrics reset to clean the
-history with an application controller flag. Example:
-`--metrics-cache-expiration="24h0m0s"`.
+如果您在使用 Argo CD 时创建和删除了大量应用程序和项目，那么度量页面将缓存您的应用程序和项目的历史记录。 如果由于删除资源导致大量度量卡入度出现问题，您可以使用应用程序控制器 flag 安排度量重置以清理历史记录。 示例：`-metrics-cache-expiration="24h0m0s"`。
 
-### Exposing Application labels as Prometheus metrics
+### 将应用程序标签作为 Prometheus 指标公开
 
-There are use-cases where Argo CD Applications contain labels that are desired to be exposed as Prometheus metrics.
-Some examples are:
+在一些用例中，Argo CD 应用程序所包含的标签希望作为 Prometheus 指标被显示出来。 一些例子如下：
 
-* Having the team name as a label to allow routing alerts to specific receivers
-* Creating dashboards broken down by business units
+* 将团队名称作为标签，以便将警报发送给特定接收方
+* 创建按业务单元细分的仪表板
 
-As the Application labels are specific to each company, this feature is disabled by default. To enable it, add the
-`--metrics-application-labels` flag to the Argo CD application controller.
+由于应用程序标签是每个公司特有的，因此该功能默认为禁用。 要启用该功能，请在 Argo CD 应用程序控制器中添加"--metrics-application-labels "标志。
 
-The example below will expose the Argo CD Application labels `team-name` and `business-unit` to Prometheus:
+下面的示例将向 Prometheus 公开 Argo CD 应用程序标签 "team-name "和 "business-unit"：
 
-    containers:
-    - command:
-      - argocd-application-controller
-      - --metrics-application-labels
-      - team-name
-      - --metrics-application-labels
-      - business-unit
+```
+containers:
+- command:
+  - argocd-application-controller
+  - --metrics-application-labels
+  - team-name
+  - --metrics-application-labels
+  - business-unit
+```
 
-In this case, the metric would look like:
+在这种情况下，度量标准就会是这样：
 
 ```
 # TYPE argocd_app_labels gauge
@@ -60,9 +51,9 @@ argocd_app_labels{label_business_unit="bu-id-1",label_team_name="my-team",name="
 argocd_app_labels{label_business_unit="bu-id-2",label_team_name="another-team",name="my-app-3",namespace="argocd",project="important-project"} 1
 ```
 
-## API Server Metrics
-Metrics about API Server API request and response activity (request totals, response codes, etc...).
-Scraped at the `argocd-server-metrics:8083/metrics` endpoint.
+## API 服务器指标
+
+有关 API 服务器 API 请求和响应活动的指标（请求总数、响应代码等）。 从 `argocd-server-metrics:8083/metrics` 端点抓取。
 
 | Metric | Type | Description |
 |--------|:----:|-------------|
@@ -73,9 +64,9 @@ Scraped at the `argocd-server-metrics:8083/metrics` endpoint.
 | `argocd_proxy_extension_request_total` | counter | Number of requests sent to the configured proxy extensions. |
 | `argocd_proxy_extension_request_duration_seconds` | histogram | Request duration in seconds between the Argo CD API server and the proxy extension backend. |
 
-## Repo Server Metrics
-Metrics about the Repo Server.
-Scraped at the `argocd-repo-server:8084/metrics` endpoint.
+## Repo 服务器指标
+
+Repo 服务器的度量指标。 从 `argocd-repo-server:8084/metrics` 端点抓取。
 
 | Metric | Type | Description |
 |--------|:----:|-------------|
@@ -85,10 +76,9 @@ Scraped at the `argocd-repo-server:8084/metrics` endpoint.
 | `argocd_redis_request_total` | counter | Number of Kubernetes requests executed during application reconciliation. |
 | `argocd_repo_pending_request_total` | gauge | Number of pending requests requiring repository lock |
 
-## Prometheus Operator
+## 普罗米修斯操作员
 
-If using Prometheus Operator, the following ServiceMonitor example manifests can be used.
-Add a namespace where Argo CD is installed and change `metadata.labels.release` to the name of label selected by your Prometheus.
+如果使用 Prometheus Operator，可使用以下 ServiceMonitor 配置清单示例。 添加 Argo CD 安装所在的名称空间，并将 `metadata.labels.release` 更改为 Prometheus 选择的标签名称。
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -178,7 +168,7 @@ spec:
   - port: http-exporter-port
 ```
 
-For notifications controller, you need to additionally add following: 
+对于通知控制器，您需要额外添加以下内容：
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -195,10 +185,8 @@ spec:
     - port: metrics
 ```
 
+## 仪表板
 
-## Dashboards
-
-You can find an example Grafana dashboard [here](https://github.com/argoproj/argo-cd/blob/master/examples/dashboard.json) or check demo instance
-[dashboard](https://grafana.apps.argoproj.io).
+您可以找到 Grafana 仪表盘示例 [此处](https://github.com/argoproj/argo-cd/blob/master/examples/dashboard.json) 或查看演示实例 [仪表盘](https://grafana.apps.argoproj.io)。
 
 ![dashboard](../assets/dashboard.jpg)

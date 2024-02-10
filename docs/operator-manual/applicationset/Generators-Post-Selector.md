@@ -1,8 +1,10 @@
+<!-- TRANSLATED by md-translate -->
 # Post Selector all generators
 
-The Selector allows to post-filter based on generated values using the Kubernetes common labelSelector format. In the example, the list generator generates a set of two application which then filter by the key value to only select the `env` with value `staging`:
+选择器允许使用 Kubernetes 常用的 labelSelector 格式，根据生成的值进行后过滤。 在示例中，列表生成器生成了一组两个应用程序，然后根据键值进行过滤，只选择值为`staging`的`env`：
 
-## Example: List generator + Post Selector
+## 示例：列表生成器 + Post Selector
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -37,7 +39,7 @@ spec:
         namespace: guestbook
 ```
 
-The List generator + Post Selector generates a single set of parameters:
+列表生成器 + Post Selector 只生成一组参数：
 
 ```yaml
 - cluster: engineering-dev
@@ -45,7 +47,7 @@ The List generator + Post Selector generates a single set of parameters:
   env: staging
 ```
 
-It is also possible to use `matchExpressions` for more powerful selectors.
+也可以使用 `matchExpressions` 来获得更强大的选择器。
 
 ```yaml
 spec:

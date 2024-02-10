@@ -6,6 +6,7 @@ dist/*
 ui/dist/app/*
 !ui/dist/app/gitkeep
 site/
+docs_bak/
 *.iml
 # delve debug binaries
 cmd/**/debug

@@ -1,44 +1,47 @@
-# App Deletion
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Apps can be deleted with or without a cascade option. A **cascade delete**, deletes both the app and its resources, rather than only the app.
+# 应用程序删除
 
-## Deletion Using `argocd`
+删除应用程序时，可以使用或不使用级联选项。 A***级联删除**删除应用程序及其资源，而不是只删除应用程序。
 
-To perform a non-cascade delete:
+## 使用 `argocd` 进行删除
+
+执行非级联删除：
 
 ```bash
 argocd app delete APPNAME --cascade=false
 ```
 
-To perform a cascade delete:
+执行级联删除：
 
 ```bash
 argocd app delete APPNAME --cascade
 ```
 
-or
+或
 
 ```bash
 argocd app delete APPNAME
 ```
 
-## Deletion Using `kubectl`
+## 使用 `kubectl` 进行删除
 
-To perform a non-cascade delete, make sure the finalizer is unset and then delete the app:
+要执行非级联删除，请确保终结器未设置，然后删除应用程序：
 
 ```bash
 kubectl patch app APPNAME  -p '{"metadata": {"finalizers": null}}' --type merge
 kubectl delete app APPNAME
 ```
 
-To perform a cascade delete set the finalizer, e.g. using `kubectl patch`:
+要执行级联删除，可设置终结器，例如被引用为`kubectl patch`：
 
 ```bash
 kubectl patch app APPNAME  -p '{"metadata": {"finalizers": ["resources-finalizer.argocd.argoproj.io"]}}' --type merge
 kubectl delete app APPNAME
 ```
 
-## About The Deletion Finalizer
+## 关于删除终结器
 
 ```yaml
 metadata:
@@ -49,12 +52,10 @@ metadata:
     # - resources-finalizer.argocd.argoproj.io/background
 ```
 
-When deleting an Application with this finalizer, the Argo CD application controller will perform a cascading delete of the Application's resources.
+使用此终结器删除应用程序时，Argo CD 应用程序控制器将对应用程序的资源执行级联删除。
 
-Adding the finalizer enables cascading deletes when implementing [the App of Apps pattern](../operator-manual/cluster-bootstrapping.md#cascading-deletion).
+在执行[应用程序的应用程序模式](.../operator-manual/cluster-bootstrapping.md#cascading-deletion)。
 
-The default propagation policy for cascading deletion is [foreground cascading deletion](https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion).
-Argo CD performs [background cascading deletion](https://kubernetes.io/docs/concepts/architecture/garbage-collection/#background-deletion) when `resources-finalizer.argocd.argoproj.io/background` is set.
+级联删除的默认传播策略是[前台级联删除](https://kubernetes.io/docs/concepts/architecture/garbage-collection/#foreground-deletion).阿尔戈 CD 演出[背景级联删除](https://kubernetes.io/docs/concepts/architecture/garbage-collection/#background-deletion)当`resources-finalizer.argocd.argoproj.io/background`已设定。
 
-When you invoke `argocd app delete` with `--cascade`, the finalizer is added automatically.
-You can set the propagation policy with `--propagation-policy <foreground|background>`.
+当您调用`argocd app delete`与`--cascade`会自动添加终结器。 您可以使用`--propagation-policy<foreground|background>`。

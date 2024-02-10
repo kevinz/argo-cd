@@ -1,20 +1,21 @@
-# Email
+<!-- TRANSLATED by md-translate -->
+# 电子邮件
 
-## Parameters
+## 参数
 
-The Email notification service sends email notifications using SMTP protocol and requires specifying the following settings:
+电子邮件通知服务使用 SMTP 协议发送电子邮件通知，需要指定以下设置：
 
-* `host` - the SMTP server host name
-* `port` - the SMTP server port
-* `username` - username
-* `password` - password
-* `from` - from email address
-* `html` - optional bool, true or false
-* `insecure_skip_verify` - optional bool, true or false
+* host` - SMTP 服务器主机名
+* `port` - SMTP 服务器端口
+* `username` - 用户名
+* `password` - 密码
+* `from` - 发件人电子邮件地址
+* `html` - 可选的 bool，true 或 false
+* `insecure_skip_verify` - 可选 bool，true 或 false
 
-## Example
+## 示例
 
-The following snippet contains sample Gmail service configuration:
+以下代码段包含 Gmail 服务配置示例：
 
 ```yaml
 apiVersion: v1
@@ -30,7 +31,7 @@ data:
     from: $email-username
 ```
 
-Without authentication:
+无需验证：
 
 ```yaml
 apiVersion: v1
@@ -44,9 +45,9 @@ data:
     from: $email-username
 ```
 
-## Template
+## 模板
 
-[Notification templates](../templates.md) support specifying subject for email notifications:
+[通知模板]（.../templates.md）支持为电子邮件通知指定主题：
 
 ```yaml
 apiVersion: v1

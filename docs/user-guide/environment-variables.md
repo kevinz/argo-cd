@@ -1,15 +1,8 @@
-# Environment Variables
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-The following environment variables can be used with `argocd` CLI:
+# 环境变量
 
-| Environment Variable                 | Description                                                                                                                                                                                               |
-|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `ARGOCD_SERVER`                      | the address of the Argo CD server without `https://` prefix <br> (instead of specifying `--server` for every command) <br> eg. `ARGOCD_SERVER=argocd.example.com` if served through an ingress with DNS |
-| `ARGOCD_AUTH_TOKEN`                  | the Argo CD `apiKey` for your Argo CD user to be able to authenticate                                                                                                                                     |
-| `ARGOCD_OPTS`                        | command-line options to pass to `argocd` CLI <br> eg. `ARGOCD_OPTS="--grpc-web"`                                                                                                                          |
-| `ARGOCD_SERVER_NAME`                 | the Argo CD API Server name (default "argocd-server")                                                                                                                                                     |
-| `ARGOCD_REPO_SERVER_NAME`            | the Argo CD Repository Server name (default "argocd-repo-server")                                                                                                                                         |
-| `ARGOCD_APPLICATION_CONTROLLER_NAME` | the Argo CD Application Controller name (default "argocd-application-controller")                                                                                                                         |
-| `ARGOCD_REDIS_NAME`                  | the Argo CD Redis name (default "argocd-redis")                                                                                                                                                           |
-| `ARGOCD_REDIS_HAPROXY_NAME`          | the Argo CD Redis HA Proxy name (default "argocd-redis-ha-haproxy")                                                                                                                                       |
-| `ARGOCD_GRPC_KEEP_ALIVE_MIN`         | defines the GRPCKeepAliveEnforcementMinimum, used in the grpc.KeepaliveEnforcementPolicy. Expects a "Duration" format (default `10s`).                                                                       |
+下列环境变量可被引用`argocd`CLI：
+
+| Environment Variable | Description | |--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| |`ARGOCD_SERVER`| Argo CD 服务器的地址，而不用`https://`词头<br>(而不是指定`--server`为每条命令）<br>例如`ARGOCD_SERVER=argocd.example.com`如果通过带有 DNS | | | 的入口提供服务`ARGOCD_AUTH_TOKEN`| 阿尔戈光盘`apiKey`让您的 Argo CD 用户能够进行身份验证。`ARGOCD_OPTS`| 命令行选项传递给`argocd`CLI<br>例如`ARGOCD_OPTS="--grpc-web"`| |`ARGOCD_SERVER_NAME`| Argo CD API 服务器名称（默认为 "argocd-server"）。``ARGOCD_REPO_SERVER_NAME``ARGOCD_APPLICATION_CONTROLLER_NAME``| Argo CD 应用程序控制器名称（默认为 "argocd-application-controller"） | |`ARGOCD_REDIS_NAME`| Argo CD Redis

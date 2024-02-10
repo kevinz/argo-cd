@@ -1,31 +1,23 @@
+<!-- TRANSLATED by md-translate -->
+# 配置管理插件
 
-# Config Management Plugins
+Argo CD 的 "原生 "配置管理工具有 Helm、Jsonnet 和 Kustomize。 如果您想引用其他配置管理工具，或者 Argo CD 的原生工具支持不包括您需要的功能，您可能需要使用配置管理插件（CMP）。
 
-Argo CD's "native" config management tools are Helm, Jsonnet, and Kustomize. If you want to use a different config
-management tools, or if Argo CD's native tool support does not include a feature you need, you might need to turn to
-a Config Management Plugin (CMP).
+Argo CD 的 "repo 服务器 "组件负责根据 Helm、OCI 或 git 仓库中的源文件构建 Kubernetes 清单。 当配置管理插件配置正确时，repo 服务器可将构建清单的任务委托给插件。
 
-The Argo CD "repo server" component is in charge of building Kubernetes manifests based on some source files from a
-Helm, OCI, or git repository. When a config management plugin is correctly configured, the repo server may delegate the
-task of building manifests to the plugin.
+以下各节将介绍如何创建、安装和被引用插件。请查阅 [示例插件](https://github.com/argoproj/argo-cd/tree/master/examples/plugins) 获取更多指导。
 
-The following sections will describe how to create, install, and use plugins. Check out the
-[example plugins](https://github.com/argoproj/argo-cd/tree/master/examples/plugins) for additional guidance.
+!!! 警告 插件在 Argo CD 系统中被赋予了一定程度的信任，因此安全地实施插件非常重要。 Argo CD 管理员只应安装来自可信来源的插件，而且应审核插件以权衡其特定风险和收益。
 
-!!! warning
-    Plugins are granted a level of trust in the Argo CD system, so it is important to implement plugins securely. Argo
-    CD administrators should only install plugins from trusted sources, and they should audit plugins to weigh their
-    particular risks and benefits.
+## 安装配置管理插件
 
-## Installing a config management plugin
+### Sidecar 插件
 
-### Sidecar plugin
+操作员可以通过 repo-server 的侧挂配置插件工具。 配置新插件需要进行以下更改：
 
-An operator can configure a plugin tool via a sidecar to repo-server. The following changes are required to configure a new plugin:
+#### 编写插件配置文件
 
-#### Write the plugin configuration file
-
-Plugins will be configured via a ConfigManagementPlugin manifest located inside the plugin container.
+插件将通过位于插件容器内的 ConfigManagementPlugin 配置清单进行配置。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -115,38 +107,32 @@ spec:
   preserveFileMode: false
 ```
 
-!!! note
-    While the ConfigManagementPlugin _looks like_ a Kubernetes object, it is not actually a custom resource. 
-    It only follows kubernetes-style spec conventions.
+注意 虽然 ConfigManagementPlugin 看起来像一个 Kubernetes 对象，但它实际上并不是一个自定义资源。 它只是遵循了 kubernetes 风格的规范约定。
 
-The `generate` command must print a valid Kubernetes YAML or JSON object stream to stdout. Both `init` and `generate` commands are executed inside the application source directory.
+生成 "命令必须将有效的 Kubernetes YAML 或 JSON 对象流打印到 stdout。 启动 "和 "生成 "命令都在应用程序源代码目录内执行。
 
-The `discover.fileName` is used as [glob](https://pkg.go.dev/path/filepath#Glob) pattern to determine whether an
-application repository is supported by the plugin or not. 
+discover.fileName "被引用为 [glob](https://pkg.go.dev/path/filepath#Glob) 模式，用于确定插件是否支持应用程序存储库。
 
 ```yaml
-  discover:
+discover:
     find:
       command: [sh, -c, find . -name env.yaml]
 ```
 
-If `discover.fileName` is not provided, the `discover.find.command` is executed in order to determine whether an
-application repository is supported by the plugin or not. The `find` command should return a non-error exit code
-and produce output to stdout when the application source type is supported.
+如果未提供 `discover.fileName`，则会执行 `discover.find.command`，以确定插件是否支持应用程序资源库。 如果支持应用程序源类型，则 `find` 命令应返回非错误退出代码，并产生输出到 stdout。
 
-#### Place the plugin configuration file in the sidecar
+#### 将插件配置文件放在侧卡中
 
-Argo CD expects the plugin configuration file to be located at `/home/argocd/cmp-server/config/plugin.yaml` in the sidecar.
+Argo CD 希望插件配置文件位于 sidecar 中的 `/home/argocd/cmp-server/config/plugin.yaml`。
 
-If you use a custom image for the sidecar, you can add the file directly to that image.
+如果侧边栏被引用了自定义镜像，则可以直接将文件添加到该镜像中。
 
 ```dockerfile
 WORKDIR /home/argocd/cmp-server/config/
 COPY plugin.yaml ./
 ```
 
-If you use a stock image for the sidecar or would rather maintain the plugin configuration in a ConfigMap, just nest the
-plugin config file in a ConfigMap under the `plugin.yaml` key and mount the ConfigMap in the sidecar (see next section).
+如果您使用库存镜像作为边卡，或更愿意在 ConfigMap 中维护插件配置，只需将插件配置文件嵌套到`plugin.yaml`键下的 ConfigMap 中，并将 ConfigMap 挂载到边卡中（见下一节）。
 
 ```yaml
 apiVersion: v1
@@ -169,10 +155,9 @@ data:
         fileName: "./subdir/s*.yaml"
 ```
 
-#### Register the plugin sidecar
+#### 注册插件侧卡
 
-To install a plugin, patch argocd-repo-server to run the plugin container as a sidecar, with argocd-cmp-server as its 
-entrypoint. You can use either off-the-shelf or custom-built plugin image as sidecar image. For example:
+要安装插件，请打上 argocd-repo-server 补丁，将插件容器作为侧卡运行，argocd-cmp-server 作为其入口点。 您可以使用现成或定制的插件镜像作为侧卡镜像，例如
 
 ```yaml
 containers:
@@ -201,87 +186,72 @@ volumes:
   name: my-plugin-config
 - emptyDir: {}
   name: cmp-tmp
-``` 
+```
 
-!!! important "Double-check these items"
-    1. Make sure to use `/var/run/argocd/argocd-cmp-server` as an entrypoint. The `argocd-cmp-server` is a lightweight GRPC service that allows Argo CD to interact with the plugin.
-    2. Make sure that sidecar container is running as user 999.
-    3. Make sure that plugin configuration file is present at `/home/argocd/cmp-server/config/plugin.yaml`. It can either be volume mapped via configmap or baked into image.
+确保使用 `/var/run/argocd/argocd-cmp-server` 作为入口点。 `argocd-cmp-server` 是一个轻量级 GRPC 服务，允许 Argo CD 与插件进行交互。 2. 确保 sidecar 容器以用户 999 的身份运行。 3. 确保插件配置文件位于 `/home/argocd/cmp-server/config/plugin.yml`。 可以通过 configmaps 进行卷映射，也可以将其嵌入镜像中。
 
-### Using environment variables in your plugin
+### 在插件中使用环境变量
 
-Plugin commands have access to
+插件命令可以访问
 
-1. The system environment variables of the sidecar
-2. [Standard build environment variables](../user-guide/build-environment.md)
-3. Variables in the Application spec (References to system and build variables will get interpolated in the variables' values):
-
-        apiVersion: argoproj.io/v1alpha1
-        kind: Application
-        spec:
-          source:
-            plugin:
-              env:
-                - name: FOO
-                  value: bar
-                - name: REV
-                  value: test-$ARGOCD_APP_REVISION
+1.系统环境变量
+2.[标准构建环境变量](.../user-guide/build-environment.md)
+3.应用程序规范中的变量（对系统变量和构建变量的引用将在变量值中插值）：
+    ```
+    apiVersion: argoproj.io/v1alpha1
+     种类应用程序
+     spec：
+       source：
+         plugin：
+           env：
+             - name: FOO
+               values: bar
+             - name：REV
+               value: test-$ARGOCD_APP_REVISION
+    在执行 `init.command`、`generate.command` 和 `discover.find.command` 命令之前，Argo CD 会在所有用户提供的环境变量（如上文 #3 所述）前加上 `ARGOCD_ENVISION` 前缀。 
+     ARGOCD_ENV_` 前缀。这可以防止用户直接设置 
+     潜在敏感的环境变量。
+4.应用程序规范中的参数：
+    ```
+    apiVersion: argoproj.io/v1alpha1
+     种类应用程序
+     spec：
+      source：
+        plugin：
+          parameters：
+            - name: Values-files
+              array：[Values-dev.yaml] [值-dev.yaml]。
+            - name: helm-parameters
+              map：
+                image.tag: v1.2.3
+    参数以 JSON 格式存在于 `ARGOCD_APP_PARAMETERS` 环境变量中。上面的示例将
+     生成以下 JSON：````
+    {"name"："values-files"，"array"：["values-dev.yaml"]}, {"name"："helm-parameters", "map"：{"镜像.标签"："v1.2.3"}}]
+    注意
+         在 `ARGOCD_APP_PARAMETERS` 中，参数公告（即使它们指定了默认值）不会被发送到插件。
+         只有在应用程序规范中明确设置的参数才会发送给插件。插件可自行应用
+         同样的参数也可以作为单独的环境变量使用。环境变量的名称
+     环境变量的名称遵循以下约定
+    - 名称：some-string-param
+          string: some-string-values
+        # PARAM_SOME_STRING_PARAM=some-string-values
     
-    Before reaching the `init.command`, `generate.command`, and `discover.find.command` commands, Argo CD prefixes all 
-    user-supplied environment variables (#3 above) with `ARGOCD_ENV_`. This prevents users from directly setting 
-    potentially-sensitive environment variables.
+        - 名称： 某数组参数
+          Values：[item1, item2］
+        # PARAM_SOME_ARRAY_PARAM_0=item1
+        # PARAM_SOME_ARRAY_PARAM_1=item2
+    
+        - 名称： some-map-param
+          map：
+            image.tag: v1.2.3
+        # PARAM_SOME_MAP_PARAM_IMAGE_TAG=v1.2.3
+    ```
 
-4. Parameters in the Application spec:
+作为 Argo CD 配置清单生成系统的一部分，配置管理插件受到一定程度的信任。 请务必在插件中转义用户输入，以防止恶意输入导致不必要的行为。
 
-        apiVersion: argoproj.io/v1alpha1
-        kind: Application
-        spec:
-         source:
-           plugin:
-             parameters:
-               - name: values-files
-                 array: [values-dev.yaml]
-               - name: helm-parameters
-                 map:
-                   image.tag: v1.2.3
-   
-    The parameters are available as JSON in the `ARGOCD_APP_PARAMETERS` environment variable. The example above would
-    produce this JSON:
-   
-        [{"name": "values-files", "array": ["values-dev.yaml"]}, {"name": "helm-parameters", "map": {"image.tag": "v1.2.3"}}]
-   
-    !!! note
-        Parameter announcements, even if they specify defaults, are _not_ sent to the plugin in `ARGOCD_APP_PARAMETERS`.
-        Only parameters explicitly set in the Application spec are sent to the plugin. It is up to the plugin to apply
-        the same defaults as the ones announced to the UI.
-   
-    The same parameters are also available as individual environment variables. The names of the environment variables
-    follows this convention:
-   
-           - name: some-string-param
-             string: some-string-value
-           # PARAM_SOME_STRING_PARAM=some-string-value
-           
-           - name: some-array-param
-             value: [item1, item2]
-           # PARAM_SOME_ARRAY_PARAM_0=item1
-           # PARAM_SOME_ARRAY_PARAM_1=item2
-           
-           - name: some-map-param
-             map:
-               image.tag: v1.2.3
-           # PARAM_SOME_MAP_PARAM_IMAGE_TAG=v1.2.3
-   
-!!! warning "Sanitize/escape user input" 
-    As part of Argo CD's manifest generation system, config management plugins are treated with a level of trust. Be
-    sure to escape user input in your plugin to prevent malicious input from causing unwanted behavior.
+## 在应用程序中使用配置管理插件
 
-## Using a config management plugin with an Application
-
-You may leave the `name` field
-empty in the `plugin` section for the plugin to be automatically matched with the Application based on its discovery rules. If you do mention the name make sure 
-it is either `<metadata.name>-<spec.version>` if version is mentioned in the `ConfigManagementPlugin` spec or else just `<metadata.name>`. When name is explicitly 
-specified only that particular plugin will be used iff its discovery pattern/command matches the provided application repo.
+您可以在 "插件 "部分留空 "名称 "字段，以便插件根据其发现规则自动与应用程序匹配。 如果您提及名称，请确保在 "配置管理插件 "规范中提及版本的情况下，名称为 "<metadata.name>-<spec.version>"，否则仅为 "<metadata.name>"。如果明确指定了名称，只有在其发现模式/命令与 Provider 提供的应用程序 repo 匹配时，才会引用该特定插件。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -301,21 +271,20 @@ spec:
           value: bar
 ```
 
-If you don't need to set any environment variables, you can set an empty plugin section.
+如果不需要设置任何环境变量，可以设置一个空的插件部分。
 
 ```yaml
-    plugin: {}
+plugin: {}
 ```
 
-!!! important
-    If your CMP command runs too long, the command will be killed, and the UI will show an error. The CMP server
-    respects the timeouts set by the `server.repo.server.timeout.seconds` and `controller.repo.server.timeout.seconds` 
-    items in `argocd-cm`. Increase their values from the default of 60s.
+如果 CMP 命令运行时间过长，命令将被杀死，用户界面也会显示错误。 CMP 服务器会尊重`argocd-cm`中`server.repo.server.timeout.seconds`和`controller.repo.server.timeout.seconds`项所设置的超时时间。 在默认值 60s 的基础上增加它们的值。
 
-    Each CMP command will also independently timeout on the `ARGOCD_EXEC_TIMEOUT` set for the CMP sidecar. The default
-    is 90s. So if you increase the repo server timeout greater than 90s, be sure to set `ARGOCD_EXEC_TIMEOUT` on the
-    sidecar.
-    
+```
+Each CMP command will also independently timeout on the `ARGOCD_EXEC_TIMEOUT` set for the CMP sidecar. The default
+is 90s. So if you increase the repo server timeout greater than 90s, be sure to set `ARGOCD_EXEC_TIMEOUT` on the
+sidecar.
+```
+
 !!! note
     Each Application can only have one config management plugin configured at a time. If you're converting an existing
     plugin configured through the `argocd-cm` ConfigMap to a sidecar, make sure to update the plugin name to either `<metadata.name>-<spec.version>` 
@@ -324,50 +293,41 @@ If you don't need to set any environment variables, you can set an empty plugin 
 !!! note
     If a CMP renders blank manfiests, and `prune` is set to `true`, Argo CD will automatically remove resources. CMP plugin authors should ensure errors are part of the exit code. Commonly something like `kustomize build . | cat` won't pass errors because of the pipe. Consider setting `set -o pipefail` so anything piped will pass errors on failure.
 
-## Debugging a CMP
+## 调试 CMP
 
-If you are actively developing a sidecar-installed CMP, keep a few things in mind:
+如果您正在积极开发安装了挎斗的 CMP，请注意以下几点：
 
-1. If you are mounting plugin.yaml from a ConfigMap, you will have to restart the repo-server Pod so the plugin will
-   pick up the changes.
-2. If you have baked plugin.yaml into your image, you will have to build, push, and force a re-pull of that image on the
-   repo-server Pod so the plugin will pick up the changes. If you are using `:latest`, the Pod will always pull the new
-   image. If you're using a different, static tag, set `imagePullPolicy: Always` on the CMP's sidecar container.
-3. CMP errors are cached by the repo-server in Redis. Restarting the repo-server Pod will not clear the cache. Always
-   do a "Hard Refresh" when actively developing a CMP so you have the latest output.
-4. Verify your sidecar has started properly by viewing the Pod and seeing that two containers are running `kubectl get pod -l app.kubernetes.io/component=repo-server -n argocd`
-5. Write log message to stderr and set the `--loglevel=info` flag in the sidecar. This will print everything written to stderr, even on successfull command execution.
+1.如果从 configmaps 挂载 plugin.yaml，则必须重启 repo-server Pod，这样插件才能接收更改。
+2.如果将 plugin.yaml 添加到镜像中，则必须在 repo-server Pod 上构建、推送并强制重新拉取该镜像，这样插件才能接收更改。如果您使用的是 `:latest`，Pod 将始终提取新镜像。如果您使用的是不同的静态标签，请设置 `imagePullPolicy：始终"。
+3.CMP 错误由 Redis 中的版本服务器缓存。重启版本服务器 Pod 不会清除缓存。在积极开发 CMP 时，请始终进行 "硬刷新"，以便获得最新输出。
+4.通过查看 Pod 验证您的 sidecar 是否已正常启动，并查看两个容器是否正在运行`kubectl get pod -l app.kubernetes.io/component=repo-server -n argocd`
+5.将日志信息写入 stderr，并在 sidecar 中设置 `--loglevel=info` 标志。这将打印所有写入 stderr 的内容，即使命令执行成功也是如此。
 
+### 其他常见错误
 
-### Other Common Errors
-| Error Message | Cause |
-| -- | -- |
-| `no matches for kind "ConfigManagementPlugin" in version "argoproj.io/v1alpha1"` | The `ConfigManagementPlugin` CRD was deprecated in Argo CD 2.4 and removed in 2.8. This error means you've tried to put the configuration for your plugin directly into Kubernetes as a CRD. Refer to this [section of documentation](#write-the-plugin-configuration-file) for how to write the plugin configuration file and place it properly in the sidecar. |
+错误信息 | | 原因 | | -- | | -- | | | `在版本 "argoproj.io/v1alpha1 "中没有匹配的 "ConfigManagementPlugin "类型 | | `ConfigManagementPlugin` CRD 在 Argo CD 2.4 中被弃用，并在 2.8 中被移除。 这个错误意味着您试图将插件的配置作为 CRD 直接放入 Kubernetes。 请参阅本[部分文档]（#write-the-plugin-configuration-file），了解如何编写插件配置文件并将其正确放入侧载。
 
-## Plugin tar stream exclusions
+## 插件焦油流排除
 
-In order to increase the speed of manifest generation, certain files and folders can be excluded from being sent to your
-plugin. We recommend excluding your `.git` folder if it isn't necessary. Use Go's
-[filepatch.Match](https://pkg.go.dev/path/filepath#Match) syntax. For example, `.git/*` to exclude `.git` folder.
+为了提高配置清单的生成速度，可以将某些文件和文件夹排除在外，使其不被发送到您的插件。 如果没有必要，我们建议排除您的 `.git` 文件夹。请使用 Go 的 [filepatch.Match](https://pkg.go.dev/path/filepath#Match) 语法。例如，使用 `.git/*` 来排除 `.git` 文件夹。
 
-You can set it one of three ways:
+您可以通过三种方式之一进行设置：
 
-1. The `--plugin-tar-exclude` argument on the repo server.
-2. The `reposerver.plugin.tar.exclusions` key if you are using `argocd-cmd-params-cm`
-3. Directly setting `ARGOCD_REPO_SERVER_PLUGIN_TAR_EXCLUSIONS` environment variable on the repo server.
+1.版本服务器上的 `--plugin-tar-exclude` 参数。
+2.如果被引用`argocd-cmd-params-cm`，则使用`reposerver.plugin.tar.exclusions`键
+3.在 repo 服务器上直接设置 `ARGOCD_REPO_SERVER_PLUGIN_TAR_EXCLUSIONS` 环境变量。
 
-For option 1, the flag can be repeated multiple times. For option 2 and 3, you can specify multiple globs by separating
-them with semicolons.
+对于选项 1，可以多次重复使用 flag；对于选项 2 和 3，可以用分号分隔指定多个 globs。
 
-## Migrating from argocd-cm plugins
+## 迁移自 argocd-cm 插件
 
-Installing plugins by modifying the argocd-cm ConfigMap is deprecated as of v2.4 and has been completely removed starting in v2.8.
+通过修改 argocd-cm ConfigMap 安装插件的做法从 v2.4 版起已被弃用，并从 v2.8 版起被完全删除。
 
-CMP plugins work by adding a sidecar to `argocd-repo-server` along with a configuration in that sidecar located at `/home/argocd/cmp-server/config/plugin.yaml`. A argocd-cm plugin can be easily converted with the following steps.
+CMP 插件的工作方式是在 `argocd-repo-server` 中添加一个侧卡，并在位于 `/home/argocd/cmp-server/config/plugin.yaml`的侧卡中添加配置。 argocd-cm 插件可以通过以下步骤轻松转换。
 
-### Convert the ConfigMap entry into a config file
+### 将 ConfigMap 条目转换为配置文件
 
-First, copy the plugin's configuration into its own YAML file. Take for example the following ConfigMap entry:
+首先，将插件的配置复制到自己的 YAML 文件中。 以下面的 ConfigMap 条目为例：
 
 ```yaml
 data:
@@ -382,7 +342,7 @@ data:
       lockRepo: true                 # Defaults to false. See below.
 ```
 
-The `pluginName` item would be converted to a config file like this:
+`pluginName` 项将被转换为类似这样的配置文件：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -398,13 +358,11 @@ spec:
     args: ["sample args"]
 ```
 
-!!! note
-    The `lockRepo` key is not relevant for sidecar plugins, because sidecar plugins do not share a single source repo
-    directory when generating manifests.
+注意 `lockRepo` 密钥与 sidecar 插件无关，因为 sidecar 插件在生成配置清单时不会共享单个源软件仓库目录。
 
-Next, we need to decide how this yaml is going to be added to the sidecar. We can either bake the yaml directly into the image, or we can mount it from a ConfigMap. 
+接下来，我们需要决定如何将 yaml 添加到 sidecar 中。 我们可以将 yaml 直接烘焙到镜像中，也可以从 ConfigMap 中加载它。
 
-If using a ConfigMap, our example would look like this:
+如果被引用 configmaps，我们的示例将如下所示：
 
 ```yaml
 apiVersion: v1
@@ -427,19 +385,15 @@ data:
         args: ["sample args"]
 ```
 
-Then this would be mounted in our plugin sidecar.
+然后将其安装在我们的插件侧架上。
 
-### Write discovery rules for your plugin
+#### 为插件编写发现规则
 
-Sidecar plugins can use either discovery rules or a plugin name to match Applications to plugins. If the discovery rule is omitted 
-then you have to explicitly specify the plugin by name in the app spec or else that particular plugin will not match any app.
+Sidecar 插件可使用发现规则或插件名称将应用程序与插件匹配。 如果省略了发现规则，则必须在应用程序规范中明确指定插件名称，否则该特定插件将无法与任何应用程序匹配。
 
-If you want to use discovery instead of the plugin name to match applications to your plugin, write rules applicable to 
-your plugin [using the instructions above](#1-write-the-plugin-configuration-file) and add them to your configuration 
-file.
+如果您想使用 "发现 "而不是插件名称来将应用程序与您的插件相匹配，请[使用上述说明]编写适用于您的插件的规则（#1-write-the-plugin-configuration-file），并将其添加到您的配置文件中。
 
-To use the name instead of discovery, update the name in your application manifest to `<metadata.name>-<spec.version>` 
-if version was mentioned in the `ConfigManagementPlugin` spec or else just use `<metadata.name>`. For example:
+要使用名称而不是发现，请将应用程序配置清单中的名称更新为 `<metadata.name>-<spec.version>`（如果 `ConfigManagementPlugin` 规范中提到了版本），否则只需使用 `<metadata.name>`。 例如：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -452,32 +406,25 @@ spec:
       name: pluginName  # Delete this for auto-discovery (and set `plugin: {}` if `name` was the only value) or use proper sidecar plugin name
 ```
 
-### Make sure the plugin has access to the tools it needs
+### 确保插件能够访问所需的工具
 
-Plugins configured with argocd-cm ran on the Argo CD image. This gave it access to all the tools installed on that
-image by default (see the [Dockerfile](https://github.com/argoproj/argo-cd/blob/master/Dockerfile) for base image and
-installed tools).
+使用 argocd-cm 配置的插件在 Argo CD 镜像上运行。 这使它可以访问默认安装在该镜像上的所有工具（有关基础镜像和安装的工具，请参阅 [Dockerfile](https://github.com/argoproj/argo-cd/blob/master/Dockerfile)）。
 
-You can either use a stock image (like busybox, or alpine/k8s) or design your own base image with the tools your plugin needs. For
-security, avoid using images with more binaries installed than what your plugin actually needs.
+您可以使用库存镜像（如 busybox 或 alpine/k8s），也可以使用插件所需的工具设计自己的基础镜像。 为了安全起见，请避免使用安装的二进制文件超过插件实际需要的镜像。
 
-### Test the plugin
+### 测试插件
 
-After installing the plugin as a sidecar [according to the directions above](#installing-a-config-management-plugin),
-test it out on a few Applications before migrating all of them to the sidecar plugin.
+根据上述说明]（#installing-a-config-management-plugin）将插件安装为侧挂件后，先在几个应用程序上进行测试，然后再将所有应用程序迁移到侧挂件插件。
 
-Once tests have checked out, remove the plugin entry from your argocd-cm ConfigMap.
+测试完成后，从 argocd-cm ConfigMap 中删除插件条目。
 
-### Additional Settings
+### 其他设置
 
-#### Preserve repository files mode
+#### 保存版本库文件模式
 
-By default, config management plugin receives source repository files with reset file mode. This is done for security
-reasons. If you want to preserve original file mode, you can set `preserveFileMode` to `true` in the plugin spec:
+默认情况下，配置管理插件会以重置文件模式接收源代码库文件。 这是出于安全考虑。 如果要保留原始文件模式，可以在插件规范中将 `preserveFileMode` 设置为 `true`：
 
-!!! warning
-    Make sure you trust the plugin you are using. If you set `preserveFileMode` to `true` then the plugin might receive
-    files with executable permissions which can be a security risk.
+警告 请确保您信任正在使用的插件。 如果将 `preserveFileMode` 设置为 `true`，那么插件可能会接收具有可执行权限的文件，这可能会带来安全风险。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

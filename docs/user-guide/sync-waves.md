@@ -1,16 +1,19 @@
-# Sync Phases and Waves
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
->v1.1
+# 同步相位和波形
+
+&gt; v1.1
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/zIHe3EVp528" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-Argo CD executes a sync operation in a number of steps. At a high-level, there are three phases *pre-sync*, *sync* and *post-sync*.  
+Argo CD 分几个步骤执行同步操作。 概括地说，有三个阶段同步前,同步和后同步。
 
-Within each phase you can have one or more waves, that allows you to ensure certain resources are healthy before subsequent resources are synced.   
+在每个阶段中，您可以有一个或多个波段，这样就可以在同步后续资源之前确保某些资源是健康的。
 
-## How Do I Configure Phases?
+## 如何配置阶段？
 
-Pre-sync and post-sync can only contain hooks. Apply the hook annotation:
+前同步和后同步只能包含钩子。 应用钩子注释：
 
 ```yaml
 metadata:
@@ -18,11 +21,11 @@ metadata:
     argocd.argoproj.io/hook: PreSync
 ```
 
-[Read more about hooks](resource_hooks.md).
+[了解更多关于挂钩的信息]（resource_hooks.md）。
 
-## How Do I Configure Waves?
+## 如何配置波浪？
 
-Specify the wave using the following annotation:
+使用以下注释指定波形：
 
 ```yaml
 metadata:
@@ -30,28 +33,22 @@ metadata:
     argocd.argoproj.io/sync-wave: "5"
 ```
 
-Hooks and resources are assigned to wave zero by default. The wave can be negative, so you can create a wave that runs before all other resources.
+钩子和资源默认分配给 0 波。 波可以是负数，因此您可以创建一个在所有其他资源之前运行的波。
 
 ## How Does It Work?
 
-When Argo CD starts a sync, it orders the resources in the following precedence:
+当 Argo CD 开始同步时，它会按照以下优先顺序排列资源： 1.
 
-* The phase
-* The wave they are in (lower values first for creation & updation and higher values first for deletion)
-* By kind (e.g. [namespaces first and then other Kubernetes resources, followed by custom resources](https://github.com/argoproj/gitops-engine/blob/bc9ce5764fa306f58cf59199a94f6c968c775a2d/pkg/sync/sync_tasks.go#L27-L66))
-* By name 
+* 按类型（例如，[先是 namespace，然后是其他 Kubernetes 资源，最后是自定义资源]() * 按名称是 namespace，然后是其他 Kubernetes 资源，最后是自定义资源](https://github.com/argoproj/gitops-engine/blob/bc9ce5764fa306f58cf59199a94f6c968c775a2d/pkg/sync/sync_tasks.go#L27-L66) ) * 按名称
 
-It then determines the number of the next wave to apply. This is the first number where any resource is out-of-sync or unhealthy.
- 
-It applies resources in that wave. 
+然后，它会确定要应用的下一个波的编号。 这是任何资源不同步或不健康的第一个编号。
 
-It repeats this process until all phases and waves are in-sync and healthy.
+它应用了这一波段的资源。
 
-Because an application can have resources that are unhealthy in the first wave, it may be that the app can never get to healthy.
+它会重复这一过程，直到所有相位和波都同步和健康。
 
-During pruning of resources, resources from higher waves are processed first before moving to lower waves. If, for any reason, a resource isn't removed/pruned in a wave, the resources in next waves won't be processed. This is to ensure proper resource cleanup between waves.
+由于应用程序的资源在第一波可能是不健康的，因此应用程序可能永远无法达到健康状态。
 
-Note that there's currently a delay between each sync wave in order give other controllers a chance to react to the spec change
-that we just applied. This also prevent Argo CD from assessing resource health too quickly (against the stale object), causing
-hooks to fire prematurely. The current delay between each sync wave is 2 seconds and can be configured via environment
-variable `ARGOCD_SYNC_WAVE_DELAY`.
+在修剪资源的过程中，先处理较高波段的资源，然后再处理较低波段的资源。 如果由于任何原因，某波段的资源未被移除/修剪，则下一波段的资源也不会被处理。
+
+请注意，目前每个同步波之间的延迟都有 2 秒，可通过环境变量进行配置`ARGOCD_SYNC_WAVE_DELAY`。

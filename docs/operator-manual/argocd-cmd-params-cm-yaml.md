@@ -1,6 +1,7 @@
-# argocd-cmd-params-cm.yaml example
+<!-- TRANSLATED by md-translate -->
+# argocd-cmd-params-cm.yaml 示例
 
-An example of an argocd-cmd-params-cm.yaml file:
+argocd-cmd-params-cm.yaml 文件的示例：
 
 ```yaml
 {!docs/operator-manual/argocd-cmd-params-cm.yaml!}

@@ -1,13 +1,15 @@
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
+
 # Jsonnet
 
-Any file matching `*.jsonnet` in a directory app is treated as a Jsonnet file. Argo CD evaluates the Jsonnet and is able to parse a generated object or array.
+符合以下条件的任何文件`*.jsonnet`Argo CD 会对 Jsonnet 进行评估，并解析生成的对象或数组。
 
-## Build Environment
+## 构建环境
 
-Jsonnet apps have access to the [standard build environment](build-environment.md) via substitution into *TLAs* and *external variables*.
-It is also possible to add a shared library (e.g. `vendor` folder) relative to the repository root.
+Jsonnet 应用程序可以访问[标准构建环境](build-environment.md)通过代入_TLAs_和外部变量也可以添加一个共享库（如`vendor`文件夹）相对于版本库根目录。
 
-E.g. via the CLI:
+例如，通过 CLI：
 
 ```bash
 argocd app create APPNAME \
@@ -16,10 +18,10 @@ argocd app create APPNAME \
   --jsonnet-libs 'vendor'
 ```
 
-Or by declarative syntax:
+或者采用声明式语法：
 
 ```yaml
-  directory:
+directory:
     jsonnet:
       extVars:
       - name: app

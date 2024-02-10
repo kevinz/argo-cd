@@ -1,10 +1,11 @@
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
+
 # Helm
 
-## Declarative
+## 式 申明
 
-You can install Helm charts through the UI, or in the declarative GitOps way.  
-Helm is [only used to inflate charts with `helm template`](../../faq#after-deploying-my-helm-application-with-argo-cd-i-cannot-see-it-with-helm-ls-and-other-helm-commands). The lifecycle of the application is handled by Argo CD instead of Helm.
-Here is an example:
+你可以通过用户界面安装 Helm chart，也可以用声明式 GitOps 方式安装。Helm 是[只被引用来为图表充气。](.../.../faq#after-deploying-my-helm-application-with-argo-cd-i-cannot-see-it-with-helm-ls-and-other-helm-commands)应用程序的生命周期由 Argo CD 代替 Helm 处理。 下面是一个示例： Helm chart 是[只被引用来为图表充气。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -25,7 +26,8 @@ spec:
     namespace: kubeseal
 ```
 
-Another example using a public OCI helm chart:
+另一个被引用的例子是公开的 OCI helm chart： 舵图
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -42,26 +44,19 @@ spec:
     namespace: nginx
 ```
 
-!!! note "When using multiple ways to provide values"
-    Order of precedence is `parameters > valuesObject > values > valueFiles > helm repository values.yaml` (see [Here](./helm.md#helm-value-precedence) for a more detailed example)
+注意 "当使用多种方式 Providers 值时"，优先顺序为`parameters &gt; valuesObject &gt; values &gt; valueFiles &gt; helm repository values.yaml`（见[这里](./helm.md#helm-value-precedence)更详细的例子）。
 
-## Values Files
+## 值文件
 
-Helm has the ability to use a different, or even multiple "values.yaml" files to derive its
-parameters from. Alternate or multiple values file(s), can be specified using the `--values`
-flag. The flag can be repeated to support multiple values files:
+Helm 可以使用不同的，甚至多个 "values.yaml "文件来获取参数。 可以使用`--values`该标志可以重复使用，以支持多个值文件： Values.yaml "文件来获取参数。
 
 ```bash
 argocd app set helm-guestbook --values values-production.yaml
 ```
-!!! note
-    Before `v2.6` of Argo CD, Values files must be in the same git repository as the Helm
-    chart. The files can be in a different location in which case it can be accessed using
-    a relative path relative to the root directory of the Helm chart.
-    As of `v2.6`, values files can be sourced from a separate repository than the Helm chart
-    by taking advantage of [multiple sources for Applications](./multiple_sources.md#helm-value-files-from-external-git-repository).
 
-In the declarative syntax:
+注意之前`v2.6`在 Argo CD 中，值文件必须与 Helm 图表位于同一个 git 仓库中。 文件可以位于不同的位置，在这种情况下，可以使用相对于 Helm 图表根目录的相对路径来访问它。 截至`v2.6`通过利用 Helm chart，可以从与 Helm chart 不同的存储库中获取值文件。[应用程序的多个来源](./multiple_sources.md#helm-value-files-from-external-git-repository)。
+
+在声明式语法中
 
 ```yaml
 source:
@@ -70,9 +65,9 @@ source:
     - values-production.yaml
 ```
 
-## Values
+## 数值
 
-Argo CD supports the equivalent of a values file directly in the Application manifest using the `source.helm.valuesObject` key.
+Argo CD 支持在应用程序清单中直接使用等效的值文件，即使用`source.helm.valuesObject`键。
 
 ```yaml
 source:
@@ -93,7 +88,7 @@ source:
               - mydomain.example.com
 ```
 
-Alternatively, values can be passed in as a string using the `source.helm.values` key.
+或者，可以使用`source.helm.values`键。
 
 ```yaml
 source:
@@ -114,23 +109,21 @@ source:
               - mydomain.example.com
 ```
 
-## Helm Parameters
+## Helm 参数
 
-Helm has the ability to set parameter values, which override any values in
-a `values.yaml`. For example, `service.type` is a common parameter which is exposed in a Helm chart:
+Helm 具有设置参数值的功能，这些参数值可以覆盖在`values.yaml`例如`service.type`是 Helm 图表中常见的参数： Values.
 
 ```bash
 helm template . --set service.type=LoadBalancer
 ```
 
-Similarly, Argo CD can override values in the `values.yaml` parameters using `argocd app set` command,
-in the form of `-p PARAM=VALUE`. For example:
+同样，Argo CD 可以覆盖`values.yaml`参数被引用`argocd app set`命令，格式为`-p PARAM=VALUE`例如
 
 ```bash
 argocd app set helm-guestbook -p service.type=LoadBalancer
 ```
 
-In the declarative syntax:
+在声明式语法中
 
 ```yaml
 source:
@@ -140,21 +133,20 @@ source:
       value: LoadBalancer
 ```
 
-## Helm Value Precedence
-Values injections have the following order of precedence
- `parameters > valuesObject > values > valueFiles > helm repository values.yaml`
- Or rather
+## Helm 值优先级
+
+值注入的优先顺序如下`parameters &gt; valuesObject &gt; values &gt; valueFiles &gt; helm repository values.yaml` 或者说
 
 ```
-    lowest  -> valueFiles
+lowest  -> valueFiles
             -> values
             -> valuesObject
     highest -> parameters
 ```
 
-so values/valuesObject trumps valueFiles, and parameters trump both.
+因此，values/valuesObject 优先于 valueFiles，而参数优先于两者。
 
-Precedence of valueFiles themselves is the order they are defined in
+valueFiles 本身的优先级是它们在以下文件中定义的顺序
 
 ```
 if we have
@@ -166,7 +158,7 @@ valuesFile:
 the last values-file i.e. values-file-1.yaml will trump the first
 ```
 
-When multiple of the same key are found the last one wins i.e 
+当找到多个相同密钥时，最后一个获胜，即
 
 ```
 e.g. if we only have values-file-1.yaml and it contains
@@ -195,20 +187,17 @@ values: |
 the result will be param1=value5
 ```
 
-!!! note "When valuesFiles or values is used"
-    The list of parameters seen in the ui is not what is used for resources, rather it is the values/valuesObject merged with parameters (see [this issue](https://github.com/argoproj/argo-cd/issues/9213) incase it has been resolved)
-    As a workaround using parameters instead of values/valuesObject will provide a better overview of what will be used for resources
+注意 "当使用 valuesFiles 或 values 时"，在ui 中看到的参数列表不是被引用的资源，而是与参数合并的 values/valuesObject（请参阅[本期](https://github.com/argoproj/argo-cd/issues/9213)作为一种变通方法，使用参数而不是值/valuesObject 可以更好地概括资源将被引用的内容。
 
-## Helm Release Name
+## Helm 发布名称
 
-By default, the Helm release name is equal to the Application name to which it belongs. Sometimes, especially on a centralised Argo CD,
-you may want to override that  name, and it is possible with the `release-name` flag on the cli:
+在默认情况下，Helm 的发布名称等于其所属的应用程序名称。 有时，尤其是在集中式 Argo CD 上，您可能希望覆盖该名称，这可以通过使用`release-name`标志： "......"。
 
 ```bash
 argocd app set helm-guestbook --release-name myRelease
 ```
 
- or using the releaseName for yaml:
+或被引用为 yaml 的 releaseName：
 
 ```yaml
 source:
@@ -216,57 +205,31 @@ source:
       releaseName: myRelease
 ```
 
-!!! warning "Important notice on overriding the release name"
-    Please note that overriding the Helm release name might cause problems when the chart you are deploying is using the `app.kubernetes.io/instance` label. Argo CD injects this label with the value of the Application name for tracking purposes. So when overriding the release name, the Application name will stop being equal to the release name. Because Argo CD will overwrite the label with the Application name it might cause some selectors on the resources to stop working. In order to avoid this we can configure Argo CD to use another label for tracking in the [ArgoCD configmap argocd-cm.yaml](../operator-manual/argocd-cm.yaml) - check the lines describing `application.instanceLabelKey`.
+!!! 警告 "关于覆盖发布名称的重要通知" 请注意，覆盖 Helm 发布名称可能会在您部署的图表被引用了`app.kubernetes.io/instance`Argo CD 会将应用程序名称的值注入此标签以进行跟踪。 因此，当覆盖发布名称时，应用程序名称将不再等于发布名称。 由于 Argo CD 会用应用程序名称覆盖标签，因此可能会导致资源上的某些选择器停止工作。 为了避免这种情况，我们可以在[ArgoCD 配置表 argocd-cm.yaml](../operator-manual/argocd-cm.yaml)- 检查描述`application.instanceLabelKey`。
 
-## Helm Hooks
+## Helm 挂钩
 
-Helm hooks are similar to [Argo CD hooks](resource_hooks.md). In Helm, a hook
-is any normal Kubernetes resource annotated with the `helm.sh/hook` annotation.
+舵钩类似于[阿尔戈 CD 钩子](resource_hooks.md)在 Helm 中，钩子是任何正常的 Kubernetes 资源，并用`helm.sh/hook`注释。
 
-Argo CD supports many (most?) Helm hooks by mapping the Helm annotations onto Argo CD's own hook annotations:
+Argo CD 通过将 Helm 注释映射到 Argo CD 自身的钩子注释上，支持许多（大部分） Helm 钩子：
 
-| Helm Annotation                 | Notes                                                                                         |
-| ------------------------------- |-----------------------------------------------------------------------------------------------|
-| `helm.sh/hook: crd-install`     | Supported as equivalent to `argocd.argoproj.io/hook: PreSync`.                                |
-| `helm.sh/hook: pre-delete`      | Not supported. In Helm stable there are 3 cases used to clean up CRDs and 3 to clean-up jobs. |
-| `helm.sh/hook: pre-rollback`    | Not supported. Never used in Helm stable.                                                     |
-| `helm.sh/hook: pre-install`     | Supported as equivalent to `argocd.argoproj.io/hook: PreSync`.                                |
-| `helm.sh/hook: pre-upgrade`     | Supported as equivalent to `argocd.argoproj.io/hook: PreSync`.                                |
-| `helm.sh/hook: post-upgrade`    | Supported as equivalent to `argocd.argoproj.io/hook: PostSync`.                               |
-| `helm.sh/hook: post-install`    | Supported as equivalent to `argocd.argoproj.io/hook: PostSync`.                               |
-| `helm.sh/hook: post-delete`     | Supported as equivalent to `argocd.argoproj.io/hook: PostDelete`.                             |
-| `helm.sh/hook: post-rollback`   | Not supported. Never used in Helm stable.                                                     |
-| `helm.sh/hook: test-success`    | Not supported. No equivalent in Argo CD.                                                      |
-| `helm.sh/hook: test-failure`    | Not supported. No equivalent in Argo CD.                                                      |
-| `helm.sh/hook-delete-policy`    | Supported. See also `argocd.argoproj.io/hook-delete-policy`).                                 |
-| `helm.sh/hook-delete-timeout`   | Not supported. Never used in Helm stable                                                      |
-| `helm.sh/hook-weight`           | Supported as equivalent to `argocd.argoproj.io/sync-wave`.                                    |
-| `helm.sh/resource-policy: keep` | Supported as equivalent to `argocd.argoproj.io/sync-options: Delete=false`.                   |
+| Helm Annotation | Notes | | ------------------------------- |-----------------------------------------------------------------------------------------------| | |`helm.sh/hook: crd-install`| 支持相当于`argocd.argoproj.io/hook: PreSync`. | |`helm.sh/hook: pre-delete`| 不支持。 在 Helm 稳定版中，有 3 种情况被引用来清理 CRD，3 种情况被引用来清理作业。`helm.sh/hook: pre-rollback`| 不支持，从未在 Helm 稳定版中被引用。`helm.sh/hook: pre-install`| 支持相当于`argocd.argoproj.io/hook: PreSync`. | |`helm.sh/hook: pre-upgrade`| 支持相当于`argocd.argoproj.io/hook: PreSync`. | |`helm.sh/hook: post-upgrade`| 支持相当于`argocd.argoproj.io/hook: PostSync`. | |`helm.sh/hook: post-install`| 支持相当于`argocd.argoproj.io/hook: PostSync`. | |`helm.sh/hook: post-delete`| 支持相当于`argocd.argoproj.io/hook: PostDelete`. | |`helm.sh/hook: post-rollback`| 不支持，从未在 Helm 稳定版中被引用。`helm.sh/hook: test-success`| 不支持，Argo CD
 
-Unsupported hooks are ignored. In Argo CD, hooks are created by using `kubectl apply`, rather than `kubectl create`. This means that if the hook is named and already exists, it will not change unless you have annotated it with `before-hook-creation`.
+不支持的钩子会被忽略。 在 Argo CD 中，钩子是通过引用`kubectl apply`而不是`kubectl create`这意味着，如果钩子已被命名并且已经存在，它将不会更改，除非您用`before-hook-creation`。
 
-!!! warning "Helm hooks + ArgoCD hooks"
-    If you define any Argo CD hooks, _all_ Helm hooks will be ignored.   
+!!! 警告 "Helm 钩子 + ArgoCD 钩子" 如果您定义了任何 Argo CD 钩子、全部_舵钩将被忽略。
 
-!!! warning "'install' vs 'upgrade' vs 'sync'"
-    Argo CD cannot know if it is running a first-time "install" or an "upgrade" - every operation is a "sync'. This means that, by default, apps that have `pre-install` and `pre-upgrade` will have those hooks run at the same time.
+!!! 警告"'安装' vs '升级' vs '同步'" Argo CD 无法知道它是在执行首次 "安装 "还是 "升级"--每次操作都是 "同步"。 这意味着，默认情况下，已经安装过 "安装 "或 "升级 "的应用程序将不会再运行。`pre-install`和`pre-upgrade`将同时运行这些钩子。
 
-### Hook Tips
+#### 吊钩技巧
 
-* Make your hook idempotent.
-* Annotate `crd-install` with `hook-weight: "-2"` to make sure it runs to success before any install or upgrade hooks.
-* Annotate  `pre-install` and `post-install` with `hook-weight: "-1"`. This will make sure it runs to success before any upgrade hooks.
-* Annotate `pre-upgrade` and `post-upgrade` with `hook-delete-policy: before-hook-creation` to make sure it runs on every sync.
+* 在`pre-install`和`post-install`中注释`hook-weight: "-1"` 以确保它在任何安装或升级钩子之前成功运行。 在`pre-upgrade`和`post-upgrade`中注释`hook-delete-policy: before-hook-creation`以确保它在每次同步时运行。
 
-Read more about [Argo hooks](resource_hooks.md) and [Helm hooks](https://helm.sh/docs/topics/charts_hooks/).
+了解更多[阿尔戈钩](resource_hooks.md)和[Helm 挂钩](https://helm.sh/docs/topics/charts_hooks/)。
 
-## Random Data
+## 随机数据
 
-Helm templating has the ability to generate random data during chart rendering via the
-`randAlphaNum` function. Many helm charts from the [charts repository](https://github.com/helm/charts)
-make use of this feature. For example, the following is the secret for the
-[redis helm chart](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml):
+helm 模板能够在图表渲染过程中通过`randAlphaNum`功能。[图表库](https://github.com/helm/charts)例如，以下是被引用的 Secret[redis helm chart](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml)：
 
 ```yaml
 data:
@@ -277,32 +240,27 @@ data:
   {{- end }}
 ```
 
-The Argo CD application controller periodically compares Git state against the live state, running
-the `helm template <CHART>` command to generate the helm manifests. Because the random value is
-regenerated every time the comparison is made, any application which makes use of the `randAlphaNum`
-function will always be in an `OutOfSync` state. This can be mitigated by explicitly setting a
-value in the values.yaml or using `argocd app set` command to overide the value such that the value
-is stable between each comparison. For example:
+Argo CD 应用程序控制器会定期比较 Git 状态和实时状态，运行`helm template<CHART>`命令来生成 helm 清单。 由于每次比较时都会重新生成随机值，因此任何被引用了`randAlphaNum`函数将始终在`OutOfSync`这可以通过在 values.yaml 中明确设置一个值或被引用为`argocd app set`命令来覆盖数值，使每次比较之间的数值保持稳定。 例如
 
 ```bash
 argocd app set redis -p password=abc123
 ```
 
-## Build Environment
+## 构建环境
 
-Helm apps have access to the [standard build environment](build-environment.md) via substitution as parameters.
+Helm 应用程序可以访问[标准构建环境](build-environment.md)通过替换作为参数。
 
-E.g. via the CLI:
+例如，通过 CLI：
 
 ```bash
 argocd app create APPNAME \
   --helm-set-string 'app=${ARGOCD_APP_NAME}'
 ```
 
-Or via declarative syntax:
+或者通过声明式语法：
 
 ```yaml
-  spec:
+spec:
     source:
       helm:
         parameters:
@@ -310,10 +268,10 @@ Or via declarative syntax:
           value: $ARGOCD_APP_NAME
 ```
 
-It's also possible to use build environment variables for the Helm values file path:
+也可以使用构建环境变量来设置 Helm 值文件路径： Helm
 
 ```yaml
-  spec:
+spec:
     source:
       helm:
         valueFiles:
@@ -321,17 +279,17 @@ It's also possible to use build environment variables for the Helm values file p
         - myprotocol://somepath/$ARGOCD_APP_NAME/$ARGOCD_APP_REVISION
 ```
 
-## Helm plugins
+## Helm 插件
 
-Argo CD is un-opinionated on what cloud provider you use and what kind of Helm plugins you are using, that's why there are no plugins delivered with the ArgoCD image.
+Argo CD 对您使用的云提供商和 Helm 插件没有任何意见，这也是 ArgoCD 镜像没有被引用插件的原因。
 
-But sometimes you want to use a custom plugin. Perhaps you would like to use Google Cloud Storage or Amazon S3 storage to save the Helm charts, for example: https://github.com/hayorov/helm-gcs where you can use `gs://` protocol for Helm chart repository access.
-There are two ways to install custom plugins; you can modify the ArgoCD container image, or you can use a Kubernetes `initContainer`.
+但有时您想使用自定义插件。 也许您想使用 Google 云存储或 Amazon S3 存储来保存 Helm 图表，例如：https://github.com/hayorov/helm-gcs，在这里您可以使用`gs://`有两种方法可以安装自定义插件；可以修改 ArgoCD 容器镜像，也可以使用 Kubernetes 的`initContainer`。
 
-### Modifying the ArgoCD container image
-One way to use this plugin is to prepare your own ArgoCD image where it is included.
+### 修改 ArgoCD 容器映像
 
-Example `Dockerfile`:
+使用该插件的一种方法是准备自己的 ArgoCD 图像，其中包含该插件。
+
+示例`Dockerfile`：
 
 ```dockerfile
 FROM argoproj/argocd:v1.5.7
@@ -353,15 +311,15 @@ RUN helm plugin install ${GCS_PLUGIN_REPO} --version ${GCS_PLUGIN_VERSION}
 ENV HELM_PLUGINS="/home/argocd/.local/share/helm/plugins/"
 ```
 
-You have to remember about `HELM_PLUGINS` environment property - this is required for plugins to work correctly.
+您必须记住`helm_plugins`环境属性 - 这是插件正常工作所必需的。
 
-After that you have to use your custom image for ArgoCD installation.
+之后，您必须使用自定义镜像来安装 ArgoCD。
 
-### Using `initContainers`
-Another option is to install Helm plugins via Kubernetes `initContainers`.
-Some users find this pattern preferable to maintaining their own version of the ArgoCD container image.
+### 使用 `initContainers
 
-Below is an example of how to add Helm plugins when installing ArgoCD with the [official ArgoCD helm chart](https://github.com/argoproj/argo-helm/tree/master/charts/argo-cd):
+另一种方法是通过 Kubernetes 安装 Helm 插件`initContainers`一些用户发现这种模式比维护他们自己版本的 ArgoCD 容器映像更好。
+
+下面是一个示例，说明如何在安装 ArgoCD 时添加 Helm 插件。[ArgoCD 官方舵图](https://github.com/argoproj/argo-helm/tree/master/charts/argo-cd)：
 
 ```yaml
 repoServer:
@@ -402,17 +360,17 @@ repoServer:
           chmod -R 777 $HELM_DATA_HOME;
 ```
 
-## Helm Version
+## Helm 版本
 
-Argo CD will assume that the Helm chart is v3 (even if the apiVersion field in the chart is Helm v2), unless v2 is explicitly specified within the Argo CD Application (see below).
+Argo CD 将假定 Helm 图表是 v3 版本（即使图表中的 apiVersion 字段是 Helm v2），除非在 Argo CD 应用程序中明确指定了 v2 版本（见下文）。
 
-If needed, it is possible to specifically set the Helm version to template with by setting the `helm-version` flag on the cli (either v2 or v3):
+如果需要，可以通过设置`helm-version`标志（v2 或 v3）：
 
 ```bash
 argocd app set helm-guestbook --helm-version v3
 ```
 
-Or using declarative syntax:
+或被引用声明式语法：
 
 ```yaml
 spec:
@@ -421,19 +379,17 @@ spec:
       version: v3
 ```
 
-## Helm `--pass-credentials`
+## Helm `--pass-credentials` `-pass-credentials
 
-Helm, [starting with v3.6.1](https://github.com/helm/helm/releases/tag/v3.6.1),
-prevents sending repository credentials to download charts that are being served
-from a different domain than the repository.
+Helm、[从 v3.6.1 开始](https://github.com/helm/helm/releases/tag/v3.6.1)该选项可防止发送版本库凭据，以下载从与版本库不同的域提供的图表。
 
-If needed, it is possible to opt into passing credentials for all domains by setting the `helm-pass-credentials` flag on the cli:
+如果需要，可以通过设置`helm-pass-credentials`标志：
 
 ```bash
 argocd app set helm-guestbook --helm-pass-credentials
 ```
 
-Or using declarative syntax:
+或被引用声明式语法：
 
 ```yaml
 spec:
@@ -442,18 +398,17 @@ spec:
       passCredentials: true
 ```
 
-## Helm `--skip-crds`
+## helm `--skip-crds`
 
-Helm installs custom resource definitions in the `crds` folder by default if they are not existing. 
-See the [CRD best practices](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/) for details.
+Helm 将自定义资源定义安装在`crds`如果它们不存在，默认情况下会将它们放在文件夹中。 请参见[CRD 最佳做法](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/)了解详情。
 
-If needed, it is possible to skip the CRD installation step with the `helm-skip-crds` flag on the cli:
+如果需要，可以使用`helm-skip-crds`标志：
 
 ```bash
 argocd app set helm-guestbook --helm-skip-crds
 ```
 
-Or using declarative syntax:
+或被引用声明式语法：
 
 ```yaml
 spec:

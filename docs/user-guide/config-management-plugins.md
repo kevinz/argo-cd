@@ -1,3 +1,6 @@
-# Config Management Plugins
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-This page has been moved to the [operator manual](../operator-manual/config-management-plugins.md).
+# 配置管理插件
+
+本页已移至[操作手册](../operator-manual/config-management-plugins.md)。

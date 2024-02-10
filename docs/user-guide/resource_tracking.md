@@ -1,10 +1,13 @@
-# Resource Tracking
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-## Tracking Kubernetes resources by label
+# 资源跟踪
 
-Argo CD identifies resources it manages by setting the application instance label to the name of the managing Application on all resources that are managed (i.e. reconciled from Git). The default label used is the well-known label `app.kubernetes.io/instance`.
+## 按标签跟踪 Kubernetes 资源
 
-Example:
+Argo CD 通过在所有被管理（即从 Git 对账）的资源上将应用程序实例标签设置为管理应用程序的名称，来识别其管理的资源。 使用的默认标签是众所周知的标签`app.kubernetes.io/instance`。
+
+例如
 
 ```yaml
 apiVersion: apps/v1
@@ -16,17 +19,15 @@ metadata:
     app.kubernetes.io/instance: some-application
 ```
 
-This approach works ok in most cases, as the name of the label is standardized and can be understood by other tools in the Kubernetes ecosystem.
+这种方法在大多数情况下都很有效，因为标签的名称是标准化的，Kubernetes 生态系统中的其他工具也能理解。
 
-There are however several limitations:
+但也存在一些局限性：
 
-* Labels are truncated to 63 characters. Depending on the size of the label you might want to store a longer name for your application
-* Other external tools might write/append to this label and create conflicts with Argo CD. For example several Helm charts and operators also use this label for generated manifests confusing Argo CD about the owner of the application
-* You might want to deploy more than one Argo CD instance on the same cluster (with cluster wide privileges) and have an easy way to identify which resource is managed by which instance of Argo CD
+* 标签会被截断为 63 个字符。 根据标签的大小，您可能希望为应用程序存储更长的名称 * 其他外部工具可能会写入/附加此标签，从而与 Argo CD 产生冲突。 例如，一些 helm chart和操作员也会使用此标签生成清单，从而使 Argo CD 对应用程序的所有者产生混淆 * 您可能希望在同一集群上部署多个 Argo CD 实例（具有集群权限），并有一种简单的方法来识别哪个资源由哪个 Argo CD 实例管理。
 
-### Use custom label
+### 使用自定义标签
 
-Instead of using the default `app.kubernetes.io/instance` label for resource tracking, Argo CD can be configured to use a custom label. Below example sets the resource tracking label to `argocd.argoproj.io/instance`.
+而不是被引用默认的`app.kubernetes.io/instance`下面的示例将资源跟踪标签设置为`argocd.argoproj.io/instance`。
 
 ```yaml
 apiVersion: v1
@@ -40,17 +41,15 @@ data:
   application.instanceLabelKey: argocd.argoproj.io/instance
 ```
 
-## Additional tracking methods via an annotation
+## 通过注释的其他跟踪方法
 
->v2.2
+&gt; v2.2
 
-To offer more flexible options for tracking resources and solve some of the issues outlined in the previous section Argo CD can be instructed to use the following methods for tracking:
+为了提供更灵活的资源跟踪选项，并解决上一节概述的一些问题，可以指示 Argo CD 使用以下方法进行跟踪：
 
-1. `label` (default) - Argo CD uses the `app.kubernetes.io/instance` label
-1. `annotation+label` - Argo CD uses the `app.kubernetes.io/instance` label but only for informational purposes. The label is not used for tracking purposes, and the value is still truncated if longer than 63 characters. The annotation `argocd.argoproj.io/tracking-id` is used instead to track application resources. Use this for resources that you manage with Argo CD, but still need compatibility with other tools that require the instance label.
-1. `annotation` - Argo CD uses the `argocd.argoproj.io/tracking-id` annotation to track application resources. Use this when you don't need to maintain both the label and the annotation.
+1.label`（默认）- Argo CD 被引用`app.kubernetes.io/instance`标签 2.`annotation+label` - Argo CD 使用`app.kubernetes.io/instance`标签，但仅供参考。该标签不被引用用于跟踪目的，如果值超过 63 个字符，仍会被截断。Annotations `argocd.argoproj.io/tracking-id` 被引用来跟踪应用程序资源。对于用 Argo CD 管理的资源，但仍需要与其他需要实例标签的工具兼容时，请使用此方法。 3. `annotation` - Argo CD 使用 `argocd.argoproj.io/tracking-id` 注解来跟踪应用程序资源。当不需要同时维护标签和 Annotations 时，请使用此方法。
 
-Here is an example of using the annotation method for tracking resources:
+下面是一个使用注释法跟踪资源的示例： 1.
 
 ```yaml
 apiVersion: apps/v1
@@ -62,12 +61,11 @@ metadata:
     argocd.argoproj.io/tracking-id: my-app:apps/Deployment:default/nginx-deployment
 ```
 
-The advantages of using the tracking id annotation is that there are no clashes any
-more with other Kubernetes tools and Argo CD is never confused about the owner of a resource. The `annotation+label` can also be used if you want other tools to understand resources managed by Argo CD.
+使用跟踪 id 注释的好处是不会再与其他 Kubernetes 工具发生冲突，而且 Argo CD 也不会混淆资源的所有者。`annotation+label`如果想让其他工具了解 Argo CD 管理的资源，也可以引用该工具。
 
-## Choosing a tracking method
+## 选择跟踪方法
 
-To actually select your preferred tracking method edit the `resourceTrackingMethod` value contained inside the `argocd-cm` configmap.
+要实际选择首选跟踪方法，请编辑`resourceTrackingMethod`内所包含的`argocd-cm`configmap.
 
 ```yaml
 apiVersion: v1
@@ -80,8 +78,9 @@ metadata:
 data:
   application.resourceTrackingMethod: annotation
 ```
-Possible values are `label`, `annotation+label` and `annotation` as described in the previous section.
 
-Note that once you change the value you need to sync your applications again (or wait for the sync mechanism to kick-in) in order to apply your changes.
+可能的值是`label`,`Annotations+label`和`Annotations`如上一节所述。
 
-You can revert to a previous choice, by changing again the configmap.
+请注意，一旦更改了值，您需要再次同步应用程序（或等待同步机制启动），以便应用您的更改。
+
+您可以重新更改配置图，恢复到之前的选择。

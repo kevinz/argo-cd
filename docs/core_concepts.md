@@ -1,17 +1,17 @@
-# Core Concepts
+<!-- TRANSLATED by md-translate -->
+# 核心概念
 
-Let's assume you're familiar with core Git, Docker, Kubernetes, Continuous Delivery, and GitOps concepts. 
-Below are some of the concepts that are specific to Argo CD.
+让我们假设你熟悉核心的 Git、Docker、Kubernetes、持续交付和 GitOps 概念。 下面是 Argo CD 特有的一些概念。
 
-* **Application** A group of Kubernetes resources as defined by a manifest. This is a Custom Resource Definition (CRD).
-* **Application source type** Which **Tool** is used to build the application.
-* **Target state** The desired state of an application, as represented by files in a Git repository.
-* **Live state** The live state of that application. What pods etc are deployed.
-* **Sync status** Whether or not the live state matches the target state. Is the deployed application the same as Git says it should be?
-* **Sync** The process of making an application move to its target state. E.g. by applying changes to a Kubernetes cluster.
-* **Sync operation status** Whether or not a sync succeeded.
-* **Refresh** Compare the latest code in Git with the live state. Figure out what is different.
-* **Health** The health of the application, is it running correctly? Can it serve requests?
-* **Tool** A tool to create manifests from a directory of files. E.g. Kustomize. See **Application Source Type**.
-* **Configuration management tool** See **Tool**.
-* **Configuration management plugin** A custom tool.
+* **应用** 由配置清单定义的一组 Kubernetes 资源。这是自定义资源定义（CRD）。
+* **应用程序源类型*** 被引用用于构建应用程序的**工具。
+* **目标状态** 应用程序的理想状态，由 Git 仓库中的文件表示。
+* **运行状态*** 应用程序的运行状态。部署了哪些 pod 等。
+* **同步状态*** 实时状态是否与目标状态一致。部署的应用程序是否与 Git 所说的一致？
+* **同步** 应用程序向目标状态移动的过程。例如，将更改应用到 Kubernetes 集群。
+* **同步操作状态*** 同步是否成功。
+* **刷新*** 将 Git 中的最新代码与实时状态进行比较。找出不同之处。
+* **健康状况*** 应用程序是否正常运行？能否满足请求？
+* **工具*** 从文件目录创建配置清单的工具。例如 kustomize。参见 **应用程序源类型**。
+* **配置管理工具** 参见**工具**。
+* **配置管理插件** 一种自定义工具。

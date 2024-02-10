@@ -1,32 +1,33 @@
+<!-- TRANSLATED by md-translate -->
 # Rocket.Chat
 
-## Parameters
+## 参数
 
-The Rocket.Chat notification service configuration includes following settings:
+Rocket.Chat 通知服务配置包括以下设置：
 
-* `email` - the Rocker.Chat user's email
-* `password` - the Rocker.Chat user's password
-* `alias` - optional alias that should be used to post message
-* `icon` - optional message icon
-* `avatar` - optional message avatar
-* `serverUrl` - optional Rocket.Chat server url
+* `email` - Rocker.Chat 用户的电子邮件地址
+* `password` - Rocker.Chat 用户的密码
+* `alias` - 用于发布信息的可选别名
+* icon` - 可选的信息图标
+* `avatar` - 可选的消息头像
+* `serverUrl` - 可选的 Rocket.Chat 服务器网址
 
-## Configuration
+## 配置
 
-1. Login to your RocketChat instance
-2. Go to user management
+1.登录您的 RocketChat 实例
+2.进入用户管理
 
 ![2](https://user-images.githubusercontent.com/15252187/115824993-7ccad900-a411-11eb-89de-6a0c4438ffdf.png)
 
-3. Add new user with `bot` role. Also note that `Require password change` checkbox mus be not checked
+3.添加具有 `bot` 角色的新用户。还请注意，"要求更改密码 "复选框必须不勾选
 
 ![3](https://user-images.githubusercontent.com/15252187/115825174-b4d21c00-a411-11eb-8f20-cda48cea9fad.png)
 
-4. Copy username and password that you was created for bot user
-5. Create a public or private channel, or a team, for this example `my_channel`
-6. Add your bot to this channel **otherwise it won't work**
-7. Store email and password in argocd_notifications-secret Secret
- 
+4.复制为僵尸用户创建的用户名和密码
+5.创建一个公共或私人频道，或一个团队，例如`my_channel`。
+6.将机器人添加到该频道 **否则将无法运行**
+7.在 argocd_notifications-secret Secret 中存储电子邮件和密码
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -37,7 +38,7 @@ stringData:
   rocketchat-password: <password>
 ```
 
-8. Finally, use these credentials to configure the RocketChat integration in the `argocd-configmap` config map: 
+8.最后，在 `argocd-configmap` 配置映射中使用这些凭据配置 RocketChat 集成：
 
 ```yaml
 apiVersion: v1
@@ -50,9 +51,9 @@ data:
     password: $rocketchat-password
 ```
 
-9. Create a subscription for your Rocket.Chat integration:
+9.为 Rocket.Chat 集成创建订阅：
 
-*Note: channel, team or user must be prefixed with # or @ elsewhere we will be interpretative destination as a room ID*
+注意：频道、团队或用户必须以 # 或 @ 为前缀，否则我们将把目的地解释为房间 ID_。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -62,15 +63,15 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.rocketchat: #my_channel
 ```
 
-## Templates
+## 模板
 
-[Notification templates](../templates.md) can be customized with RocketChat [attachments](https://developer.rocket.chat/api/rest-api/methods/chat/postmessage#attachments-detail).
+[通知模板](.../templates.md)可与 RocketChat [attachments](https://developer.rocket.chat/api/rest-api/methods/chat/postmessage#attachments-detail) 一起定制。
 
-*Note: Attachments structure in Rocketchat is same with Slack attachments [feature](https://api.slack.com/messaging/composing/layouts).*
+_注：Rocketchat 中的附件结构与 Slack 附件 [feature](https://api.slack.com/messaging/composing/layouts) 相同。_
 
 <!-- TODO: @sergeyshevch Need to add screenshot with RocketChat attachments -->
 
-The message attachments can be specified in `attachments` string fields under `rocketchat` field:
+邮件附件可在 `rocketchat` 字段下的 `attachments` 字符串字段中指定：
 
 ```yaml
 template.app-sync-status: |

@@ -1,10 +1,11 @@
-# Orphaned Resources Monitoring
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Orphaned Kubernetes resource is a top-level namespaced resource which does not belong to any Argo CD Application. The Orphaned Resources Monitoring feature allows detecting
-orphaned resources, inspect/remove resources using Argo CD UI and generate a warning.
+# 孤儿资源监测
 
-The Orphaned Resources monitoring is enabled in [Project](projects.md) settings, 
-and the below is an example of enabling the feature using the AppProject custom resource.
+Orphaned Kubernetes 资源是不属于任何 Argo CD 应用程序的顶级 namespaced 资源。 Orphaned 资源监控功能允许检测孤儿资源，使用 Argo CD UI 检查/删除资源并生成警告。
+
+中启用了 "孤立资源 "监控。[项目](projects.md)设置，下面是使用 AppProject 自定义资源启用该功能的示例。
 
 ```yaml
 kind: AppProject
@@ -17,12 +18,11 @@ spec:
 ...
 ```
 
-Once the feature is enabled, each project application which has any orphaned resources in its target namespace
-will get a warning. The orphaned resources can be located using the application details page:
+启用该功能后，目标名称空间中存在孤儿资源的每个项目应用程序都会收到警告。
 
-![orphaned resources](../assets/orphaned-resources.png)
+![无主资源](../assets/orphaned-resources.png)
 
-When enabling the feature, you might want to consider disabling warning at first.
+启用该功能时，您可能需要考虑先禁用警告功能。
 
 ```yaml
 spec:
@@ -30,18 +30,15 @@ spec:
     warn: false # Disable warning
 ```
 
-While warning disabled, application users can still view orphaned resources in the UI.
+警告禁用后，应用程序用户仍可在用户界面中查看孤儿资源。
 
-## Exceptions
+## 例外情况
 
-Not every resource in the Kubernetes cluster is controlled by the end user. Following resources are never considered as orphaned:
+并非 Kubernetes 集群中的每个资源都由最终用户控制。 以下资源永远不会被视为孤儿：
 
-* Namespaced resources denied in the project. Usually, such resources are managed by cluster administrators and not supposed to be modified by namespace user.
-* `ServiceAccount` with name `default` ( and corresponding auto-generated `ServiceAccountToken` ).
-* `Service` with name `kubernetes` in the `default` namespace.
-* `ConfigMap` with name `kube-root-ca.crt` in all namespaces.
+* 项目中拒绝使用的命名空间资源。 通常，此类资源由集群管理员管理，命名空间用户不得修改。 * 名称为 "default "的 "ServiceAccount"（以及相应的自动生成的 "ServiceAccountToken"）。 * 在 "default "命名空间中名称为 "kubernetes "的 "Service"。 * 在所有命名空间中名称为 "kube-root-ca.crt "的 "ConfigMap"。
 
-Also, you can configure to ignore resources by providing a list of resource Group, Kind and Name.
+此外，您还可以通过提供资源组、种类和名称列表来配置忽略资源。
 
 ```yaml
 spec:

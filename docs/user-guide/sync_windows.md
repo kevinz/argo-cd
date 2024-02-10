@@ -1,25 +1,19 @@
-# Sync Windows
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Sync windows are configurable windows of time where syncs will either be blocked or allowed. These are defined
-by a kind, which can be either `allow` or `deny`, a `schedule` in cron format and a duration along with one or 
-more of either `applications`, `namespaces` and `clusters`. Wildcards are supported. These windows affect the running 
-of both manual and automated syncs but allow an override for manual syncs which is useful if you are only interested
-in preventing automated syncs or if you need to temporarily override a window to perform a sync.
+# 同步窗口
 
-The windows work in the following way. If there are no windows matching an application then all syncs are allowed. If there
-are any `allow` windows matching an application then syncs will only be allowed when there is an active `allow` window. If there
-are any `deny` windows matching an application then all syncs will be denied when the `deny` windows are active. If there is an
-active matching `allow` and an active matching `deny` then syncs will be denied as `deny` windows override `allow` windows. The
-UI and the CLI will both display the state of the sync windows. The UI has a panel which will display different colours depending
-on the state. The colours are as follows. `Red: sync denied`, `Orange: manual allowed` and `Green: sync allowed`.
+这些窗口会影响手动和自动同步的运行，但允许覆盖手动同步，如果您只对防止自动同步感兴趣，或者需要临时覆盖一个窗口来执行同步，这就非常有用了。
 
-To display the sync state using the CLI:
+窗口的工作方式如下： 如果没有与应用程序匹配的窗口，则允许所有同步。 如果有任何窗口，则允许所有同步。`allow`窗口与应用程序相匹配，那么只有当有一个活动的`allow`窗口。`deny`窗口与应用程序相匹配时，所有同步将被拒绝。`deny`窗口处于活动状态。`allow`和主动匹配`deny`则会拒绝同步，因为`deny`窗口覆盖`allow`用户界面和 CLI 都会显示同步窗口的状态。 用户界面有一个面板，会根据状态显示不同的颜色。 颜色如下。`Red: sync denied`,`Orange:manual allowed`和`Green: sync allowed`。
+
+要使用 CLI 显示同步状态：
 
 ```bash
 argocd app get APP
 ```
 
-Which will return the sync state and any matching windows.
+将返回同步状态和任何匹配窗口。
 
 ```
 Name:               guestbook
@@ -37,7 +31,7 @@ Sync Status:        Synced to  (5c2d89b)
 Health Status:      Healthy
 ```
 
-Windows can be created using the CLI:
+可使用 CLI 创建窗口：
 
 ```bash
 argocd proj windows add PROJECT \
@@ -47,8 +41,8 @@ argocd proj windows add PROJECT \
     --applications "*"
 ```
 
-Alternatively, they can be created directly in the `AppProject` manifest:
- 
+或者，也可以直接在`AppProject`体现：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -76,36 +70,33 @@ spec:
     - cluster1
 ```
 
-In order to perform a sync when syncs are being prevented by a window, you can configure the window to allow manual syncs
-using the CLI, UI or directly in the `AppProject` manifest:
+为了在窗口阻止同步时执行同步，可以使用 CLI、用户界面或直接在窗口中配置窗口允许手动同步。
 
 ```bash
 argocd proj windows enable-manual-sync PROJECT ID
 ```
 
-To disable
+禁用
 
 ```bash
 argocd proj windows disable-manual-sync PROJECT ID
 ```
 
-Windows can be listed using the CLI or viewed in the UI:
+可以使用 cli 列出窗口，也可以在用户界面中查看：
 
 ```bash
 argocd proj windows list PROJECT
 ```
 
 ```bash
-ID  STATUS    KIND   SCHEDULE    DURATION  APPLICATIONS  NAMESPACES  CLUSTERS  MANUALSYNC
-0   Active    allow  * * * * *   1h        -             -           prod1     Disabled
-1   Inactive  deny   * * * * 1   3h        -             default     -         Disabled
-2   Inactive  allow  1 2 * * *   1h        prod-*        -           -         Enabled
-3   Active    deny   * * * * *   1h        -             default     -         Disabled
+ID STATUS KIND SCHEDULE DURATION APPLICATIONS NAMESPACES CLUSTERS MANUALSYNC
+0 Active allow  * * * * *   1h        -             -           prod1 Disabled
+1 Inactive deny   * * * * 1 3h        -             default     -         Disabled
+2 Inactive allow 1 2 * * *   1h prod-*        -           -         Enabled
+3 Active deny   * * * * *   1h        -             default     -         Disabled
 ```
 
-All fields of a window can be updated using either the CLI or UI. The `applications`, `namespaces` and `clusters` fields
-require the update to contain all of the required values. For example if updating the `namespaces` field and it already
-contains default and kube-system then the new value would have to include those in the list. 
+窗口的所有字段都可以通过 CLI 或 UI 进行更新。`applications`,`namespaces`和`clusters`字段要求更新包含所有必填值。 例如，如果更新`namespaces`字段，且其中已包含 default 和 kube-system，那么新值就必须包括这些字段。
 
 ```bash
 argocd proj windows update PROJECT ID --namespaces default,kube-system,prod1

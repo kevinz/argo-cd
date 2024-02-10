@@ -1,19 +1,17 @@
+<!-- TRANSLATED by md-translate -->
 # Mattermost
 
-## Parameters
+## 参数
 
-* `apiURL` - the server url, e.g. https://mattermost.example.com
-* `token` - the bot token
-* `insecureSkipVerify` - optional bool, true or false
+* `apiURL` - 服务器网址，例如 https://mattermost.example.com
+* token` - 机器人令牌
+* `insecureSkipVerify` - 可选的 bool，true 或 false
 
-## Configuration
+## 配置
 
-1. Create a bot account and copy token after creating it
-![1](https://user-images.githubusercontent.com/18019529/111499520-62ed0500-8786-11eb-88b0-d0aade61fed4.png)
-2. Invite team
-![2](https://user-images.githubusercontent.com/18019529/111500197-1229dc00-8787-11eb-98e5-587ee36c94a9.png)
-3. Store token in `argocd-notifications-secret` Secret and configure Mattermost integration
-in `argocd-notifications-cm` ConfigMap
+1.创建机器人账户，并在创建后复制令牌
+
+![1](https://user-images.githubusercontent.com/18019529/111499520-62ed0500-8786-11eb-88b0-d0aade61fed4.png) 2. 邀请团队 ![2](https://user-images.githubusercontent.com/18019529/111500197-1229dc00-8787-11eb-98e5-587ee36c94a9.png) 3. 在 `argocd-notifications-secret` Secret 中存储令牌，并在 `argocd-notifications-cm` ConfigMap 中配置 Mattermost 集成
 
 ```yaml
 apiVersion: v1
@@ -35,10 +33,11 @@ stringData:
   mattermost-token: token
 ```
 
-4. Copy channel id
+4.复制频道 ID
+
 ![4](https://user-images.githubusercontent.com/18019529/111501289-333efc80-8788-11eb-9731-8353170cd73a.png)
 
-5. Create subscription for your Mattermost integration
+5.为您的 Mattermost 整合创建订阅
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -48,12 +47,11 @@ metadata:
     notifications.argoproj.io/subscribe.<trigger-name>.mattermost: <channel-id>
 ```
 
-## Templates
+## 模板
 
 ![](https://user-images.githubusercontent.com/18019529/111502636-5fa74880-8789-11eb-97c5-5eac22c00a37.png)
 
-You can reuse the template of slack.  
-Mattermost is compatible with attachments of Slack. See [Mattermost Integration Guide](https://docs.mattermost.com/developer/message-attachments.html).
+您可以重复使用 Slack 的模板。 Mattermost 与 Slack 的附件兼容。 参见 [Mattermost 集成指南](https://docs.mattermost.com/developer/message-attachments.html)。
 
 ```yaml
 template.app-deployed: |

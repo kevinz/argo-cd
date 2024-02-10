@@ -1,42 +1,39 @@
-# FAQ
+<!-- TRANSLATED by md-translate -->
+# 常见问题
 
-## I've deleted/corrupted my repo and can't delete my app.
+## 我删除/破坏了我的软件源，无法删除我的应用程序。
 
-Argo CD can't delete an app if it cannot generate manifests. You need to either:
+Argo CD 如果无法生成配置清单，就无法删除应用程序。 你也需要这样做：
 
-1. Reinstate/fix your repo.
-1. Delete the app using `--cascade=false` and then manually deleting the resources.
+1.恢复/修复您的 repo。
+2.使用 `--cascade=false` 删除应用程序，然后手动删除资源。
 
-## Why is my application still `OutOfSync` immediately after a successful Sync?
+## 为什么我的应用程序在成功同步后仍会立即`OutOfSync`？
 
-See [Diffing](user-guide/diffing.md) documentation for reasons resources can be OutOfSync, and ways to configure Argo CD
-to ignore fields when differences are expected.
+请参阅 [Diffing](user-guide/diffing.md)文档，了解资源可能出现不同步（OutOfSync）的原因，以及配置 Argo CD 以在预计出现差异时忽略字段的方法。
 
-## Why is my application stuck in `Progressing` state?
+## 为什么我的应用程序停留在 `Progressing` 状态？
 
-Argo CD provides health for several standard Kubernetes types. The `Ingress`, `StatefulSet` and `SealedSecret` types have known issues
-which might cause health check to return `Progressing` state instead of `Healthy`.
+Argo CD 为几种标准的 Kubernetes 类型提供了健康检查，但 `Ingress`、`StatefulSet` 和 `SealedSecret` 类型存在已知问题，可能导致健康检查返回 `Progressing` 状态，而不是 `Healthy` 状态。
 
-* `Ingress` is considered healthy if `status.loadBalancer.ingress` list is non-empty, with at least one value
-  for `hostname` or `IP`. Some ingress controllers
-  ([contour](https://github.com/heptio/contour/issues/403)
-  , [traefik](https://github.com/argoproj/argo-cd/issues/968#issuecomment-451082913)) don't update
-  `status.loadBalancer.ingress` field which causes `Ingress` to stuck in `Progressing` state forever.
+* 如果`status.loadBalancer.ingress`列表非空，且`hostname`或`IP`至少有一个值，则认为`Ingress`是健康的。
+主机名 "或 "IP"。某些 ingress 控制器
+([contour](https://github.com/heptio/contour/issues/403)
+, [traefik](https://github.com/argoproj/argo-cd/issues/968#issuecomment-451082913)) 不更新
+status.loadBalancer.ingress`字段，这会导致 `Ingress` 永远停留在 `Progressing` 状态。
+* 如果`status.updatedReplicas`字段的值与`spec.replicas`字段匹配，则认为`StatefulSet`是健康的。由于
+Kubernetes bug
+[kubernetes/kubernetes#68573](https://github.com/kubernetes/kubernetes/issues/68573) `status.updatedReplicas` 没有被填充。
+未填充。因此，除非您运行的 Kubernetes 版本包含
+修复 [kubernetes/kubernetes#67570](https://github.com/kubernetes/kubernetes/pull/67570) 的 Kubernetes 版本。
+状态。
+* 您的 `StatefulSet` 或 `DaemonSet` 正在使用 `OnDelete` 而不是 `RollingUpdate` 策略。
+请参阅 [#1881](https://github.com/argoproj/argo-cd/issues/1881)。
+* 关于 `SealedSecret`, 请参阅 [为什么 `SealedSecret` 类型的资源停留在 `Progressing` 状态？](#sealed-secret-stuck-progressing)
 
-* `StatefulSet` is considered healthy if value of `status.updatedReplicas` field matches to `spec.replicas` field. Due
-  to Kubernetes bug
-  [kubernetes/kubernetes#68573](https://github.com/kubernetes/kubernetes/issues/68573) the `status.updatedReplicas` is
-  not populated. So unless you run Kubernetes version which include the
-  fix [kubernetes/kubernetes#67570](https://github.com/kubernetes/kubernetes/pull/67570) `StatefulSet` might stay
-  in `Progressing` state.
-* Your `StatefulSet` or `DaemonSet` is using `OnDelete` instead of `RollingUpdate` strategy.
-  See [#1881](https://github.com/argoproj/argo-cd/issues/1881).
-* For `SealedSecret`, see [Why are resources of type `SealedSecret` stuck in the `Progressing` state?](#sealed-secret-stuck-progressing)
+作为变通办法，Argo CD 允许提供 [health check]（operator-manual/health.md）自定义功能，以覆盖默认行为。
 
-As workaround Argo CD allows providing [health check](operator-manual/health.md) customization which overrides default
-behavior.
-
-If you are using Traefik for your Ingress, you can update the Traefik config to publish the loadBalancer IP using [publishedservice](https://doc.traefik.io/traefik/providers/kubernetes-ingress/#publishedservice), which will resolve this issue.
+如果您的 ingress 被引用了 Traefik，您可以更新 Traefik 配置，使用 [publishservice](https://doc.traefik.io/traefik/providers/kubernetes-ingress/#publishedservice) 发布 loadBalancer IP，这样就能解决这个问题。
 
 ```yaml
 providers:
@@ -45,20 +42,19 @@ providers:
       enabled: true
 ```
 
-## I forgot the admin password, how do I reset it?
+## 我忘记了管理员密码，如何重置？
 
-For Argo CD v1.8 and earlier, the initial password is set to the name of the server pod, as
-per [the getting started guide](getting_started.md). For Argo CD v1.9 and later, the initial password is available from
-a secret named `argocd-initial-admin-secret`.
+对于 Argo CD v1.8 及更早版本，初始密码按照[入门指南](getting_started.md)设置为服务器 pod 的名称。 对于 Argo CD v1.9 及更高版本，初始密码可从名为 "argocd-initial-admin-secret "的秘密中获取。
 
-To change the password, edit the `argocd-secret` secret and update the `admin.password` field with a new bcrypt hash.
+要更改密码，请编辑 `argocd-secret` 秘密，并用新的 bcrypt 哈希值更新 `admin.password` 字段。
 
-!!! note "Generating a bcrypt hash"
-    Use the following command to generate a bcrypt hash for `admin.password`
+注意 "生成 bcrypt 哈希值" 使用以下命令为 `admin.password` 生成 bcrypt 哈希值
 
-        argocd account bcrypt --password <YOUR-PASSWORD-HERE>
+```
+argocd account bcrypt --password <YOUR-PASSWORD-HERE>
+```
 
-To apply the new password hash, use the following command (replacing the hash with your own):
+要引用新密码哈希值，请使用以下命令（用自己的哈希值替换）：
 
 ```bash
 # bcrypt(password)=$2a$10$rRyBsGSHK6.uc8fntPwVIuLVHgsAhAX7TcdrqW/RADU0uh7CaChLa
@@ -69,23 +65,15 @@ kubectl -n argocd patch secret argocd-secret \
   }}'
 ```
 
-Another option is to delete both the `admin.password` and `admin.passwordMtime` keys and restart argocd-server. This
-will generate a new password as per [the getting started guide](getting_started.md), so either to the name of the pod (
-Argo CD 1.8 and earlier)
-or a randomly generated password stored in a secret (Argo CD 1.9 and later).
+另一种方法是删除 `admin.password` 和 `admin.passwordMtime` 密钥，然后重启 argocd-server。 这将根据[入门指南](getting_started.md) 生成一个新密码，可以是 pod 的名称（Argo CD 1.8 及更早版本），也可以是存储在某个存储密钥中的随机生成密码（Argo CD 1.9 及更高版本）。
 
-## How to disable admin user?
+## 如何禁用管理员用户？
 
-Add `admin.enabled: "false"` to the `argocd-cm` ConfigMap (
-see [user management](./operator-manual/user-management/index.md)).
+在 `argocd-cm` ConfigMap 中添加 `admin.enabled: "false"` （请参阅 [user management](./operator-manual/user-management/index.md) ）。
 
-## Argo CD cannot deploy Helm Chart based applications without internet access, how can I solve it?
+## Argo CD 在无法上网的情况下无法部署基于 helm chart 的应用程序，如何解决？
 
-Argo CD might fail to generate Helm chart manifests if the chart has dependencies located in external repositories. To
-solve the problem you need to make sure that `requirements.yaml`
-uses only internally available Helm repositories. Even if the chart uses only dependencies from internal repos Helm
-might decide to refresh `stable` repo. As workaround override
-`stable` repo URL in `argocd-cm` config map:
+如果图表依赖于外部版本库，Argo CD 可能无法生成 Helm 图表清单。 要解决这个问题，您需要确保 `requirements.yaml` 只使用内部可用的 Helm 版本库。 即使图表只使用内部版本库的依赖，Helm 也可能决定刷新 `stable` 版本库。 作为解决方法，在 `argocd-cm` 配置映射中覆盖 `stable` 版本库 URL：
 
 ```yaml
 data:
@@ -95,27 +83,19 @@ data:
       name: stable
 ```
 
-## After deploying my Helm application with Argo CD I cannot see it with `helm ls` and other Helm commands
+## 在使用 Argo CD 部署 Helm 应用程序后，我无法使用 `helm ls` 和其他 Helm 命令看到它。
 
-When deploying a Helm application Argo CD is using Helm
-only as a template mechanism. It runs `helm template` and
-then deploys the resulting manifests on the cluster instead of doing `helm install`. This means that you cannot use any Helm command
-to view/verify the application. It is fully managed by Argo CD.
-Note that Argo CD supports natively some capabilities that you might miss in Helm (such as the history and rollback commands).
+在部署 Helm 应用程序时，Argo CD 仅将 Helm 用作模板机制。 它运行 "helm template"，然后将生成的配置清单部署到集群上，而不是执行 "helm install"。 这意味着您无法使用任何 Helm 命令来查看/验证应用程序。 它完全由 Argo CD 管理。 请注意，Argo CD 原生支持 Helm 可能会遗漏的一些功能（如历史记录和回滚命令）。
 
-This decision was made so that Argo CD is neutral
-to all manifest generators.
+做出这一决定是为了使 Argo CD 对所有配置清单生成器保持中立。
 
+## 我配置了 [集群秘密](./operator-manual/declarative-setup.md#clusters)，但它没有显示在 CLI/UI 中，我该如何修复？
 
-## I've configured [cluster secret](./operator-manual/declarative-setup.md#clusters) but it does not show up in CLI/UI, how do I fix it?
+检查集群秘密是否有 "argocd.argoproj.io/secret-type: cluster "标签。 如果秘密有标签，但集群仍不可见，则确定可能是权限问题。 尝试使用 "admin "用户列出集群（例如，"argocd login --username admin &amp;&amp; argocd cluster list"）。
 
-Check if cluster secret has `argocd.argoproj.io/secret-type: cluster` label. If secret has the label but the cluster is
-still not visible then make sure it might be a permission issue. Try to list clusters using `admin` user (
-e.g. `argocd login --username admin && argocd cluster list`).
+## Argo CD 无法连接到我的集群，如何排除故障？
 
-## Argo CD is unable to connect to my cluster, how do I troubleshoot it?
-
-Use the following steps to reconstruct configured cluster config and connect to your cluster manually using kubectl:
+使用以下步骤重构已配置的集群配置，并使用 kubectl 手动连接到集群：
 
 ```bash
 kubectl exec -it <argocd-pod-name> bash # ssh into any argocd server pod
@@ -123,109 +103,87 @@ argocd admin cluster kubeconfig https://<cluster-url> /tmp/config --namespace ar
 KUBECONFIG=/tmp/config kubectl get pods # test connection manually
 ```
 
-Now you can manually verify that cluster is accessible from the Argo CD pod.
+现在，您可以手动验证集群是否可从 Argo CD pod 访问。
 
-## How Can I Terminate A Sync?
+## 如何终止同步？
 
-To terminate the sync, click on the "synchronisation" then "terminate":
+要终止同步，请单击 "同步"，然后单击 "终止"：
 
-![Synchronization](assets/synchronization-button.png) ![Terminate](assets/terminate-button.png)
+同步](assets/synchronization-button.png) 终止](assets/terminate-button.png)
 
-## Why Is My App `Out Of Sync` Even After Syncing?
+## 为何我的应用程序在同步后仍会 "不同步"？
 
-In some cases, the tool you use may conflict with Argo CD by adding the `app.kubernetes.io/instance` label. E.g. using
-Kustomize common labels feature.
+在某些情况下，通过添加 `app.kubernetes.io/instance` 标签，您使用的工具可能会与 Argo CD 冲突。 例如，被引用 kustomize 常用标签功能。
 
-Argo CD automatically sets the `app.kubernetes.io/instance` label and uses it to determine which resources form the app.
-If the tool does this too, this causes confusion. You can change this label by setting
-the `application.instanceLabelKey` value in the `argocd-cm`. We recommend that you use `argocd.argoproj.io/instance`.
+Argo CD 会自动设置 `app.kubernetes.io/instance` 标签，并使用它来确定哪些资源构成应用程序。 如果工具也这样做，就会造成混乱。 您可以通过设置 `argocd-cm` 中的 `application.instanceLabelKey` 值来更改此标签。 我们建议您引用 `argocd.argoproj.io/instance`。
 
-!!! note
-    When you make this change your applications will become out of sync and will need re-syncing.
+注意 当您进行此更改时，您的应用程序将不同步，需要重新同步。
 
-See [#1482](https://github.com/argoproj/argo-cd/issues/1482).
+参见 [#1482](https://github.com/argoproj/argo-cd/issues/1482)。
 
-## How often does Argo CD check for changes to my Git or Helm repository ?
+## Argo CD 多久检查一次我的 Git 或 Helm 仓库的变更？
 
-The default polling interval is 3 minutes (180 seconds) with a configurable jitter.
-You can change the setting by updating the `timeout.reconciliation` value and the `timeout.reconciliation.jitter` in the [argocd-cm](https://github.com/argoproj/argo-cd/blob/2d6ce088acd4fb29271ffb6f6023dbb27594d59b/docs/operator-manual/argocd-cm.yaml#L279-L282) config map. If there are any Git changes, Argo CD will only update applications with the [auto-sync setting](user-guide/auto_sync.md) enabled. If you set it to `0` then Argo CD will stop polling Git repositories automatically and you can only use alternative methods such as [webhooks](operator-manual/webhook.md) and/or manual syncs for deploying applications.
-
+默认轮询间隔为 3 分钟（180 秒），可配置抖动。您可以通过更新 [argocd-cm](https://github.com/argoproj/argo-cd/blob/2d6ce088acd4fb29271ffb6f6023dbb27594d59b/docs/operator-manual/argocd-cm.yaml#L279-L282) config map 中的 `timeout.reconciliation` 值和 `timeout.reconciliation.jitter` 来更改设置。 如果有任何 Git 变动，Argo CD 将只更新启用了 [auto-sync setting](user-guide/auto_sync.md) 的应用程序。如果将其设置为 `0`，Argo CD 将停止自动轮询 Git 仓库，您只能使用 [webhooks](operator-manual/webhook.md) 和/或手动同步等替代方法来部署应用程序。
 
 ## Why Are My Resource Limits `Out Of Sync`?
 
-Kubernetes has normalized your resource limits when they are applied, and then Argo CD has then compared the version in
-your generated manifests to the normalized one is Kubernetes - they won't match.
+Kubernetes 在配置您的资源限制时已将其归一化，然后 Argo CD 将您生成的配置清单中的版本与 Kubernetes 归一化后的版本进行了比较，结果发现两者并不匹配。
 
-E.g.
+例如
 
-* `'1000m'` normalized to `'1'`
-* `'0.1'` normalized to `'100m'`
-* `'3072Mi'` normalized to `'3Gi'`
-* `3072` normalized to `'3072'` (quotes added)
+* 1000米 "归一化为 "1米
+* 0.1 "归一化为 "100米
+* 3072米 "归一化为 "3Gi
+* `3072`归一化为`'3072'`（引号已添加）
 
-To fix this use diffing
-customizations [settings](./user-guide/diffing.md#known-kubernetes-types-in-crds-resource-limits-volume-mounts-etc).
+要解决这个问题，请使用 diffing 自定义 [设置]（./user-guide/diffing.md#kknown-kubernetes-types-in-crds-resource-limits-volume-mounts-etc）。
 
-## How Do I Fix `invalid cookie, longer than max length 4093`?
+## 如何修复 `invalid cookie, longer than max length 4093`?
 
-Argo CD uses a JWT as the auth token. You likely are part of many groups and have gone over the 4KB limit which is set
-for cookies. You can get the list of groups by opening "developer tools -> network"
+Argo CD 使用 JWT 作为认证令牌。 您可能加入了许多群组，并已超过了为 Cookie 设置的 4KB 限制。 您可以打开 "开发工具 -&gt; 网络"，获取群组列表。
 
-* Click log in
-* Find the call to `<argocd_instance>/auth/callback?code=<random_string>`
+* 点击登录
+* 查找对 `<argocd_instance>/auth/callback?code=<random_string>` 的调用
 
-Decode the token at [https://jwt.io/](https://jwt.io/). That will provide the list of teams that you can remove yourself
-from.
+解码 [https://jwt.io/](https://jwt.io/)上的令牌。这将提供您可以删除自己的团队列表。
 
-See [#2165](https://github.com/argoproj/argo-cd/issues/2165).
+参见 [#2165](https://github.com/argoproj/argo-cd/issues/2165)。
 
-## Why Am I Getting `rpc error: code = Unavailable desc = transport is closing` When Using The CLI?
+## 为什么我在使用 CLI 时会收到 `rpc error: code = Unavailable desc = transport is closing` 的提示？
 
-Maybe you're behind a proxy that does not support HTTP 2? Try the `--grpc-web` flag:
+也许您的代理服务器不支持 HTTP 2？ 试试 `--grpc-web` flag：
 
 ```bash
 argocd ... --grpc-web
 ```
 
-## Why Am I Getting `x509: certificate signed by unknown authority` When Using The CLI?
+## 为什么我在使用 CLI 时会收到 `x509: certificate signed by unknown authority` 的提示？
 
-The certificate created by default by Argo CD is not automatically recognised by the Argo CD CLI, in order
-to create a secure system you must follow the instructions to [install a certificate](/operator-manual/tls/)
-and configure your client OS to trust that certificate.
+Argo CD 默认创建的证书不会被 Argo CD CLI 自动识别，为了创建一个安全的系统，您必须按照说明[安装证书]（/operator-manual/tls/），并配置您的客户端操作系统以信任该证书。
 
-If you're not running in a production system (e.g. you're testing Argo CD out), try the `--insecure` flag:
+如果不是在生产系统中运行（例如测试 Argo CD），请尝试使用 `--insecure` flag：
 
 ```bash
 argocd ... --insecure
 ```
 
-!!! warning "Do not use `--insecure` in production"
+!!! 警告 "请勿在生产中使用 `--insecure`"
 
-## I have configured Dex via `dex.config` in `argocd-cm`, it still says Dex is unconfigured. Why?
+## 我通过 `argocd-cm` 中的 `dex.config` 配置了 Dex，但它仍然显示 Dex 未配置。 为什么？
 
-Most likely you forgot to set the `url` in `argocd-cm` to point to your Argo CD as well. See also
-[the docs](./operator-manual/user-management/index.md#2-configure-argo-cd-for-sso).
+您很可能忘记设置 `argocd-cm` 中的 `url` 以指向 Argo CD。 另请参阅 [文档](./operator-manual/user-management/index.md#2-configure-argo-cd-for-sso)。
 
-## Why are `SealedSecret` resources reporting a `Status`?
+## 为什么`SealedSecret`资源会报告`Status`？
 
-Versions of `SealedSecret` up to and including `v0.15.0` (especially through helm `1.15.0-r3`) don't include
-a [modern CRD](https://github.com/bitnami-labs/sealed-secrets/issues/555) and thus the status field will not
-be exposed (on k8s `1.16+`). If your Kubernetes deployment is [modern](
-https://www.openshift.com/blog/a-look-into-the-technical-details-of-kubernetes-1-16), ensure you're using a
-fixed CRD if you want this feature to work at all.
+包括 `v0.15.0` 在内的 `SealedSecret` 版本（尤其是 helm `1.15.0-r3`）不包含 [modern CRD](https://github.com/bitnami-labs/sealed-secrets/issues/555)，因此状态字段不会被暴露（在 k8s `1.16+`上）。如果你的 Kubernetes 部署是 [modern](https://www.openshift.com/blog/a-look-into-the-technical-details-of-kubernetes-1-16)，如果你想让此功能正常工作，请确保你使用的是固定 CRD。
 
-## <a name="sealed-secret-stuck-progressing"></a>Why are resources of type `SealedSecret` stuck in the `Progressing` state?
+##<a name="sealed-secret-stuck-progressing"></a>`SealedSecret`类型的资源为何停留在`Progressing`状态？
 
-The controller of the `SealedSecret` resource may expose the status condition on resource it provisioned. Since
-version `v2.0.0` Argo CD picks up that status condition to derive a health status for the `SealedSecret`.
+封密 "资源的控制器可能会暴露其所提供资源的状态条件。 自版本 "v2.0.0 "起，Argo CD 会获取该状态条件，从而推导出 "封密 "的健康状态。
 
-Versions before `v0.15.0` of the `SealedSecret` controller are affected by an issue regarding this status
-conditions updates, which is why this feature is disabled by default in these versions. Status condition updates may be
-enabled by starting the `SealedSecret` controller with the `--update-status` command line parameter or by setting
-the `SEALED_SECRETS_UPDATE_STATUS` environment variable.
+SealedSecret "控制器的 "v0.15.0 "之前的版本受到状态条件更新问题的影响，因此这些版本默认禁用此功能。 可以通过使用"--update-status "命令行参数启动 "SealedSecret "控制器或设置 "SEALED_SECRETS_UPDATE_STATUS "环境变量来启用状态条件更新。
 
-To disable Argo CD from checking the status condition on `SealedSecret` resources, add the following resource
-customization in your `argocd-cm` ConfigMap via `resource.customizations.health.<group_kind>` key.
+要禁止 Argo CD 检查`SealedSecret`资源的状态条件，请通过`resource.customizations.health.<group_kind>`键在`argocd-cm`配置地图中添加以下资源定制。
 
 ```yaml
 resource.customizations.health.bitnami.com_SealedSecret: |
@@ -235,36 +193,23 @@ resource.customizations.health.bitnami.com_SealedSecret: |
   return hs
 ```
 
-## How do I fix `The order in patch list … doesn't match $setElementOrder list: …`?
+## 如何修复`补丁列表中的顺序......与 $setElementOrder 列表不匹配:......`？
 
-An application may trigger a sync error labeled a `ComparisonError` with a message like:
+应用程序可能会触发标有 "ComparisonError"（比较错误）的同步错误，并显示类似信息：
 
-> The order in patch list: [map[name:**KEY_BC** value:150] map[name:**KEY_BC** value:500] map[name:**KEY_BD** value:250] map[name:**KEY_BD** value:500] map[name:KEY_BI value:something]] doesn't match $setElementOrder list: [map[name:KEY_AA] map[name:KEY_AB] map[name:KEY_AC] map[name:KEY_AD] map[name:KEY_AE] map[name:KEY_AF] map[name:KEY_AG] map[name:KEY_AH] map[name:KEY_AI] map[name:KEY_AJ] map[name:KEY_AK] map[name:KEY_AL] map[name:KEY_AM] map[name:KEY_AN] map[name:KEY_AO] map[name:KEY_AP] map[name:KEY_AQ] map[name:KEY_AR] map[name:KEY_AS] map[name:KEY_AT] map[name:KEY_AU] map[name:KEY_AV] map[name:KEY_AW] map[name:KEY_AX] map[name:KEY_AY] map[name:KEY_AZ] map[name:KEY_BA] map[name:KEY_BB] map[name:**KEY_BC**] map[name:**KEY_BD**] map[name:KEY_BE] map[name:KEY_BF] map[name:KEY_BG] map[name:KEY_BH] map[name:KEY_BI] map[name:**KEY_BC**] map[name:**KEY_BD**]]
+&gt; The order in patch list: [map[name:**KEY_BC** value:150] map[name:**KEY_BC** value:500] map[name:**KEY_BD** value:250] map[name:**KEY_BD** value:500] map[name:KEY_BI value:something]] doesn't match $setElementOrder list: [map[name:KEY_AA] map[name:KEY_AB] map[name:KEY_AC] map[name:KEY_AD] map[name:KEY_AE] map[name:KEY_AF] map[name:KEY_AG] map[name:KEY_AH] map[name:KEY_AI] map[name:KEY_AJ] map[name:KEY_AK] map[name:KEY_AL] map[name:KEY_AM] map[name:KEY_AN] map[name:KEY_AO] map[name:KEY_AP] map[name:KEY_AQ] map[name:KEY_AR] map[name:KEY_AS] map[name:KEY_AT] map[name:KEY_AU] map[name:KEY_AV] map[name:KEY_AW] map[name:KEY_AX] map[name:KEY_AY] map[name:KEY_AZ] map[name:KEY_BA] map[name:KEY_BB] map[name:**KEY_BC**] map[name:**KEY_BD**] map[name:KEY_BE] map[name:KEY_BF] map[name:KEY_BG] map[name:KEY_BH] map[name:KEY_BI] map[name:**KEY_BC**] map[name:**KEY_BD**]]
 
+信息有两个部分：
 
-There are two parts to the message:
+1.`补丁列表中的顺序：[`
+    这将识别项目的值，尤其是多次出现的项目：&gt; map[name:**KEY_BC** value:150] map[name:**KEY_BC** value:500] map[name:**KEY_BD** value:250] map[name:**KEY_BD** value:500] map[name:KEY_BI value:something]
+    您需要识别重复的键 - 您可以关注第一部分，因为每个重复的键都会出现一次，其值与第一个列表中的值各一次。第二个列表实际上只是`]`。
+2.不匹配 $setElementOrder 列表：[`
+    这包括所有的键。它是为了调试目的而包含的 -- 你不需要太在意它。它将提示您重复键在列表中的精确位置：&gt; map[name:KEY_AA] map[name:KEY_AB] map[name:KEY_AC] map[name:KEY_AD] map[name:KEY_AE] map[name：KEY_AF] 地图[名称:KEY_AG] 地图[名称:KEY_AH] 地图[名称:KEY_AI] 地图[名称:KEY_AJ] 地图[名称:KEY_AK] 地图[名称:KEY_AL] 地图[名称:KEY_AM] 地图[名称:KEY_AN] 地图[名称:KEY_AO] 地图[名称:KEY_AP] 地图[名称：Map[name:KEY_AQ] map[name:KEY_AR] map[name:KEY_AS] map[name:KEY_AT] map[name:KEY_AU] map[name:KEY_AV] map[name:KEY_AW] map[name:KEY_AX] map[name:KEY_AY] map[name:KEY_AZ] map[name:KEY_BA] map[name：地图[名称:KEY_BB] 地图[名称:**KEY_BC**] 地图[名称:**KEY_BD**] 地图[名称:KEY_BE] 地图[名称:KEY_BF] 地图[名称:KEY_BG] 地图[名称:KEY_BH] 地图[名称:KEY_BI] 地图[名称:**KEY_BC**] 地图[名称:**KEY_BD**]
+    `]`
 
-1. `The order in patch list: [`
+在本例中，重复的键已被**强调，以帮助您识别有问题的键。 许多编辑器都有高亮显示字符串所有实例的功能，使用这样的编辑器可以帮助解决此类问题。
 
-    This identifies values for items, especially items that appear multiple times:
+这种错误最常见的情况是 `containers` 的 `env:` 字段。
 
-    > map[name:**KEY_BC** value:150] map[name:**KEY_BC** value:500] map[name:**KEY_BD** value:250] map[name:**KEY_BD** value:500] map[name:KEY_BI value:something]
-
-    You'll want to identify the keys that are duplicated -- you can focus on the first part, as each duplicated key will appear, once for each of its value with its value in the first list. The second list is really just
-
-   `]`
-
-2. `doesn't match $setElementOrder list: [`
-
-    This includes all of the keys. It's included for debugging purposes -- you don't need to pay much attention to it. It will give you a hint about the precise location in the list for the duplicated keys:
-
-    > map[name:KEY_AA] map[name:KEY_AB] map[name:KEY_AC] map[name:KEY_AD] map[name:KEY_AE] map[name:KEY_AF] map[name:KEY_AG] map[name:KEY_AH] map[name:KEY_AI] map[name:KEY_AJ] map[name:KEY_AK] map[name:KEY_AL] map[name:KEY_AM] map[name:KEY_AN] map[name:KEY_AO] map[name:KEY_AP] map[name:KEY_AQ] map[name:KEY_AR] map[name:KEY_AS] map[name:KEY_AT] map[name:KEY_AU] map[name:KEY_AV] map[name:KEY_AW] map[name:KEY_AX] map[name:KEY_AY] map[name:KEY_AZ] map[name:KEY_BA] map[name:KEY_BB] map[name:**KEY_BC**] map[name:**KEY_BD**] map[name:KEY_BE] map[name:KEY_BF] map[name:KEY_BG] map[name:KEY_BH] map[name:KEY_BI] map[name:**KEY_BC**] map[name:**KEY_BD**]
-
-   `]`
-
-In this case, the duplicated keys have been **emphasized** to help you identify the problematic keys. Many editors have the ability to highlight all instances of a string, using such an editor can help with such problems.
-
-The most common instance of this error is with `env:` fields for `containers`.
-
-!!! note "Dynamic applications"
-    It's possible that your application is being generated by a tool in which case the duplication might not be evident within the scope of a single file. If you have trouble debugging this problem, consider filing a ticket to the owner of the generator tool asking them to improve its validation and error reporting.
+注意 "动态应用程序" 您的应用程序可能是由一个工具生成的，在这种情况下，单个文件范围内的重复可能并不明显。 如果您在调试这个问题时遇到困难，可以考虑向生成工具的 Owners 提交一份报告，要求他们改进其验证和错误报告。

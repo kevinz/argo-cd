@@ -1,6 +1,7 @@
-# argocd-rbac-cm.yaml example
+<!-- TRANSLATED by md-translate -->
+# argocd-rbac-cm.yaml 示例
 
-An example of an argocd-rbac-cm.yaml file:
+argocd-rbac-cm.yaml 文件的示例：
 
 ```yaml
 {!docs/operator-manual/argocd-rbac-cm.yaml!}

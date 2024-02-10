@@ -1,6 +1,8 @@
-# Cluster Decision Resource Generator
+<!-- TRANSLATED by md-translate -->
+# 集群决策资源生成器
 
-The cluster decision resource generates a list of Argo CD clusters. This is done using [duck-typing](https://pkg.go.dev/knative.dev/pkg/apis/duck), which does not require knowledge of the full shape of the referenced Kubernetes resource. The following is an example of a cluster-decision-resource-based ApplicationSet generator:
+集群决策资源会生成 Argo CD 集群列表。这是用 [duck-typing](https://pkg.go.dev/knative.dev/pkg/apis/duck)完成的，不需要了解引用的 Kubernetes 资源的完整形态。 以下是基于集群决策资源的 ApplicationSet 生成器示例：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -39,7 +41,9 @@ spec:
         server: '{{.clusterName}}' # 'server' field of the secret
         namespace: guestbook
 ```
-The `quak` resource, referenced by the ApplicationSet `clusterDecisionResource` generator:
+
+由 ApplicationSet `clusterDecisionResource` 生成器引用的 `quak` 资源：
+
 ```yaml
 apiVersion: mallard.io/v1beta1
 kind: Duck
@@ -53,7 +57,9 @@ status:
   - clusterName: cluster-01
   - clusterName: cluster-02
 ```
-The `ApplicationSet` resource references a `ConfigMap` that defines the resource to be used in this duck-typing. Only one ConfigMap is required per `ArgoCD` instance, to identify a resource. You can support multiple resource types by creating a `ConfigMap` for each.
+
+ApplicationSet "资源引用了一个 "ConfigMap"，该 "ConfigMap "定义了将在此 duck-typing 中使用的资源。 每个 "ArgoCD "实例只需要一个 "ConfigMap "来标识资源。 您可以通过为每种资源创建一个 "ConfigMap "来支持多种资源类型。
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -70,16 +76,18 @@ data:
   matchKey: clusterName
 ```
 
-(*The full example can be found [here](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/clusterDecisionResource).*)
+（_完整示例见 [此处](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/clusterDecisionResource)。_）
 
-This example leverages the cluster management capabilities of the [open-cluster-management.io community](https://open-cluster-management.io/). By creating a `ConfigMap` with the GVK for the `open-cluster-management.io` Placement rule, your ApplicationSet can provision to different clusters in a number of novel ways. One example is to have the ApplicationSet maintain only two Argo CD Applications across 3 or more clusters. Then as maintenance or outages occur, the ApplicationSet will always maintain two Applications, moving the application to available clusters under the Placement rule's direction. 
+本示例利用了 [open-cluster-management.io community](https://open-cluster-management.io/) 的集群管理功能。通过为 `open-cluster-management.io` 安置规则创建一个带有 GVK 的 `ConfigMap` ，您的 ApplicationSet 可以通过多种新颖的方式为不同的集群进行配置。 其中一个示例是让 ApplicationSet 在 3 个或更多的集群上仅维护两个 Argo CD 应用程序。然后，当维护或中断发生时，ApplicationSet 将始终维护两个应用程序，并根据安置规则的指示将应用程序移动到可用的集群上。
 
-## How it works
-The ApplicationSet needs to be created in the Argo CD namespace, placing the `ConfigMap` in the same namespace allows the ClusterDecisionResource generator to read it. The `ConfigMap` stores the GVK information as well as the status key definitions.  In the open-cluster-management example, the ApplicationSet generator will read the kind `placementrules` with an apiVersion of `apps.open-cluster-management.io/v1`. It will attempt to extract the **list** of clusters from the key `decisions`. It then validates the actual cluster name as defined in Argo CD against the **value** from the key `clusterName` in each of the elements in the list.
+## 工作原理
 
-The ClusterDecisionResource generator passes the 'name', 'server' and any other key/value in the duck-type resource's status list as parameters into the ApplicationSet template. In this example, the decision array contained an additional key `clusterName`, which is now available to the ApplicationSet template.
+ApplicationSet 需要在 Argo CD 名称空间中创建，将 `ConfigMap` 放在相同的名称空间中可让 ClusterDecisionResource 生成器读取它。 `ConfigMap` 存储 GVK 信息和状态键定义。 在 open-cluster-management 示例中，ApplicationSet 生成器将读取 apiVersion 为 `apps.open-cluster-management.io/v1` 的 `placementrules` 类型。 它将尝试从键 `decisions` 中提取集群的 **list** ，然后根据列表中每个元素的键 `clusterName` 中的 **value** 验证 Argo CD 中定义的实际集群名称。
 
-!!! note "Clusters listed as `Status.Decisions` must be predefined in Argo CD"
-    The cluster names listed in the `Status.Decisions` *must* be defined within Argo CD, in order to generate applications for these values. The ApplicationSet controller does not create clusters within Argo CD.
+ClusterDecisionResource 生成器会将鸭型资源状态列表中的 "名称"、"服务器 "和任何其他键/值作为参数传递到 ApplicationSet 模板中。 在本例中，决策数组包含一个额外的键 `clusterName`，现在 ApplicationSet 模板可以使用该键。
 
-    The Default Cluster list key is `clusters`.
+注意 "列为 `Status.Decisions` 的集群必须在 Argo CD 中预定义"。 `Status.Decisions` 中列出的集群名称 _must_ 必须在 Argo CD 中定义，以便为这些 Values 生成应用程序。 ApplicationSet 控制器不会在 Argo CD 中创建集群。
+
+```
+The Default Cluster list key is `clusters`.
+```

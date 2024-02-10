@@ -1,20 +1,19 @@
-# Plugin Generator
+<!-- TRANSLATED by md-translate -->
+# 插件生成器
 
-Plugins allow you to provide your own generator.
+Plugins 允许您提供自己的生成器。
 
-- You can write in any language
-- Simple: a plugin just responds to RPC HTTP requests.
-- You can use it in a sidecar, or standalone deployment.
-- You can get your plugin running today, no need to wait 3-5 months for review, approval, merge and an Argo software
-  release.
-- You can combine it with Matrix or Merge.
+* 可使用任何语言编写
+* 简单：插件只需响应 RPC HTTP 请求。
+* 可被引用到侧载或独立部署中。
+* 您可以立即运行插件，无需等待 3-5 个月的审核、批准、合并和 Argo 软件发布。
+* 您可以将它与 Matrix 或 Merge 结合使用。
 
-To start working on your own plugin, you can generate a new repository based on the example
-[applicationset-hello-plugin](https://github.com/argoproj-labs/applicationset-hello-plugin).
+要开始制作自己的插件，可以根据 [ApplicationSet-hello-plugin](https://github.com/argoproj-labs/applicationset-hello-plugin) 示例生成一个新的版本库。
 
-## Simple example
+## 简单示例
 
-Using a generator plugin without combining it with Matrix or Merge.
+被引用生成器插件而未与 Matrix 或 Merge 结合使用。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -59,14 +58,12 @@ spec:
         example.from.plugin.output: "{{ .something.from.the.plugin }}"
 ```
 
-- `configMapRef.name`: A `ConfigMap` name containing the plugin configuration to use for RPC call.
-- `input.parameters`: Input parameters included in the RPC call to the plugin. (Optional)
+* `configMapRef.name`：ConfigMap "名称，包含被引用用于 RPC 调用的插件配置。
+* `input.parameters`：包含在插件 RPC 调用中的输入参数。可选
 
-!!! note
-    The concept of the plugin should not undermine the spirit of GitOps by externalizing data outside of Git. The goal is to be complementary in specific contexts.
-    For example, when using one of the PullRequest generators, it's impossible to retrieve parameters related to the CI (only the commit hash is available), which limits the possibilities. By using a plugin, it's possible to retrieve the necessary parameters from a separate data source and use them to extend the functionality of the generator.
+注意 插件的概念不应破坏 GitOps 的精神，将 Git 外部的数据外部化。 插件的目标是在特定情况下起到补充作用。 例如，当使用其中一个 PullRequest 生成器时，不可能检索到与 CI 相关的参数（只有提交哈希值可用），这就限制了可能性。 通过使用插件，可以从一个单独的数据源检索到必要的参数，并使用它们来扩展生成器的功能。
 
-### Add a ConfigMap to configure the access of the plugin
+### 添加 configmaps 以配置插件的访问权限
 
 ```yaml
 apiVersion: v1
@@ -79,10 +76,10 @@ data:
   baseUrl: "http://myplugin.plugin-ns.svc.cluster.local."
 ```
 
-- `token`: Pre-shared token used to authenticate HTTP request (points to the right key you created in the `argocd-secret` Secret)
-- `baseUrl`: BaseUrl of the k8s service exposing your plugin in the cluster.
+* 令牌用于验证 HTTP 请求的预共享令牌（指向您在 `argocd-secret` Secret 中创建的正确密钥）
+* `baseUrl`：集群中公开插件的 k8s 服务的 BaseUrl。
 
-### Store credentials
+### 存储凭证
 
 ```yaml
 apiVersion: v1
@@ -102,17 +99,17 @@ data:
   # ...
 ```
 
-#### Alternative
+#### 替代方案
 
-If you want to store sensitive data in **another** Kubernetes `Secret`, instead of `argocd-secret`, ArgoCD knows how to check the keys under `data` in your Kubernetes `Secret` for a corresponding key whenever a value in a configmap starts with `$`, then your Kubernetes `Secret` name and `:` (colon) followed by the key name.
+如果你想把敏感数据存储在**另一个**的 Kubernetes "秘密 "中，而不是 "argocd-secret"，ArgoCD 知道如何检查你的 Kubernetes "秘密 "中 "data "下的密钥，以查找相应的密钥，只要 configmaps 中的值以"$"开头，然后是你的 Kubernetes "秘密 "名称和":"（冒号），接着是密钥名称。
 
-Syntax: `$<k8s_secret_name>:<a_key_in_that_k8s_secret>`
+语法： `$<k8s_secret_name>:<a_key_in_that_k8s_secret>`
 
-> NOTE: Secret must have label `app.kubernetes.io/part-of: argocd`
+&gt; 注意：Secret 必须带有标签`app.kubernetes.io/part-of:argocd`。
 
-##### Example
+##### 示例
 
-`another-secret`:
+`another-secret`：
 
 ```yaml
 apiVersion: v1
@@ -131,13 +128,13 @@ data:
   plugin.myplugin.token: "c3Ryb25nLXBhc3N3b3Jk"
 ```
 
-### HTTP server
+### HTTP 服务器
 
-#### A Simple Python Plugin
+#### 一个简单的 Python 插件
 
-You can deploy it either as a sidecar or as a standalone deployment (the latter is recommended).
+您可以将其作为一个辅助工具或独立部署（建议使用后者）。
 
-In the example, the token is stored in a file at this location : `/var/run/argo/token`
+在示例中，令牌存储在以下位置的文件中：`/var/run/argo/token`。
 
 ```
 strong-password
@@ -149,7 +146,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 with open("/var/run/argo/token") as f:
     plugin_token = f.read().strip()
-
 
 class Plugin(BaseHTTPRequestHandler):
 
@@ -192,13 +188,12 @@ class Plugin(BaseHTTPRequestHandler):
         else:
             self.unsupported()
 
-
 if __name__ == '__main__':
     httpd = HTTPServer(('', 4355), Plugin)
     httpd.serve_forever()
 ```
 
-Execute getparams with curl :
+使用 curl 执行 getparams ：
 
 ```
 curl http://localhost:4355/api/v1/getparams.execute -H "Authorization: Bearer strong-password" -d \
@@ -212,18 +207,17 @@ curl http://localhost:4355/api/v1/getparams.execute -H "Authorization: Bearer st
 }'
 ```
 
-Some things to note here:
+这里有几点需要注意：
 
-- You only need to implement the calls `/api/v1/getparams.execute`
-- You should check that the `Authorization` header contains the same bearer value as `/var/run/argo/token`. Return 403 if not
-- The input parameters are included in the request body and can be accessed using the `input.parameters` variable.
-- The output must always be a list of object maps nested under the `output.parameters` key in a map.
-- `generator.input.parameters` and `values` are reserved keys. If present in the plugin output, these keys will be overwritten by the
-  contents of the `input.parameters` and `values` keys in the ApplicationSet's plugin generator spec.
+* 您只需执行`/api/v1/getparams.execute`调用。
+* 您应检查 `Authorization` 标头是否包含与 `/var/run/argo/token`相同的承载值。否则返回 403
+* 输入参数包含在请求正文中，可使用 `input.parameters` 变量访问。
+* 输出必须始终是一个对象映射列表，嵌套在映射中的 `output.parameters` 键下。
+* `generator.input.parameters` 和 `values` 是保留键。如果出现在插件输出中，这些键将被 ApplicationSet 插件生成器规范中的 `input.parameters` 和 `values` 键的内容覆盖。
 
-## With matrix and pull request example
+## 带有矩阵和拉取请求示例
 
-In the following example, the plugin implementation is returning a set of image digests for the given branch. The returned list contains only one item corresponding to the latest built image for the branch.
+在下面的示例中，插件实现正在返回一组给定分支的镜像摘要。 返回的列表只包含一个项目，对应于该分支最新构建的镜像。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -279,11 +273,10 @@ spec:
           value: "{{values.branchLink}}"
 ```
 
-To illustrate :
+举例说明：
 
-- The generator pullRequest would return, for example, 2 branches: `feature-branch-1` and `feature-branch-2`.
-
-- The generator plugin would then perform 2 requests as follows :
+* 例如，生成器 pullRequest 会返回 2 个分支：特性分支-1 "和 "特性分支-2"。
+* 然后，生成器插件将执行以下 2 个请求：
 
 ```shell
 curl http://localhost:4355/api/v1/getparams.execute -H "Authorization: Bearer strong-password" -d \
@@ -297,7 +290,7 @@ curl http://localhost:4355/api/v1/getparams.execute -H "Authorization: Bearer st
 }'
 ```
 
-Then,
+那么
 
 ```shell
 curl http://localhost:4355/api/v1/getparams.execute -H "Authorization: Bearer strong-password" -d \
@@ -311,7 +304,7 @@ curl http://localhost:4355/api/v1/getparams.execute -H "Authorization: Bearer st
 }'
 ```
 
-For each call, it would return a unique result such as :
+每次调用，它都会返回一个唯一的结果，如 ：
 
 ```json
 {
@@ -326,7 +319,7 @@ For each call, it would return a unique result such as :
 }
 ```
 
-Then,
+那么
 
 ```json
 {
@@ -341,4 +334,4 @@ Then,
 }
 ```
 
-In this example, by combining the two, you ensure that one or more pull requests are available and that the generated tag has been properly generated. This wouldn't have been possible with just a commit hash because a hash alone does not certify the success of the build.
+在本例中，通过将两者结合，您可以确保一个或多个拉取请求可用，并确保已正确生成标签。 如果仅使用提交哈希值，这是不可能实现的，因为仅有哈希值并不能证明构建成功。

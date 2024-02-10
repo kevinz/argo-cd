@@ -1,20 +1,21 @@
-# Resource Hooks
-## Overview
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-Synchronization can be configured using resource hooks. Hooks are ways to run scripts before, during,
-and after a Sync operation. Hooks can also be run if a Sync operation fails at any point. Some use cases for hooks are:
+# 资源挂钩
 
-* Using a `PreSync` hook to perform a database schema migration before deploying a new version of the app.
-* Using a `Sync` hook to orchestrate a complex deployment requiring more sophistication than the
-Kubernetes rolling update strategy.
-* Using a `PostSync` hook to run integration and health checks after a deployment.
-* Using a `SyncFail` hook to run clean-up or finalizer logic if a Sync operation fails.
-* Using a `PostDelete` hook to run clean-up or finalizer logic after all Application resources are deleted. Please note that
-  `PostDelete` hooks are only deleted if the delete policy matches the aggregated deletion hooks status and not garbage collected after the application is deleted. 
+## 概览
 
-## Usage
+可以使用资源钩子配置同步。 钩子是在同步操作之前、期间和之后运行脚本的方法。 如果同步操作在任何时候失败，也可以运行钩子。
 
-Hooks are simply Kubernetes manifests tracked in the source repository of your Argo CD Application annotated with `argocd.argoproj.io/hook`, e.g.:
+* 使用 "PreSync "钩子，在部署新版本的应用程序之前执行数据库模式迁移。
+
+Kubernetes 滚动更新策略
+
+* 使用 `PostSync` 钩子在部署后运行集成和健康检查。 * 使用 `SyncFail` 钩子在同步操作失败时运行清理或定稿逻辑。 * 使用 `PostDelete` 钩子在删除所有应用程序资源后运行清理或定稿逻辑。 请注意，只有在删除策略与聚合删除钩子状态相匹配时，才会删除 `PostDelete` 钩子，而不会在删除应用程序后进行垃圾收集。
+
+## 使用方法
+
+钩子只是在 Argo CD 应用程序源代码库中跟踪的 Kubernetes 清单，并注有`argocd.argoproj.io/hook`例如
 
 ```yaml
 apiVersion: batch/v1
@@ -25,34 +26,23 @@ metadata:
     argocd.argoproj.io/hook: PreSync
 ```
 
-During a Sync operation, Argo CD will apply the resource during the appropriate phase of the
-deployment. Hooks can be any type of Kubernetes resource kind, but tend to be Pod,
-[Job](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)
-or [Argo Workflows](https://github.com/argoproj/argo). Multiple hooks can be specified as a comma
-separated list.
+在同步操作中，Argo CD 会在部署的适当阶段应用该资源。 钩子可以是任何类型的 Kubernetes 资源种类，但倾向于 Pod、[工作](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/)或[Argo 工作流程](https://github.com/argoproj/argo)可以用逗号分隔的列表指定多个钩子。
 
-The following hooks are defined:
+定义了以下钩子：
 
-| Hook | Description |
-|------|-------------|
-| `PreSync` | Executes prior to the application of the manifests. |
-| `Sync`  | Executes after all `PreSync` hooks completed and were successful, at the same time as the application of the manifests. |
-| `Skip` | Indicates to Argo CD to skip the application of the manifest. |
-| `PostSync` | Executes after all `Sync` hooks completed and were successful, a successful application, and all resources in a `Healthy` state. |
-| `SyncFail` | Executes when the sync operation fails. |
-| `PostDelete` | Executes after all Application resources are deleted. _Available starting in v2.10._ |
+| | 说明 | |------|-------------| | |`PreSync`| 在应用清单之前执行。`Sync`| 终究还是执行了`PreSync`在应用清单的同时，钩子也完成并成功。`Skip`| 表示 Argo CD 跳过应用清单。`PostSync`| 终究还是执行了`Sync`勾子完成并成功，申请成功，并且所有资源都在一个`Healthy`状态。`SyncFail`| 同步操作失败时执行。`PostDelete`| 删除所有应用程序资源后执行。从 v2.10._ 开始提供。
 
-### Generate Name
+#### 生成名称
 
-Named hooks (i.e. ones with `/metadata/name`) will only be created once. If you want a hook to be re-created each time either use `BeforeHookCreation` policy (see below) or `/metadata/generateName`. 
+命名挂钩（即带有`/metadata/name`如果希望每次都重新创建钩子，可以使用`BeforeHookCreation`政策（见下文）或`/metadata/generateName`。
 
-## Selective Sync
+## 选择性同步
 
-Hooks are not run during [selective sync](selective_sync.md).
+在[选择性同步](selective_sync.md).
 
-## Hook Deletion Policies
+## 钩子删除政策
 
-Hooks can be deleted in an automatic fashion using the annotation: `argocd.argoproj.io/hook-delete-policy`.
+钩子可通过注释被自动删除：`argocd.argoproj.io/hooks-delete-policy`.
 
 ```yaml
 apiVersion: batch/v1
@@ -63,34 +53,26 @@ metadata:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
 ```
-Multiple hook delete policies can be specified as a comma separated list.
 
-The following policies define when the hook will be deleted.
+可以用逗号分隔的列表指定多个钩子删除策略。
 
-| Policy | Description |
-|--------|-------------|
-| `HookSucceeded` | The hook resource is deleted after the hook succeeded (e.g. Job/Workflow completed successfully). |
-| `HookFailed` | The hook resource is deleted after the hook failed. |
-| `BeforeHookCreation` | Any existing hook resource is deleted before the new one is created (since v1.3). It is meant to be used with `/metadata/name`. |
+以下策略规定了何时删除挂钩。
 
-Note that if no deletion policy is specified, Argo CD will automatically assume `BeforeHookCreation` rules.
+| 政策 | 说明 | |--------|-------------| |`HookSucceeded`| 挂钩资源在挂钩成功（如作业/工作流成功完成）后被删除。`HookFailed`| 挂钩失败后，挂钩资源将被删除。`BeforeHookCreation`| 在创建新钩子之前，任何现有的钩子资源都会被删除（自 v1.3 起）。 它被引用与`/metadata/name`.
 
-### Sync Status with Jobs/Workflows with Time to Live (ttl)
+请注意，如果未指定删除策略，Argo CD 将自动假定`BeforeHookCreation`规则
 
-Jobs support the [`ttlSecondsAfterFinished`](https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/)
-field in the spec, which let their respective controllers delete the Job after it completes. Argo Workflows support a 
-[`ttlStrategy`](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy) property that also allow a Workflow to be 
-cleaned up depending on the ttl strategy chosen.
+### 使用生存时间（ttl）同步作业/工作流程的状态
 
-Using either of the properties above can lead to Applications being OutOfSync. This is because Argo CD will detect a difference 
-between the Job or Workflow defined in the git repository and what's on the cluster since the ttl properties cause deletion of the resource after completion.
+工作岗位支持[ttlSecondsAfterFinished](https://kubernetes.io/docs/concepts/workloads/controllers/ttlafterfinished/)字段，让各自的控制器在作业完成后删除作业。 Argo 工作流支持一个[ttlStrategy](https://argoproj.github.io/argo-workflows/fields/#ttlstrategy)属性，该属性还允许根据所选的 ttl 策略清理工作流。
 
-However, using deletion hooks instead of the ttl approaches mentioned above will prevent Applications from having a status of 
-OutOfSync even though the Job or Workflow was deleted after completion.
+使用上述任一属性都可能导致应用程序不同步（OutOfSync），这是因为 Argo CD 会检测到 git 仓库中定义的作业或工作流与集群上的作业或工作流之间存在差异，因为 ttl 属性会导致资源在完成后被删除。
 
-## Using A Hook To Send A Slack Message
+不过，使用删除钩子而不是上述的 ttl 方法可以防止应用程序出现 OutOfSync 状态，即使作业或工作流在完成后已被删除。
 
-The following example uses the Slack API to send a Slack message when sync completes or fails:
+## 使用钩子发送 Slack 消息
+
+下面的示例使用 Slack API 在同步完成或失败时发送 Slack 消息：
 
 ```yaml
 apiVersion: batch/v1

@@ -1,16 +1,19 @@
-# Importing Argo CD go packages 
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-## Issue 
+# 导入 Argo CD go packages
 
-When importing Argo CD packages in your own projects, you may face some errors when downloading the dependencies, such as "unknown revision v0.0.0". This is because Argo CD directly depends on some Kubernetes packages which have these unknown v0.0.0 versions in their go.mod.
+## 问题
 
-## Solution
+在自己的项目中导入 Argo CD 软件包时，下载依赖包时可能会遇到一些错误，比如 "修订未知版 v0.0.0"，这是因为 Argo CD 直接依赖于一些 Kubernetes 软件包，而这些软件包的 go.mod 中就有这些未知的 v0.0.0 版本。
 
-Add a replace section in your own go.mod as same as the replace section of the corresponding Argo CD version's go.mod. In order to find the go.mod for a specific version, navigate to the [Argo CD repository](https://github.com/argoproj/argo-cd/) and click on the switch branches/tags dropdown to select the version you are looking for. Now you can view the go.mod file for a specific version along with all other files.
+## 解决方案
 
-## Example
+在你自己的 go.mod 中添加一个替换部分，与相应 Argo CD 版本的 go.mod 的替换部分相同。 为了找到特定版本的 go.mod，请导航到[阿尔戈光盘库](https://github.com/argoproj/argo-cd/)现在您可以查看特定版本的 go.mod 文件和所有其他文件。
 
-If you are using Argo CD v2.4.15, your go.mod should contain the following:
+## 示例
+
+如果您正在使用 Argo CD v2.4.15，您的 go.mod 应包含以下内容： Argo CD v2.4.15.
 
 ```
 replace (

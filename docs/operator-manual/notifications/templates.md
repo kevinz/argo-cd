@@ -1,8 +1,7 @@
-The notification template is used to generate the notification content and is configured in the `argocd-notifications-cm` ConfigMap. The template is leveraging
-the [html/template](https://golang.org/pkg/html/template/) golang package and allows customization of the notification message.
-Templates are meant to be reusable and can be referenced by multiple triggers.
+<!-- TRANSLATED by md-translate -->
+通知模板用于生成通知内容，并在 `argocd-notifications-cm` ConfigMap 中进行配置。模板利用 [html/template](https://golang.org/pkg/html/template/) golang 包，允许自定义通知消息。 模板旨在可重用，并可被多个触发器引用。
 
-The following template is used to notify the user about application sync status.
+以下模板被用来通知用户应用程序的同步状态。
 
 ```yaml
 apiVersion: v1
@@ -16,19 +15,20 @@ data:
       Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
 ```
 
-Each template has access to the following fields:
+每个模板都可以访问以下字段：
 
-- `app` holds the application object.
-- `context` is a user-defined string map and might include any string keys and values.
-- `secrets` provides access to sensitive data stored in `argocd-notifications-secret`
-- `serviceType` holds the notification service type name (such as "slack" or "email). The field can be used to conditionally
-render service-specific fields.
-- `recipient` holds the recipient name.
+* `app` 保存应用程序对象。
+* `context` 是用户定义的字符串映射，可能包括任何字符串键和值。
+* `secrets` 提供对存储在 `argocd-notifications-secret` 中的敏感数据的访问权限
+* `serviceType` 保存通知服务类型名称（如 "slack "或 "email"）。该字段可用于有条件地
 
-## Defining user-defined `context`
+呈现特定服务字段。
 
-It is possible to define some shared context between all notification templates by setting a top-level
-YAML document of key-value pairs, which can then be used within templates, like so:
+* `recipient` 保存收件人名称。
+
+## 定义用户定义的 `语境
+
+通过设置一个包含键值对的顶级 YAML 文档，可以在所有通知模板之间定义一些共享上下文，然后可以在模板内被引用，就像这样：
 
 ```yaml
 apiVersion: v1
@@ -44,12 +44,11 @@ data:
     message: "Something happened in {{ .context.environmentName }} in the {{ .context.region }} data center!"
 ```
 
-## Defining and using secrets within notification templates
+## 在通知模板中定义和被引用秘密
 
-Some notification service use cases will require the use of secrets within templates. This can be achieved with the use of
-the `secrets` data variable available within the templates.
+某些通知服务用例需要在模板中使用秘密，这可以通过使用模板中的 "secrets "数据变量来实现。
 
-Given that we have the following `argocd-notifications-secret`:
+鉴于我们有以下 `argocd-notifications-secret`：
 
 ```yaml
 apiVersion: v1
@@ -61,7 +60,7 @@ stringData:
 type: Opaque
 ```
 
-We can use the defined `sampleWebhookToken` in a template as such:
+我们可以在模板中这样引用已定义的 `sampleWebhookToken` ：
 
 ```yaml
 apiVersion: v1
@@ -77,42 +76,37 @@ data:
           body: 'token={{ .secrets.sampleWebhookToken }}&variables[APP_SOURCE_PATH]={{ .app.spec.source.path }}
 ```
 
-## Notification Service Specific Fields
+## 通知服务特定字段
 
-The `message` field of the template definition allows creating a basic notification for any notification service. You can leverage notification service-specific
-fields to create complex notifications. For example using service-specific you can add blocks and attachments for Slack, subject for Email or URL path, and body for Webhook.
-See corresponding service [documentation](services/overview.md) for more information.
+模板定义的 "消息 "字段允许为任何通知服务创建基本通知。 您可以利用通知服务的特定字段创建复杂的通知。 例如，使用特定服务，您可以为 Slack 添加块和附件，为电子邮件或 URL 路径添加主题，为 Webhook 添加正文。 更多信息请参阅相应的服务 [文档](services/overview.md)。
 
-## Change the timezone
+## 更改时区
 
-You can change the timezone to show in notifications as follows.
+您可以按以下方式更改通知中显示的时区。
 
-1. Call time functions.
-
+1.调用时间功能。
     ```
     {{ (call .time.Parse .app.status.operationState.startedAt).Local.Format "2006-01-02T15:04:05Z07:00" }}
     ```
-
-2. Set the `TZ` environment variable on the argocd-notifications-controller container.
-
+2.在 argocd-notifications-controller 容器上设置 `TZ` 环境变量。
     ```yaml
     apiVersion: apps/v1
-    kind: Deployment
-    metadata:
+    种类：部署
+    元数据：
       name: argocd-notifications-controller
-    spec:
-      template:
-        spec:
-          containers:
+    spec：
+      template：
+        spec：
+          containers：
           - name: argocd-notifications-controller
-            env:
+            env：
             - name: TZ
-              value: Asia/Tokyo
+              Values：亚洲/东京
     ```
 
-## Functions
+## 功能
 
-Templates have access to the set of built-in functions:
+模板可以访问内置函数集：
 
 ```yaml
 apiVersion: v1
@@ -124,4 +118,4 @@ data:
     message: "Author: {{(call .repo.GetCommitMetadata .app.status.sync.revision).Author}}"
 ```
 
-{!docs/operator-manual/notifications/functions.md!}
+{! docs/operator-manual/notifications/functions.md! }

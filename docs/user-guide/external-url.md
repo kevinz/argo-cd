@@ -1,11 +1,14 @@
-# Add external URL
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-You can add additional external links to Argo CD dashboard. For example
-links monitoring pages or documentation instead of just ingress hosts or other apps.
+# 添加外部 URL
 
-ArgoCD generates a clickable links to external pages for a resource based on per resource annotation.
+您可以在 Argo CD 面板上添加其他外部链接，例如监控页面或文档链接，而不仅仅是入口主机或其他应用程序。
 
-Example:
+ArgoCD 可根据资源注释为资源生成可点击的外部页面链接。
+
+例如
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -14,9 +17,9 @@ metadata:
   annotations:
     link.argocd.argoproj.io/external-link: http://my-grafana.example.com/pre-generated-link
 ```
-![External link](../assets/external-link.png)
 
-The external link icon will be visible for respective resource on ArgoCD application details page.
+外部链接](.../assets/external-link.png)
 
-![External link](../assets/external-link-1.png)
+外部链接图标将在 ArgoCD 申请详情页面上显示相关资源。
 
+外部链接](../assets/external-link-1.png)

@@ -1,5 +1,5 @@
-The subscription to Argo CD application events can be defined using `notifications.argoproj.io/subscribe.<trigger>.<service>: <recipient>` annotation.
-For example, the following annotation subscribes two Slack channels to notifications about every successful synchronization of the Argo CD application:
+<!-- TRANSLATED by md-translate -->
+对 Argo CD 应用程序事件的订阅可以使用 "notifications.argoproj.io/subscribe.<trigger>.<service>:<recipient>"注解来定义。例如，下面的注解将订阅两个 Slack 频道关于 Argo CD 应用程序每次成功同步的通知：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -9,13 +9,13 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my-channel1;my-channel2
 ```
 
-The annotation key consists of following parts:
+Annotations 密钥由以下部分组成：
 
-* `on-sync-succeeded` - trigger name
-* `slack` - notification service name
-* `my-channel1;my-channel2` - a semicolon separated list of recipients
+* `on-sync-succeeded` - 触发器名称
+* `slack` - 通知服务名称
+* `my-channel1;my-channel2` - 分号分隔的收件人列表
 
-You can create subscriptions for all applications of an Argo CD project by adding the same annotation to the AppProject resource:
+通过在 AppProject 资源中添加相同的 Annotations，可以为 Argo CD 项目的所有应用程序创建订阅：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -25,11 +25,9 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my-channel1;my-channel2
 ```
 
-## Default Subscriptions
+## 默认订阅
 
-The subscriptions might be configured globally in the `argocd-notifications-cm` ConfigMap using the `subscriptions` field. The default subscriptions
-are applied to all applications. The trigger and applications might be configured using the
-`triggers` and `selector` fields:
+订阅可在 `argocd-notifications-cm` ConfigMap 中使用 `subscriptions` 字段进行全局配置。 默认订阅会被引用到所有应用程序。 触发器和应用程序可使用 `triggers` 和 `selector` 字段进行配置：
 
 ```yaml
 apiVersion: v1
@@ -53,7 +51,7 @@ data:
       - on-sync-status-unknown
 ```
 
-If you want to use webhook in subscriptions, you need to store the custom webhook name in the subscription's `recipients` field.
+如果要在订阅中使用 webhook，则需要在订阅的 "接收者 "字段中存储自定义 webhook 名称。
 
 ```yaml
 apiVersion: v1

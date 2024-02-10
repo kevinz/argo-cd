@@ -1,12 +1,15 @@
-# Sync Applications with Kubectl
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-You can use "kubectl" to ask Argo CD to synchronize applications the same way you can use the CLI or UI. Many configurations like "force", "prune", "apply" and even synchronize a specific list of resources are equally supported. This is done by applying or patching the Argo CD application with a document that defines an "operation".
+# 使用 Kubectl 同步应用程序
 
-This "operation" defines how a synchronization should be done and for what resources these synchronization is to be done.
+您可以使用 "kubectl "来要求 Argo CD 同步应用程序，就像使用 CLI 或 UI 一样。 许多配置，如 "强制"、"剪枝"、"应用"，甚至同步特定资源列表，都同样支持。 具体做法是通过定义 "操作 "的文档来引用或修补 Argo CD 应用程序。
 
-There are many configuration options that can be added to the "operation". Next, a few of them are explained. For more details, you can have a look at the CRD [applications.argoproj.io](https://github.com/argoproj/argo-cd/blob/master/manifests/crds/application-crd.yaml). Some of them are required, whereas others are optional.
+该 "操作 "定义了同步的方式和同步的资源。
 
-To ask Argo CD to synchronize all resources of a given application, we can do:
+有许多配置选项可以添加到 "操作 "中。 接下来将对其中几个选项进行说明。 更多详情，请参阅 CRD[applications.argoproj.io](https://github.com/argoproj/argo-cd/blob/master/manifests/crds/application-crd.yaml)其中有些是必需的，有些则是可选的。
+
+我们可以要求 Argo CD 同步某个应用程序的所有资源： Argo
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -28,9 +31,9 @@ operation:
 $ kubectl apply -f <apply-file>
 ```
 
-The most important part is the "sync" definition in the "operation" field. You can pass optional information like "info" or "initiatedBy". "info" allows you to add information about the operation in the form of a list. "initiatedBy" contains information about who initiated the operation request.
+最重要的部分是 "操作 "字段中的 "同步 "定义。 您可以传递 "信息 "或 "由谁发起 "等可选信息。"信息 "允许您以列表形式添加有关操作的信息。
 
-Or if you prefer, you also can patch:
+或者，如果您愿意，也可以进行修补：
 
 ```yaml
 operation:
@@ -45,10 +48,9 @@ operation:
 $ kubectl patch -n <namespace> app <app-name> --patch-file <patch-file> --type merge
 ```
 
-Be aware that patches, specially with merge strategies, may not work the way you expect especially if you change sync strategies or options.
-In these cases, "kubectl apply" gives better results.
+请注意，补丁（特别是使用合并策略的补丁）可能无法按照您的预期运行，尤其是在您更改同步策略或选项时。 在这种情况下，"kubectl apply "会带来更好的效果。
 
-Either with a "kubectl patch" or "kubectl apply", the state of the synchronization is reported in the "operationState" field in the application object.
+无论是使用 "kubectl patch "还是 "kubectl apply"，同步状态都会在应用程序对象的 "operationState" 字段中报告。
 
 ```bash
 $ kubectl get -n <namespace> get app <app-name> -o yaml
@@ -60,11 +62,11 @@ status:
     phase: Succeeded
 ```
 
-# Apply and Hook synchronization strategies
+# 应用和挂钩同步策略
 
-There are two types of synchronization strategies: "hook", which is the default value, and "apply".
+同步策略有两种："挂钩"（默认值）和 "应用"。
 
-An "apply" sync strategy tells Argo CD to "kubectl apply", whereas a "hook" sync strategy informs Argo CD to submit any resource that's referenced in the operation. This way the synchronization of these resources will take into consideration any hook the resource has been annotated with.
+apply "同步策略会告诉 Argo CD "kubectl apply"，而 "hook "同步策略则会通知 Argo CD 提交操作中引用的任何资源。 这样，这些资源的同步就会考虑到资源已注释的任何钩子。
 
 ```yaml
 operation:
@@ -80,7 +82,7 @@ operation:
       hook: {}
 ```
 
-Both strategies support "force". However, you need to be aware that a force operation deletes the resource when patch encounters a conflict after having retried 5 times.
+这两种策略都支持 "强制"，但需要注意的是，强制操作会在补丁重试 5 次后遇到冲突时删除资源。
 
 ```yaml
 operation:
@@ -98,9 +100,9 @@ operation:
         force: true
 ```
 
-# Prune
+# Prune
 
-If you want to prune your resources before applying, you can instruct Argo CD to do so:
+如果您想在应用前修剪资源，可以指示 Argo CD 这样做：
 
 ```yaml
 operation:
@@ -108,11 +110,11 @@ operation:
     prune: true
 ```
 
-# List of resources
+#清单资源
 
-There's always the possibility to pass a list of resources. This list can be all resources the application manages or only a subset, for example resources that remained out of sync for some reason.
+您可以传递一个资源列表，该列表可以是应用程序管理的所有资源，也可以是一个子集，例如因某种原因不同步的资源。
 
-Only "kind" and "name" are required fields when referencing resources, but the fields "groups" and "namespace" can also be defined:
+在引用资源时，只有 "种类 "和 "名称 "是必填字段，但也可以定义 "组 "和 "名称空间 "字段：
 
 ```yaml
 operation:
@@ -129,9 +131,9 @@ operation:
         namespace: namespace-name
 ```
 
-# Sync Options
+# 同步选项
 
-In an operation, you can also pass sync-options. Each of these options is passed as "name=value" pairs. For example:
+在操作中，还可以传递同步选项。 每个选项都以 "name=values "对的形式传递，例如
 
 ```yaml
 operations:
@@ -141,4 +143,4 @@ operations:
       - Prune=false
 ```
 
-For more information about sync options, please refer to [sync-options](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/)
+有关同步选项的更多信息，请参阅[同步选项](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-options/)

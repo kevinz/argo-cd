@@ -1,185 +1,183 @@
+<!-- TRANSLATED by md-translate -->
 # Microsoft
 
-!!! note ""
-    Entra ID was formerly known as Azure AD.
+注意 "" Entra ID 的前身是 Azure AD。
 
-* [Entra ID SAML Enterprise App Auth using Dex](#entra-id-saml-enterprise-app-auth-using-dex)
-* [Entra ID App Registration Auth using OIDC](#entra-id-app-registration-auth-using-oidc)
-* [Entra ID App Registration Auth using Dex](#entra-id-app-registration-auth-using-dex)
+* [使用 Dex 的 Entra ID SAML 企业应用程序认证](#entra-id-saml-enterprise-app-auth-using-dex)
+* [Entra ID 应用程序注册认证使用 OIDC](#entra-id-app-registration-auth-using-oidc)
+* [Entra ID 应用程序注册认证使用 Dex](#entra-id-app-registration-auth-using-dex)
 
-## Entra ID SAML Enterprise App Auth using Dex
-### Configure a new Entra ID Enterprise App
+## Entra ID SAML Enterprise App Auth 被引用 Dex
 
-1. From the `Microsoft Entra ID` > `Enterprise applications` menu, choose `+ New application`
-2. Select `Non-gallery application`
-3. Enter a `Name` for the application (e.g. `Argo CD`), then choose `Add`
-4. Once the application is created, open it from the `Enterprise applications` menu.
-5. From the `Users and groups` menu of the app, add any users or groups requiring access to the service.
-   ![Azure Enterprise SAML Users](../../assets/azure-enterprise-users.png "Azure Enterprise SAML Users")
-6. From the `Single sign-on` menu, edit the `Basic SAML Configuration` section as follows (replacing `my-argo-cd-url` with your Argo URL):
-      - **Identifier (Entity ID):** https://`<my-argo-cd-url>`/api/dex/callback
-      - **Reply URL (Assertion Consumer Service URL):** https://`<my-argo-cd-url>`/api/dex/callback
-      - **Sign on URL:** https://`<my-argo-cd-url>`/auth/login
-      - **Relay State:** `<empty>`
-      - **Logout Url:** `<empty>`
-      ![Azure Enterprise SAML URLs](../../assets/azure-enterprise-saml-urls.png "Azure Enterprise SAML URLs")
-7. From the `Single sign-on` menu, edit the `User Attributes & Claims` section to create the following claims:
-      - `+ Add new claim` | **Name:** email | **Source:** Attribute | **Source attribute:** user.mail
-      - `+ Add group claim` | **Which groups:** All groups | **Source attribute:** Group ID | **Customize:** True | **Name:** Group | **Namespace:** `<empty>` | **Emit groups as role claims:** False
-      - *Note: The `Unique User Identifier` required claim can be left as the default `user.userprincipalname`*
-      ![Azure Enterprise SAML Claims](../../assets/azure-enterprise-claims.png "Azure Enterprise SAML Claims")
-8. From the `Single sign-on` menu, download the SAML Signing Certificate (Base64)
-      - Base64 encode the contents of the downloaded certificate file, for example:
-      - `$ cat ArgoCD.cer | base64`
-      - *Keep a copy of the encoded output to be used in the next section.*
-9. From the `Single sign-on` menu, copy the `Login URL` parameter, to be used in the next section.
+### 配置新的 Entra ID 企业应用程序
 
-### Configure Argo to use the new Entra ID Enterprise App
+1.从 "Microsoft Entra ID"&gt;"企业应用程序 "菜单中选择 "+ 新应用程序
+2.选择 `非图库应用程序
+3.输入应用程序的`名称`（例如`Argo CD`），然后选择`添加
+4.创建应用程序后，从 "企业应用程序 "菜单中打开它。
+5.在应用程序的 "用户和组 "菜单中，添加任何需要访问服务的用户或组。![Azure 企业 SAML 用户](../../assets/azure-enterprise-users.png "Azure 企业 SAML 用户")
+6.从 "单点登录 "菜单，编辑 "基本 SAML 配置 "部分如下（用 Argo URL 替换 "my-argo-cd-url"）：
+    - **标识符（实体 ID）：** https://`<my-argo-cd-url>`/api/dex/callback
+    - **回复 URL（断言消费者服务 URL）：** https://`<my-argo-cd-url>`/api/dex/callback
+    - **登录 URL:** https://`<my-argo-cd-url>`/auth/login
+    - **中继状态：** `<empty>`
+    - **注销 URL:** `<empty>`
+    ![Azure 企业 SAML URLs](../../assets/azure-enterprise-saml-urls.png "Azure 企业 SAML URLs")
+7.从 "单点登录 "菜单，编辑 "用户属性和声称 "部分，创建以下声称：
+    - `+ Add new claim` | **Name:** email | **Source:** Attribute | **Source attribute:** user.mail
+    - `+ Add group claim` | **Which groups:** All groups | **Source attribute:** Group ID | **Customize:** True | **Name:** Group | **Namespace:**`<empty>`|*Emit groups as role claims:** False
+    - 注意："Unique User Identifier"（唯一用户标识符）所需的声称可以保留为默认的 "user.userprincipalname"_
+    ![Azure Enterprise SAML Claims](../../assets/azure-enterprise-claims.png "Azure Enterprise SAML Claims")
+8.从 "单点登录 "菜单下载 SAML 签名证书 (Base64)
+    - 对下载的证书文件内容进行 Base64 编码，例如
+    - $ cat ArgoCD.cer | base64
+    - 保留一份编码输出的副本，以便在下一节中引用。
+9.从 "单点登录 "菜单中复制 "登录 URL "参数，以便在下一节中使用。
 
-1. Edit `argocd-cm` and add the following `dex.config` to the data section, replacing the `caData`, `my-argo-cd-url` and `my-login-url` your values from the Entra ID App:
+### 配置 Argo 以使用新的 Entra ID 企业应用程序
 
-            data:
-              url: https://my-argo-cd-url
-              dex.config: |
-                logger:
-                  level: debug
-                  format: json
-                connectors:
-                - type: saml
-                  id: saml
-                  name: saml
-                  config:
-                    entityIssuer: https://my-argo-cd-url/api/dex/callback
-                    ssoURL: https://my-login-url (e.g. https://login.microsoftonline.com/xxxxx/a/saml2)
-                    caData: |
-                       MY-BASE64-ENCODED-CERTIFICATE-DATA
-                    redirectURI: https://my-argo-cd-url/api/dex/callback
-                    usernameAttr: email
-                    emailAttr: email
-                    groupsAttr: Group
+1.编辑 `argocd-cm` 并将以下 `dex.config` 添加到数据部分，将 `caData`, `my-argo-cd-url` 和 `my-login-url` 替换为 Entra ID 应用程序中的值：
+    ```
+    data：
+           url: https://my-argo-cd-url
+           dex.config：|
+             logger：
+               level: debug
+               格式： json
+             connectors：
+             - type: saml
+               id: saml
+               name: saml
+               config：
+                 entityIssuer: https://my-argo-cd-url/api/dex/callback
+                 ssoURL: https://my-login-url （如 https://login.microsoftonline.com/xxxxx/a/saml2）
+                 caData：|
+                    my-base64-encoded-certificate-data
+                 redirectURI: https://my-argo-cd-url/api/dex/callback
+                 usernameAttr: 电子邮件
+                 emailAttr: 电子邮件
+                 groupsAttr：组
+    ```
+2.编辑 `argocd-rbac-cm` 以配置权限，类似于下面的示例。
+    - 被引用 Entra ID`Group ID` 分配角色。
+    - 请参阅 [RBAC 配置](../rbac.md) 了解更多详细情况。
+        ```
+        # 策略示例
+        policy.default: 角色：只读
+        policy.csv：|
+           p, role:org-admin, applications, *, */*, allow
+           p，角色：org-admin，集群，get，*，allow
+           p，角色：org-admin，资源库，获取，*，允许
+           p，角色：org-admin，资源库，创建，*，允许
+           p，角色：org-admin，版本库，更新，*，允许
+           p，角色：org-admin，版本库，删除，*，允许
+           g, "84ce98d1-e359-4f3b-85af-985b458de3c6", role:org-admin # （分配给角色的 azure 组）
+        ```
 
-2. Edit `argocd-rbac-cm` to configure permissions, similar to example below.
-      - Use Entra ID `Group IDs` for assigning roles.
-      - See [RBAC Configurations](../rbac.md) for more detailed scenarios.
+## Entra ID 应用程序注册认证被引用 OIDC
 
-            # example policy
-            policy.default: role:readonly
-            policy.csv: |
-               p, role:org-admin, applications, *, */*, allow
-               p, role:org-admin, clusters, get, *, allow
-               p, role:org-admin, repositories, get, *, allow
-               p, role:org-admin, repositories, create, *, allow
-               p, role:org-admin, repositories, update, *, allow
-               p, role:org-admin, repositories, delete, *, allow
-               g, "84ce98d1-e359-4f3b-85af-985b458de3c6", role:org-admin # (azure group assigned to role)
+### 配置新的 Entra ID 应用程序注册
 
-## Entra ID App Registration Auth using OIDC
-### Configure a new Entra ID App registration
-#### Add a new Entra ID App registration
+#### 添加新的 Entra ID 应用程序注册
 
-1. From the `Microsoft Entra ID` > `App registrations` menu, choose `+ New registration`
-2. Enter a `Name` for the application (e.g. `Argo CD`).
-3. Specify who can use the application (e.g. `Accounts in this organizational directory only`).
-4. Enter Redirect URI (optional) as follows (replacing `my-argo-cd-url` with your Argo URL), then choose `Add`.
-      - **Platform:** `Web`
-      - **Redirect URI:** https://`<my-argo-cd-url>`/auth/callback
-5. When registration finishes, the Azure portal displays the app registration's Overview pane. You see the Application (client) ID.
-      ![Azure App registration's Overview](../../assets/azure-app-registration-overview.png "Azure App registration's Overview")
+1.从 "Microsoft Entra ID"&gt;"应用程序注册 "菜单中选择 "+ 新注册
+2.输入应用程序的 "名称"（例如，"Argo CD"）。
+3.指定谁可以使用该应用程序（例如，`仅限本组织目录中的帐户`）。
+4.输入重定向 URI（可选）如下（用 Argo URL 替换`my-argo-cd-url`），然后选择`添加`。
+    - **平台：** `web
+    - **重定向 URI:** https://`<my-argo-cd-url>`/auth/callback
+5.注册完成后，Azure 门户会显示应用程序注册的 "概览 "窗格。您会看到应用程序（客户端）ID。    ![Azure 应用程序注册的概述](../../assets/azure-app-registration-overview.png "Azure 应用程序注册的概述")
 
-#### Configure additional platform settings for ArgoCD CLI
+#### 为 ArgoCD CLI 配置其他平台设置
 
-1. In the Azure portal, in App registrations, select your application.
-2. Under Manage, select Authentication.
-3. Under Platform configurations, select Add a platform.
-4. Under Configure platforms, select the "Mobile and desktop applications" tile. Use the below value. You shouldn't change it.
-      - **Redirect URI:** `http://localhost:8085/auth/callback`
-      ![Azure App registration's Authentication](../../assets/azure-app-registration-authentication.png "Azure App registration's Authentication")
+1.在 Azure 门户的应用程序注册中，选择您的应用程序。
+2.在 "管理 "下，选择 "身份验证"。
+3.在平台配置下，选择添加平台。
+4.在 "配置平台 "下，选择 "移动和桌面应用程序 "磁贴。使用下面的 Values。不应更改。
+    - **重定向 URI:** `http://localhost:8085/auth/callback`!
+    ![Azure 应用程序注册的身份验证](../../assets/azure-app-registration-authentication.png "Azure 应用程序注册的身份验证")
 
-#### Add credentials a new Entra ID App registration
+#### 添加证书一个新的 Entra ID 应用程序注册
 
-1. From the `Certificates & secrets` menu, choose `+ New client secret`
-2. Enter a `Name` for the secret (e.g. `ArgoCD-SSO`).
-      - Make sure to copy and save generated value. This is a value for the `client_secret`.
-      ![Azure App registration's Secret](../../assets/azure-app-registration-secret.png "Azure App registration's Secret")
+1.从 "证书和秘密 "菜单中选择 "+ 新客户秘密
+2.输入秘密的 `Name` 名称（例如 `ArgoCD-SSO`）。
+    - 确保复制并保存生成的值。这是 `client_secret` 的值。
+    ![Azure 应用程序注册的 Secret](../../assets/azure-app-registration-secret.png "Azure 应用程序注册的 Secret")
 
-#### Setup permissions for Entra ID Application
+#### Entra ID 应用程序的设置权限
 
-1. From the `API permissions` menu, choose `+ Add a permission`
-2. Find `User.Read` permission (under `Microsoft Graph`) and grant it to the created application:
-   ![Entra ID API permissions](../../assets/azure-api-permissions.png "Entra ID API permissions")
-3. From the `Token Configuration` menu, choose `+ Add groups claim`
-   ![Entra ID token configuration](../../assets/azure-token-configuration.png "Entra ID token configuration")
+1.从 "API 权限 "菜单中选择 "+ 添加一个权限
+2.找到`用户.读取`权限（在`Microsoft Graph`下）并将其授予创建的应用程序： ![Entra ID API permissions](../../assets/azure-api-permissions.png "Entra ID API permissions")
+3.从 "令牌配置 "菜单中选择 "+ 添加组索赔" ![Entra ID 令牌配置]( ./../assets/azure-token-configuration.png "Entra ID 令牌配置")
 
-### Associate an Entra ID group to your Entra ID App registration
+### 将 Entra ID 组关联到你的 Entra ID 应用程序注册
 
-1. From the `Microsoft Entra ID` > `Enterprise applications` menu, search the App that you created (e.g. `Argo CD`).
-      - An Enterprise application with the same name of the Entra ID App registration is created when you add a new Entra ID App registration.
-2. From the `Users and groups` menu of the app, add any users or groups requiring access to the service.
-   ![Azure Enterprise SAML Users](../../assets/azure-enterprise-users.png "Azure Enterprise SAML Users")
+1.从 "Microsoft Entra ID"&gt;"企业应用程序 "菜单，搜索您创建的应用程序（如 "Argo CD"）。
+    - 添加新 Entra ID App 注册时，会创建与 Entra ID App 注册名称相同的企业应用程序。
+2.从应用程序的 "用户和组 "菜单，添加任何需要访问服务的用户或组。![Azure 企业 SAML 用户](../../assets/azure-enterprise-users.png "Azure 企业 SAML 用户")
 
-### Configure Argo to use the new Entra ID App registration
+### 配置 Argo 以使用新的 Entra ID App 注册
 
-1. Edit `argocd-cm` and configure the `data.oidc.config` and `data.url` section:
+1.编辑 `argocd-cm` 并配置 `data.oidc.config` 和 `data.url` 部分：
+    ```
+    configmaps -&gt; argocd-cm
+    
+         data：
+            url: https://argocd.example.com/ # 替换为 Argo CD 的外部基本 URL
+            oidc.config：|
+                  名称： Azure
+                  issuer: https://login.microsoftonline.com/{directory_tenant_id}/v2.0
+                  客户端 ID： {azure_ad_application_client_id}
+                  客户端密码：$oidc.azure.clientSecret
+                  requestedIDTokenClaims：
+                     组：
+                        essential: true
+                  requestedScopes：
+                     - openid
+                     - 个人资料
+                     - 电子邮件
+    ```
+2.编辑 `argocd-secret` 并配置 `data.oidc.azure.clientSecret` 部分：
+    ```
+    Secret -&gt; argocd-secret
+    
+         data.oidc.azure.clientSecret
+            oidc.azure.clientSecret: {client_secret | base64_encoded}
+    ```
+3.编辑 `argocd-rbac-cm` 以配置权限。使用 Azure 中的组 ID 分配角色
+   [RBAC 配置](../rbac.md)
+    ```
+    configmaps -&gt; argocd-rbac-cm
+    
+         policy.default: 角色：只读
+         policy.csv：|
+            p，角色：org-admin，应用程序，*，*/*，允许
+            p，角色：org-admin，集群，get，*，allow
+            p，角色：org-admin，资源库，获取，*，允许
+            p，角色：org-admin，资源库，创建，*，允许
+            p，角色：org-admin，版本库，更新，*，允许
+            p，角色：org-admin，版本库，删除，*，允许
+            g，"84ce98d1-e359-4f3b-85af-985b458de3c6"，角色：org-admin
+    ```
+4.将角色从 jwt 令牌映射到 Argo
+如果要将 jwt 令牌中的角色映射到默认角色（readonly 和 admin），则必须更改 rbac-configmap 中的 scope 变量。
+    ```
+    policy.default: 角色：只读
+         policy.csv：|
+            p, role:org-admin, applications, *, */*, allow
+            p、role:org-admin、集群、get、*、allow
+            p，角色：org-admin，资源库，获取，*，允许
+            p，角色：org-admin，资源库，创建，*，允许
+            p，角色：org-admin，版本库，更新，*，允许
+            p，角色：org-admin，版本库，删除，*，允许
+            g，"84ce98d1-e359-4f3b-85af-985b458de3c6"，角色：org-admin
+         范围: '[组, 电子邮件]'
+    ```请参阅 [operator-manual/argocd-rbac-cm.yaml](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-rbac-cm.yaml) 了解所有可用变量。
 
-            ConfigMap -> argocd-cm
+## Entra ID 应用程序注册认证被引用 Dex
 
-            data:
-               url: https://argocd.example.com/ # Replace with the external base URL of your Argo CD
-               oidc.config: |
-                     name: Azure
-                     issuer: https://login.microsoftonline.com/{directory_tenant_id}/v2.0
-                     clientID: {azure_ad_application_client_id}
-                     clientSecret: $oidc.azure.clientSecret
-                     requestedIDTokenClaims:
-                        groups:
-                           essential: true
-                     requestedScopes:
-                        - openid
-                        - profile
-                        - email
+如上所述，配置新的 AD 应用程序注册。 然后，将 `dex.config` 添加到 `argocd-cm` 中：
 
-2. Edit `argocd-secret` and configure the `data.oidc.azure.clientSecret` section:
-
-            Secret -> argocd-secret
-
-            data:
-               oidc.azure.clientSecret: {client_secret | base64_encoded}
-
-3. Edit `argocd-rbac-cm` to configure permissions. Use group ID from Azure for assigning roles
-      [RBAC Configurations](../rbac.md)
-
-            ConfigMap -> argocd-rbac-cm
-
-            policy.default: role:readonly
-            policy.csv: |
-               p, role:org-admin, applications, *, */*, allow
-               p, role:org-admin, clusters, get, *, allow
-               p, role:org-admin, repositories, get, *, allow
-               p, role:org-admin, repositories, create, *, allow
-               p, role:org-admin, repositories, update, *, allow
-               p, role:org-admin, repositories, delete, *, allow
-               g, "84ce98d1-e359-4f3b-85af-985b458de3c6", role:org-admin
-
-4. Mapping role from jwt token to argo
-   If you want to map the roles from the jwt token to match the default roles (readonly and admin) then you must change the scope variable in the rbac-configmap.
-
-            policy.default: role:readonly
-            policy.csv: |
-               p, role:org-admin, applications, *, */*, allow
-               p, role:org-admin, clusters, get, *, allow
-               p, role:org-admin, repositories, get, *, allow
-               p, role:org-admin, repositories, create, *, allow
-               p, role:org-admin, repositories, update, *, allow
-               p, role:org-admin, repositories, delete, *, allow
-               g, "84ce98d1-e359-4f3b-85af-985b458de3c6", role:org-admin
-            scopes: '[groups, email]'
-
-   Refer to [operator-manual/argocd-rbac-cm.yaml](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-rbac-cm.yaml) for all of the available variables.
-
-## Entra ID App Registration Auth using Dex
-
-Configure a new AD App Registration, as above.
-Then, add the `dex.config` to `argocd-cm`:
 ```yaml
 ConfigMap -> argocd-cm
 
@@ -198,32 +196,29 @@ data:
             - DevOps
 ```
 
-## Validation
-### Log in to ArgoCD UI using SSO
+## 验证
 
-1. Open a new browser tab and enter your ArgoCD URI: https://`<my-argo-cd-url>`
-   ![Azure SSO Web Log In](../../assets/azure-sso-web-log-in-via-azure.png "Azure SSO Web Log In")
-3. Click `LOGIN VIA AZURE` button to log in with your Microsoft Entra ID account. You’ll see the ArgoCD applications screen.
-   ![Azure SSO Web Application](../../assets/azure-sso-web-application.png "Azure SSO Web Application")
-4. Navigate to User Info and verify Group ID. Groups will have your group’s Object ID that you added in the `Setup permissions for Entra ID Application` step.
-   ![Azure SSO Web User Info](../../assets/azure-sso-web-user-info.png "Azure SSO Web User Info")
+### 使用 SSO 登录 ArgoCD 用户界面
 
-### Log in to ArgoCD using CLI
+1.打开新的浏览器标签页并输入 ArgoCD URI： https://`<my-argo-cd-url>` ![Azure SSO Web 登录](././assets/azure-sso-web-log-in-via-azure.png "Azure SSO Web 登录")
+2.单击 "LOGIN VIA AZURE "按钮，使用 Microsoft Entra ID 帐户登录。您将看到 ArgoCD 应用程序屏幕。Azure SSO Web 应用程序](.../.../assets/azure-sso-web-application.png "Azure SSO Web 应用程序")
+3.导航至用户信息并验证组 ID。组将具有您在 "为 Entra ID Application 设置权限 "步骤中添加的组对象 ID。Azure SSO Web 用户信息](.../../assets/azure-sso-web-user-info.png "Azure SSO Web 用户信息")
 
-1. Open terminal, execute the below command.
+### 使用 CLI 被引用登录 ArgoCD
 
-            argocd login <my-argo-cd-url> --grpc-web-root-path / --sso
-
-2. You will see the below message after entering your credentials from the browser.
-   ![Azure SSO CLI Log In](../../assets/azure-sso-cli-log-in-success.png "Azure SSO CLI Log In")
-3. Your terminal output will be similar as below.
-   
-            WARNING: server certificate had error: x509: certificate is valid for ingress.local, not my-argo-cd-url. Proceed insecurely (y/n)? y
-            Opening browser for authentication
-            INFO[0003] RequestedClaims: map[groups:essential:true ]
-            Performing authorization_code flow login: https://login.microsoftonline.com/XXXXXXXXXXXXX/oauth2/v2.0/authorize?access_type=offline&claims=%7B%22id_token%22%3A%7B%22groups%22%3A%7B%22essential%22%3Atrue%7D%7D%7D&client_id=XXXXXXXXXXXXX&code_challenge=XXXXXXXXXXXXX&code_challenge_method=S256&redirect_uri=http%3A%2F%2Flocalhost%3A8085%2Fauth%2Fcallback&response_type=code&scope=openid+profile+email+offline_access&state=XXXXXXXX
-            Authentication successful
-            'yourid@example.com' logged in successfully
-            Context 'my-argo-cd-url' updated
-
-   You may get an warning if you are not using a correctly signed certs. Refer to [Why Am I Getting x509: certificate signed by unknown authority When Using The CLI?](https://argo-cd.readthedocs.io/en/stable/faq/#why-am-i-getting-x509-certificate-signed-by-unknown-authority-when-using-the-cli).
+1.打开终端，执行以下命令
+    ```
+    argocd login<my-argo-cd-url> --grpc-web-root-path / --sso
+    ```
+2.从浏览器输入凭据后，你会看到下面的信息。
+![Azure SSO CLI 登录](././assets/azure-sso-cli-log-in-success.png "Azure SSO CLI 登录")
+3.您的终端输出将如下所示。
+    ```
+    警告：服务器证书出错：x509: 证书对 ingress.local 有效，对 my-argo-cd-url 无效。不安全地继续（y/n）？
+         打开浏览器进行身份验证
+         INFO[0003] RequestedClaims: map[groups:essential:true ]。
+         Performing authorization_code flow login: https://login.microsoftonline.com/XXXXXXXXXXXXX/oauth2/v2.0/authorize?access_type=offline&amp;claims=%7B%22id_token%22%3A%7B%22groups%22%3A%7B%22essential%22%3Atrue%7D%7D%7D&amp;client_id=XXXXXXXXXXXXX&amp;code_challenge=XXXXXXXXXXXXX&amp;code_challenge_method=S256&amp;redirect_uri=http%3A%2F%2Flocalhost%3A8085%2Fauth%2Fcallback&amp;response_type=code&amp;scope=openid+profile+email+offline_access&amp;state=XXXXXXX
+         验证成功
+         yourid@example.com' 登录成功
+         更新了'my-argo-cd-url'上下文
+    ```如果您没有使用正确签名的证书，可能会收到警告。请参阅 [Why Am I Getting x509: certificate signed by unknown authority When Using The CLI?] (https://argo-cd.readthedocs.io/en/stable/faq/#why-am-i-getting-x509-certificate-signed-by-unknown-authority-when-using-the-cli)。

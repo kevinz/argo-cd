@@ -1,69 +1,43 @@
-# Git Webhook Configuration
+<!-- TRANSLATED by md-translate -->
+# Git Webhook 配置
 
-## Overview
+## 概览
 
-Argo CD polls Git repositories every three minutes to detect changes to the manifests. To eliminate
-this delay from polling, the API server can be configured to receive webhook events. Argo CD supports
-Git webhook notifications from GitHub, GitLab, Bitbucket, Bitbucket Server, Azure DevOps and Gogs. The following explains how to configure
-a Git webhook for GitHub, but the same process should be applicable to other providers.
+Argo CD 每三分钟轮询一次 Git 仓库，以检测清单的变更。 为消除轮询带来的延迟，可将 API 服务器配置为接收 webhook 事件。 Argo CD 支持来自 GitHub、GitLab、Bitbucket、Bitbucket Server、Azure DevOps 和 Gogs 的 Git webhook 通知。 下面将介绍如何为 GitHub 配置 Git webhook，但同样的流程应适用于其他 Providers。
 
-!!! note
-    The webhook handler does not differentiate between branch events and tag events where the branch and tag names are
-    the same. A hook event for a push to branch `x` will trigger a refresh for an app pointing at the same repo with
-    `targetRevision: refs/tags/x`.
+注意 webhook 处理程序不会区分分支事件和标签事件（分支和标签名称相同）。 推送到分支 `x` 的钩子事件将触发指向同一版本库的应用程序刷新，该版本库的 `targetRevision: refs/tags/x`。
 
-## 1. Create The WebHook In The Git Provider
+## 1.在 Git Provider 中创建 Webhook
 
-In your Git provider, navigate to the settings page where webhooks can be configured. The payload
-URL configured in the Git provider should use the `/api/webhook` endpoint of your Argo CD instance
-(e.g. `https://argocd.example.com/api/webhook`). If you wish to use a shared secret, input an
-arbitrary value in the secret. This value will be used when configuring the webhook in the next step.
+在 Git Provider 中，导航至可配置 webhook 的设置页面。 在 Git Provider 中配置的有效载荷 URL 应使用 Argo CD 实例的 `/api/webhook` 端点（如 `https://argocd.example.com/api/webhook`）。如果希望使用共享秘密，请在秘密中输入任意值。该值将在下一步配置 webhook 时被引用。
 
 ## Github
 
-![Add Webhook](../assets/webhook-config.png "Add Webhook")
+![添加 Webhook]（.../assets/webhook-config.png "添加 Webhook）
 
-!!! note
-    When creating the webhook in GitHub, the "Content type" needs to be set to "application/json". The default value "application/x-www-form-urlencoded" is not supported by the library used to handle the hooks
+注意 在 GitHub 中创建 webhook 时，需要将 "内容类型 "设置为 "application/json"。 用于处理钩子的库不支持默认值 "application/x-www-form-urlencoded"。
 
 ## Azure DevOps
 
-![Add Webhook](../assets/azure-devops-webhook-config.png "Add Webhook")
+![Add Webhook]（.../assets/azure-devops-webhook-config.png "Add Webhook")
 
-Azure DevOps optionally supports securing the webhook using basic authentication. To use it, specify the username and password in the webhook configuration and configure the same username/password in `argocd-secret` Kubernetes secret in
-`webhook.azuredevops.username` and `webhook.azuredevops.password` keys.
+Azure DevOps 可选支持使用基本身份验证保护 webhook 的安全。 要使用它，请在 webhook 配置中指定用户名和密码，并在 `argocd-secret` Kubernetes secret 中的 `webhook.azuredevops.username` 和 `webhook.azuredevops.password` 密钥中配置相同的用户名/密码。
 
-## 2. Configure Argo CD With The WebHook Secret (Optional)
+## 2. 使用 Webhook Secret 配置 Argo CD（可选）
 
-Configuring a webhook shared secret is optional, since Argo CD will still refresh applications
-related to the Git repository, even with unauthenticated webhook events. This is safe to do since
-the contents of webhook payloads are considered untrusted, and will only result in a refresh of the
-application (a process which already occurs at three-minute intervals). If Argo CD is publicly
-accessible, then configuring a webhook secret is recommended to prevent a DDoS attack.
+配置 webhook 共享秘密是可选的，因为 Argo CD 仍会刷新与 Git 仓库相关的应用程序，即使是未经身份验证的 webhook 事件。 这样做是安全的，因为 webhook 有效载荷的内容被认为是不可信任的，只会导致应用程序的刷新（这一过程已经每隔三分钟发生一次）。 如果 Argo CD 可被公开访问，则建议配置 webhook 秘密，以防止 DDoS 攻击。
 
-In the `argocd-secret` Kubernetes secret, configure one of the following keys with the Git
-provider's webhook secret configured in step 1.
+在 `argocd-secret` Kubernetes secret 中，用步骤 1 中配置的 Git Providers 的 webhook secret 配置以下密钥之一。
 
-| Provider        | K8s Secret Key                   |
-|-----------------|----------------------------------|
-| GitHub          | `webhook.github.secret`          |
-| GitLab          | `webhook.gitlab.secret`          |
-| BitBucket       | `webhook.bitbucket.uuid`         |
-| BitBucketServer | `webhook.bitbucketserver.secret` |
-| Gogs            | `webhook.gogs.secret`            |
-| Azure DevOps    | `webhook.azuredevops.username`   |
-|                 | `webhook.azuredevops.password`   |
+| Provider | k8s 密钥 | |-----------------|----------------------------------| | GitHub | `webhook.github.secret` | | GitLab | `webhook.gitlab.secret` | | BitBucket | `webhook.bitbucket.uuid` | | BitBucketServer | `webhook.bitbucketserver.secret` | | Gogs | `webhook.gogs.secret` | | Azure DevOps | `webhook.azuredevops.username` | | | `webhook.azuredevops.password` | | | GitLab | `webhook.gitLab.secret` | | BitBucket
 
-Edit the Argo CD Kubernetes secret:
+编辑 Argo CD Kubernetes secret：
 
 ```bash
 kubectl edit secret argocd-secret -n argocd
 ```
 
-TIP: for ease of entering secrets, Kubernetes supports inputting secrets in the `stringData` field,
-which saves you the trouble of base64 encoding the values and copying it to the `data` field.
-Simply copy the shared webhook secret created in step 1, to the corresponding
-GitHub/GitLab/BitBucket key under the `stringData` field:
+提示：为了方便输入秘密，Kubernetes 支持在 `stringData` 字段中输入秘密，这样就省去了对值进行 base64 编码并复制到 `data` 字段的麻烦。 只需将步骤 1 中创建的共享 webhook 秘密复制到 `stringData` 字段下相应的 GitHub/GitLab/BitBucket 密钥中即可：
 
 ```yaml
 apiVersion: v1
@@ -96,4 +70,4 @@ stringData:
   webhook.azuredevops.password: secret-password
 ```
 
-After saving, the changes should take effect automatically.
+保存后，更改将自动生效。

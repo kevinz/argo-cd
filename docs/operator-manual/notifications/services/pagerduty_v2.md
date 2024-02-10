@@ -1,19 +1,20 @@
+<!-- TRANSLATED by md-translate -->
 # PagerDuty V2
 
-## Parameters
+## 参数
 
-The PagerDuty notification service is used to trigger PagerDuty events and requires specifying the following settings:
+PagerDuty 通知服务被用来引用 PagerDuty 事件，需要指定以下设置：
 
-* `serviceKeys` - a dictionary with the following structure:
-  * `service-name: $pagerduty-key-service-name` where `service-name` is the name you want to use for the service to make events for, and `$pagerduty-key-service-name` is a reference to the secret that contains the actual PagerDuty integration key (Events API v2 integration)
+* `serviceKeys` - 具有以下结构的字典：
+    - service-name：$pagerduty-key-service-name"，其中，"service-name "是您要用于制作事件的服务名称，而"$pagerduty-key-service-name "是对包含实际 PagerDuty 集成密钥（事件 API v2 集成）的 secret 的引用。
 
-If you want multiple Argo apps to trigger events to their respective PagerDuty services, create an integration key in each service you want to setup alerts for.
+如果希望多个 Argo 应用程序向各自的 PagerDuty 服务触发事件，请在要设置警报的每个服务中创建一个集成密钥。
 
-To create a PagerDuty integration key, [follow these instructions](https://support.pagerduty.com/docs/services-and-integrations#create-a-generic-events-api-integration) to add an Events API v2 integration to the service of your choice.
+要创建 PagerDuty 集成密钥，[请按照以下说明](https://support.pagerduty.com/docs/services-and-integrations#create-a-generic-events-api-integration) 向您选择的服务添加事件 API v2 集成。
 
-## Configuration
+## 配置
 
-The following snippet contains sample PagerDuty service configuration. It assumes the service you want to alert on is called `my-service`.
+以下代码段包含 PagerDuty 服务配置示例，假定要发出警报的服务名为 "my-service"。
 
 ```yaml
 apiVersion: v1
@@ -35,9 +36,9 @@ data:
       my-service: $pagerduty-key-my-service
 ```
 
-## Template
+## 模板
 
-[Notification templates](../templates.md) support specifying subject for PagerDuty notifications:
+[通知模板]（.../templates.md）支持为 PagerDuty 通知指定主题：
 
 ```yaml
 apiVersion: v1
@@ -53,21 +54,21 @@ data:
       source: "{{.rollout.metadata.name}}"
 ```
 
-The parameters for the PagerDuty configuration in the template generally match with the payload for the Events API v2 endpoint. All parameters are strings.
+模板中的 PagerDuty 配置参数一般与 Events API v2 端点的有效载荷相匹配。 所有参数均为字符串。
 
-* `summary` - (required) A brief text summary of the event, used to generate the summaries/titles of any associated alerts.
-* `severity` - (required) The perceived severity of the status the event is describing with respect to the affected system. Allowed values: `critical`, `warning`, `error`, `info`
-* `source` - (required) The unique location of the affected system, preferably a hostname or FQDN.
-* `component` - Component of the source machine that is responsible for the event.
-* `group` - Logical grouping of components of a service.
-* `class` - The class/type of the event.
-* `url` - The URL that should be used for the link "View in ArgoCD" in PagerDuty.
+* `summary` - （必填）事件的简要文本摘要，用于生成任何相关警报的摘要/标题.
+* `severity` -（必填）事件描述的受影响系统状态的严重程度。允许的 Values 值：危急"、"警告"、"错误"、"信息
+* source` - （必填）受影响系统的唯一位置，最好是主机名或 FQDN。
+* `component` - 源计算机中对事件负责的组件。
+* `group` - 服务组件的逻辑分组。
+* `class` - 事件的类别/类型。
+* `url` - PagerDuty 中 "在 ArgoCD 中查看 "链接应引用的 URL。
 
-The `timestamp` and `custom_details` parameters are not currently supported.
+目前不支持 `timestamp` 和 `custom_details` 参数。
 
-## Annotation
+##notations
 
-Annotation sample for PagerDuty notifications:
+PagerDuty 通知的 Annotations 示例：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

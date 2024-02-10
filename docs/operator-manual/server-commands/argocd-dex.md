@@ -1,25 +1,25 @@
-# `argocd-dex` Command Reference
+<!-- TRANSLATED by md-translate -->
+# `argocd-dex` 命令参考
 
 ## argocd-dex
 
-argocd-dex tools used by Argo CD
+Argo CD 被引用的 argocd-dex 工具
 
-### Synopsis
+#### 简介
 
-argocd-dex has internal utility tools used by Argo CD
+argocd-dex 具有 Argo CD 被引用的内部实用工具
 
 ```
 argocd-dex [flags]
 ```
 
-### Options
+### 选项
 
 ```
-  -h, --help   help for argocd-dex
+-h, --help help for argocd-dex
 ```
 
-### SEE ALSO
+### 另见
 
-* [argocd-dex gendexcfg](argocd-dex_gendexcfg.md)	 - Generates a dex config from Argo CD settings
-* [argocd-dex rundex](argocd-dex_rundex.md)	 - Runs dex generating a config using settings from the Argo CD configmap and secret
-
+* [argocd-dex gendexcfg](argocd-dex_gendexcfg.md) - 根据 Argo CD 设置生成 dex 配置。
+* [argocd-dex rundex](argocd-dex_rundex.md) - 使用 Argo CD 配置表和 secrets 中的设置运行 dex 生成配置。

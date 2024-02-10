@@ -1,22 +1,23 @@
-# Alertmanager
+<!-- TRANSLATED by md-translate -->
+# 警报管理器
 
-## Parameters
+## 参数
 
-The notification service is used to push events to [Alertmanager](https://github.com/prometheus/alertmanager), and the following settings need to be specified:
+通知服务被用来向 [Alertmanager](https://github.com/prometheus/alertmanager) 推送事件，需要指定以下设置：
 
-* `targets` - the alertmanager service address, array type
-* `scheme` - optional, default is "http", e.g. http or https
-* `apiPath` - optional, default is "/api/v2/alerts"
-* `insecureSkipVerify` - optional, default is "false", when scheme is https whether to skip the verification of ca
-* `basicAuth` - optional, server auth
-* `bearerToken` - optional, server auth
-* `timeout` - optional, the timeout in seconds used when sending alerts, default is "3 seconds"
+* `targets` - 警报管理器服务地址，数组类型
+* `scheme` - 可选，默认为 "http"，例如 http 或 https
+* `apiPath` - 可选，默认为"/api/v2/alerts"。
+* `insecureSkipVerify` - 可选，默认为 "false"，当方案为 https 时，是否跳过 ca 验证
+* `basicAuth` - 可选，服务器验证
+* bearerToken` - 可选，服务器验证
+* `timeout` - 可选，发送警报时使用的超时（秒），默认为 "3 秒
 
-`basicAuth` or `bearerToken` is used for authentication, you can choose one. If the two are set at the same time, `basicAuth` takes precedence over `bearerToken`.
+如果同时设置了 "basicAuth "和 "bearerToken"，则 "basicAuth "优先于 "bearerToken"。
 
-## Example
+## 示例
 
-### Prometheus Alertmanager config
+### Prometheus Alertmanager 配置
 
 ```yaml
 global:
@@ -35,7 +36,7 @@ receivers:
     url: 'http://10.5.39.39:10080/api/alerts/webhook'
 ```
 
-You should turn off "send_resolved" or you will receive unnecessary recovery notifications after "resolve_timeout".
+应关闭 "send_resolved"，否则在 "resolve_timeout "后会收到不必要的恢复通知。
 
 ### Send one alertmanager without auth
 
@@ -50,9 +51,9 @@ data:
     - 10.5.39.39:9093
 ```
 
-### Send alertmanager cluster with custom api path
+### 使用自定义 api 路径发送警报管理器集群
 
-If your alertmanager has changed the default api, you can customize "apiPath".
+如果警报管理器更改了默认 api，则可以自定义 "apiPath"。
 
 ```yaml
 apiVersion: v1
@@ -68,9 +69,9 @@ data:
     insecureSkipVerify: true
 ```
 
-### Send high availability alertmanager with auth
+### 通过授权发送高可用性警报管理器
 
-Store auth token in `argocd-notifications-secret` Secret and use configure in `argocd-notifications-cm` ConfigMap.
+在 `argocd-notifications-secret` Secret 中存储认证令牌，并在 `argocd-notifications-cm` ConfigMap 中被引用。
 
 ```yaml
 apiVersion: v1
@@ -83,7 +84,7 @@ stringData:
   alertmanager-bearer-token: <token>
 ```
 
-- with basicAuth
+* 使用 basicAuth
 
 ```yaml
 apiVersion: v1
@@ -101,10 +102,10 @@ data:
     insecureSkipVerify: true
     basicAuth:
       username: $alertmanager-username
-      password: $alertmanager-password   
+      password: $alertmanager-password
 ```
 
-- with bearerToken
+* 有 bearerToken
 
 ```yaml
 apiVersion: v1
@@ -123,13 +124,13 @@ data:
     bearerToken: $alertmanager-bearer-token
 ```
 
-## Templates
+## 模板
 
-* `labels` - at least one label pair required, implement different notification strategies according to alertmanager routing
-* `annotations` - optional, specifies a set of information labels, which can be used to store longer additional information, but only for display
-* `generatorURL` - optional, default is '{{.app.spec.source.repoURL}}', backlink used to identify the entity that caused this alert in the client
+* `labels` - 至少需要一个标签对，根据警报管理器路由实现不同的通知策略
+* `annotations` - 可选，指定一组信息标签，可用于存储更长的附加信息，但仅用于显示
+* `generatorURL` - 可选，默认为"{{.app.spec.source.repoURL}}"，用于在客户端识别引起此警报的实体的反向链接
 
-the `label` or `annotations` or `generatorURL` values can be templated.
+label "或 "Annotations "或 "generatorURL "值可以模板化。
 
 ```yaml
 context: |
@@ -149,7 +150,7 @@ template.app-deployed: |
       message: "{{(call .repo.GetCommitMetadata .app.status.sync.revision).Message}}"
 ```
 
-You can do targeted push on [Alertmanager](https://github.com/prometheus/alertmanager) according to labels.
+您可以根据标签在 [Alertmanager](https://github.com/prometheus/alertmanager) 上进行定向推送。
 
 ```yaml
 template.app-deployed: |
@@ -161,4 +162,4 @@ template.app-deployed: |
       event_bucket: "deploy"
 ```
 
-There is a special label `alertname`. If you don’t set its value, it will be equal to the template name by default.
+有一个特殊标签 `alertname` 如果不设置其值，默认情况下就等于模板名称。

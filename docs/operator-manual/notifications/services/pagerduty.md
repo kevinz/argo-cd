@@ -1,17 +1,17 @@
+<!-- TRANSLATED by md-translate -->
 # PagerDuty
 
-## Parameters
+## 参数
 
-The PagerDuty notification service is used to create PagerDuty incidents and requires specifying the following settings:
+PagerDuty 通知服务被引用用于创建 PagerDuty 事件，需要指定以下设置：
 
-* `pagerdutyToken` - the PagerDuty auth token
-* `from` - email address of a valid user associated with the account making the request.
-* `serviceID` - The ID of the resource.
+* `pagerdutyToken` - PagerDuty 验证令牌
+* `from` - 与发出请求的账户相关联的有效用户的电子邮件地址。
+* `serviceID` - 资源的 ID。
 
+## 示例
 
-## Example
-
-The following snippet contains sample PagerDuty service configuration:
+以下代码段包含 PagerDuty 服务配置示例：
 
 ```yaml
 apiVersion: v1
@@ -33,9 +33,9 @@ data:
     from: <emailid>
 ```
 
-## Template
+## 模板
 
-[Notification templates](../templates.md) support specifying subject for PagerDuty notifications:
+[通知模板]（.../templates.md）支持为 PagerDuty 通知指定主题：
 
 ```yaml
 apiVersion: v1
@@ -52,11 +52,12 @@ data:
       priorityID: "<priorityID of incident>"
 ```
 
-NOTE: A Priority is a label representing the importance and impact of an incident. This is only available on Standard and Enterprise plans of pagerduty.
+注意： 优先级是一个标签，代表事件的重要性和影响。 只有标准计划和企业计划的 pagerduty 才有此功能。
 
-## Annotation
+##notations
 
-Annotation sample for pagerduty notifications:
+pagerduty 通知的 Annotation 样本：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout

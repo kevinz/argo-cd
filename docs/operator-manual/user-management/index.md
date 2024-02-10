@@ -1,25 +1,27 @@
-# Overview
+<!-- TRANSLATED by md-translate -->
+# 概览
 
-Once installed Argo CD has one built-in `admin` user that has full access to the system. It is recommended to use `admin` user only
-for initial configuration and then switch to local users or configure SSO integration.
+Argo CD 安装后有一个内置的 "admin "用户，可以完全访问系统。 建议仅在初始配置时使用 "admin "用户，然后切换到本地用户或配置 SSO 集成。
 
-## Local users/accounts
+## 本地用户/账户
 
-The local users/accounts feature serves two main use-cases:
+本地用户/账户功能有两个主要用途：
 
-* Auth tokens for Argo CD management automation. It is possible to configure an API account with limited permissions and generate an authentication token.
-Such token can be used to automatically create applications, projects etc.
-* Additional users for a very small team where use of SSO integration might be considered an overkill. The local users don't provide advanced features such as groups,
-login history etc. So if you need such features it is strongly recommended to use SSO.
+* 用于 Argo CD 管理自动化的认证令牌。可以配置具有有限权限的 API 账户，并生成认证令牌。
 
-!!! note
-    When you create local users, each of those users will need additional [RBAC rules](../rbac.md) set up, otherwise they will fall back to the default policy specified by `policy.default` field of the `argocd-rbac-cm` ConfigMap.
+这种令牌可被用来自动创建应用程序、项目等。
 
-The maximum length of a local account's username is 32.
+* 为规模很小的团队提供额外用户，在这种情况下，使用 SSO 集成可能会被认为是矫枉过正。本地用户不提供群组等高级功能、
 
-### Create new user
+因此，如果需要这些功能，强烈建议使用 SSO。
 
-New users should be defined in `argocd-cm` ConfigMap:
+注意 在创建本地用户时，每个用户都需要设置额外的 [RBAC 规则](../rbac.md)，否则他们将退回到 `argocd-rbac-cm` 配置地图的 `policy.default` 字段指定的默认策略。
+
+本地账户用户名的最大长度为 32。
+
+#### 创建新用户
+
+新用户应在 `argocd-cm` configMap 中定义：
 
 ```yaml
 apiVersion: v1
@@ -39,32 +41,32 @@ data:
   accounts.alice.enabled: "false"
 ```
 
-Each user might have two capabilities:
+每个用户可能有两种能力：
 
-* apiKey - allows generating authentication tokens for API access
-* login - allows to login using UI
+* apiKey - 允许为访问 API 生成身份验证令牌
+* 登录 - 允许使用用户界面登录
 
-### Delete user
+### 删除用户
 
-In order to delete a user, you must remove the corresponding entry defined in the `argocd-cm` ConfigMap:
+要删除用户，必须删除在 `argocd-cm` configMap 中定义的相应条目：
 
-Example:
+例如
 
 ```bash
 kubectl patch -n argocd cm argocd-cm --type='json' -p='[{"op": "remove", "path": "/data/accounts.alice"}]'
 ```
 
-It is recommended to also remove the password entry in the `argocd-secret` Secret:
+建议同时删除 `argocd-secret` Secret 中的密码条目：
 
-Example:
+例如
 
 ```bash
 kubectl patch -n argocd secrets argocd-secret --type='json' -p='[{"op": "remove", "path": "/data/accounts.alice.password"}]'
 ```
 
-### Disable admin user
+### 禁用管理员用户
 
-As soon as additional users are created it is recommended to disable `admin` user:
+一旦创建了其他用户，建议立即禁用 `admin` 用户：
 
 ```yaml
 apiVersion: v1
@@ -79,21 +81,24 @@ data:
   admin.enabled: "false"
 ```
 
-### Manage users
+### 管理用户
 
-The Argo CD CLI provides set of commands to set user password and generate tokens.
+Argo CD CLI 提供了一套设置用户密码和生成令牌的命令。
 
-* Get full users list
+* 获取完整的用户列表
+
 ```bash
 argocd account list
 ```
 
-* Get specific user details
+* 获取特定用户的详细信息
+
 ```bash
 argocd account get --account <username>
 ```
 
-* Set user password
+* 设置用户密码
+
 ```bash
 # if you are managing users as the admin user, <current-user-password> should be the current admin password.
 argocd account update-password \
@@ -102,83 +107,72 @@ argocd account update-password \
   --new-password <new-user-password>
 ```
 
-* Generate auth token
+* 生成授权令牌
+
 ```bash
 # if flag --account is omitted then Argo CD generates token for current user
 argocd account generate-token --account <username>
 ```
 
-### Failed logins rate limiting
+### 登录失败率限制
 
-Argo CD rejects login attempts after too many failed in order to prevent password brute-forcing.
-The following environments variables are available to control throttling settings:
+Argo CD 会在登录失败次数过多时拒绝登录尝试，以防止密码暴力破解。 以下环境变量可用于控制节流设置：
 
-* `ARGOCD_SESSION_FAILURE_MAX_FAIL_COUNT`: Maximum number of failed logins before Argo CD starts
-rejecting login attempts. Default: 5.
+* argocd_session_failure_max_fail_count`：Argo CD 启动前登录失败的最大次数
 
-* `ARGOCD_SESSION_FAILURE_WINDOW_SECONDS`: Number of seconds for the failure window.
-Default: 300 (5 minutes). If this is set to 0, the failure window is
-disabled and the login attempts gets rejected after 10 consecutive logon failures,
-regardless of the time frame they happened.
+拒绝登录尝试。 默认值：5。
 
-* `ARGOCD_SESSION_MAX_CACHE_SIZE`: Maximum number of entries allowed in the
-cache. Default: 1000
+* argocd_session_failure_window_seconds`：故障窗口的秒数。
 
-* `ARGOCD_MAX_CONCURRENT_LOGIN_REQUESTS_COUNT`: Limits max number of concurrent login requests.
-If set to 0 then limit is disabled. Default: 50.
+默认值：300（5 分钟）。 如果设置为 0，则会禁用失败窗口，登录尝试会在连续 10 次登录失败后被拒绝，无论失败发生在什么时间段。
+
+* argocd_session_max_cache_size"：中允许的最大条目数
+
+缓存。 默认值：1000
+
+* argocd_max_concurrent_login_requests_count`：限制最大并发登录请求数。
+
+默认值：50。
 
 ## SSO
 
-There are two ways that SSO can be configured:
+SSO 有两种配置方式：
 
-* [Bundled Dex OIDC provider](#dex) - use this option if your current provider does not support OIDC (e.g. SAML,
-  LDAP) or if you wish to leverage any of Dex's connector features (e.g. the ability to map GitHub
-  organizations and teams to OIDC groups claims). Dex also supports OIDC directly and can fetch user
-  information from the identity provider when the groups cannot be included in the IDToken.
-
-* [Existing OIDC provider](#existing-oidc-provider) - use this if you already have an OIDC provider which you are using (e.g.
-  [Okta](okta.md), [OneLogin](onelogin.md), [Auth0](auth0.md), [Microsoft](microsoft.md), [Keycloak](keycloak.md),
-  [Google (G Suite)](google.md)), where you manage your users, groups, and memberships.
+* [捆绑的 Dex OIDC Provider](#dex) - 如果您当前的 Provider 不支持 OIDC（如 SAML、
+LDAP），或希望利用 Dex 连接器的任何功能（如将 GitHub
+组织和团队映射到 OIDC 组索赔的功能）。Dex 还直接支持 OIDC，并能在群组声明时从身份提供商处获取用户信息。
+当组无法包含在 IDToken 中时，可从身份提供商处获取用户信息。
+* [现有 OIDC 提供商](#existing-oidc-provider) - 如果您已经有正在使用的 OIDC 提供商（例如
+[Okta]（okta.md）、[OneLogin]（onelogin.md）、[Auth0]（auth0.md）、[Microsoft]（microsoft.md）、[Keycloak]（keycloak.md）、
+[Google (G Suite)](google.md)) ，在这里你可以管理用户、群组和成员资格。
 
 ## Dex
 
-Argo CD embeds and bundles [Dex](https://github.com/dexidp/dex) as part of its installation, for the
-purpose of delegating authentication to an external identity provider. Multiple types of identity
-providers are supported (OIDC, SAML, LDAP, GitHub, etc...). SSO configuration of Argo CD requires
-editing the `argocd-cm` ConfigMap with
-[Dex connector](https://dexidp.io/docs/connectors/) settings.
+Argo CD 在安装时嵌入并捆绑了 [Dex](https://github.com/dexidp/dex)，目的是将身份验证委托给外部身份提供者。 支持多种类型的身份提供者（OIDC、SAML、LDAP、GitHub 等......）。Argo CD 的 SSO 配置需要使用 [Dex connector](https://dexidp.io/docs/connectors/) 设置编辑 `argocd-cm` ConfigMap。
 
-This document describes how to configure Argo CD SSO using GitHub (OAuth2) as an example, but the
-steps should be similar for other identity providers.
+本文档以 GitHub（OAuth2）为例，介绍了如何配置 Argo CD SSO，但其他身份 Provider 的步骤也应类似。
 
-### 1. Register the application in the identity provider
+#### 1.在身份 Providers 中注册应用程序
 
-In GitHub, register a new application. The callback address should be the `/api/dex/callback`
-endpoint of your Argo CD URL (e.g. `https://argocd.example.com/api/dex/callback`).
+在 GitHub 注册一个新应用程序，回调地址应为 Argo CD URL 的 `/api/dex/callback` 端点（例如 `https://argocd.example.com/api/dex/callback`）。
 
-![Register OAuth App](../../assets/register-app.png "Register OAuth App")
+![注册 OAuth 应用程序](.../.../assets/register-app.png "注册 OAuth 应用程序")
 
-After registering the app, you will receive an OAuth2 client ID and secret. These values will be
-inputted into the Argo CD configmap.
+注册应用程序后，您将收到一个 OAuth2 客户端 ID 和 secrets。 这些值将被输入 Argo CD configmaps。
 
-![OAuth2 Client Config](../../assets/oauth2-config.png "OAuth2 Client Config")
+![OAuth2 客户端配置](../../assets/oauth2-config.png "OAuth2 客户端配置")
 
-### 2. Configure Argo CD for SSO
+#### 2. 为 SSO 配置 Argo CD
 
-Edit the argocd-cm configmap:
+编辑 argocd-cm configmap：
 
 ```bash
 kubectl edit configmap argocd-cm -n argocd
 ```
 
-* In the `url` key, input the base URL of Argo CD. In this example, it is `https://argocd.example.com`
-* In the `dex.config` key, add the `github` connector to the `connectors` sub field. See Dex's
-  [GitHub connector](https://github.com/dexidp/website/blob/main/content/docs/connectors/github.md)
-  documentation for explanation of the fields. A minimal config should populate the clientID,
-  clientSecret generated in Step 1.
-* You will very likely want to restrict logins to one or more GitHub organization. In the
-  `connectors.config.orgs` list, add one or more GitHub organizations. Any member of the org will
-  then be able to login to Argo CD to perform management tasks.
+* 在 `url` 键中，输入 Argo CD 的基本 URL。本例中为 `https://argocd.example.com` 。
+* 在 `dex.config` 键中，将 `github` 连接器添加到 `connectors` 子字段。有关字段的解释，请参阅 Dex 的 [GitHub 连接器](https://github.com/dexidp/website/blob/main/content/docs/connectors/github.md) 文档。最低配置应填入在步骤 1 中生成的 clientID 和 clientSecret。
+* 你很可能想限制登录到一个或多个 GitHub 组织。在 `connectors.config.orgs` 列表中，添加一个或多个 GitHub 组织。这样，该组织的任何成员都能登录 Argo CD 执行管理任务。
 
 ```yaml
 data:
@@ -208,29 +202,26 @@ data:
           - name: your-github-org
 ```
 
-After saving, the changes should take affect automatically.
+保存后，更改将自动生效。
 
-NOTES:
+备注：
 
-* There is no need to set `redirectURI` in the `connectors.config` as shown in the dex documentation.
-  Argo CD will automatically use the correct `redirectURI` for any OAuth2 connectors, to match the
-  correct external callback URL (e.g. `https://argocd.example.com/api/dex/callback`)
-* When using a custom secret (e.g., `some_K8S_secret` above,) it *must* have the label `app.kubernetes.io/part-of: argocd`.
+* 无需如 dex 文档所示在 `connectors.config` 中设置 `redirectURI`。Argo CD 会自动为任何 OAuth2 连接器引用正确的 `redirectURI` 以匹配正确的外部回调 URL（例如 `https://argocd.example.com/api/dex/callback`）。
+* 当使用自定义秘密（例如上面的 `some_K8S_secret`）时，它 _must_ 必须有标签 `app.kubernetes.io/part-of: argocd`。
 
-## OIDC Configuration with DEX
+## 使用 DEX 进行 OIDC 配置
 
-Dex can be used for OIDC authentication instead of ArgoCD directly. This provides a separate set of
-features such as fetching information from the `UserInfo` endpoint and
-[federated tokens](https://dexidp.io/docs/custom-scopes-claims-clients/#cross-client-trust-and-authorized-party)
+Dex 可用于 OIDC 身份验证，而不是直接用于 ArgoCD。 这提供了一套单独的功能，如从 `UserInfo` 端点获取信息和[联合令牌](https://dexidp.io/docs/custom-scopes-claims-clients/#cross-client-trust-and-authorized-party)
 
-### Configuration:
-* In the `argocd-cm` ConfigMap add the `OIDC` connector to the `connectors` sub field inside `dex.config`.
-See Dex's [OIDC connect documentation](https://dexidp.io/docs/connectors/oidc/) to see what other
-configuration options might be useful. We're going to be using a minimal configuration here.
-* The issuer URL should be where Dex talks to the OIDC provider. There would normally be a
-`.well-known/openid-configuration` under this URL which has information about what the provider supports.
-e.g. https://accounts.google.com/.well-known/openid-configuration
+#### 配置：
 
+* 在 `argocd-cm` ConfigMap 中，将 `OIDC` 连接器添加到 `dex.config` 中的 `connectors` 子字段。
+
+请参阅 Dex 的 [OIDC connect 文档](https://dexidp.io/docs/connectors/oidc/)，了解还有哪些配置选项可能有用。我们将在此引用最低配置。
+
+* 发行商 URL 应是 Dex 与 OIDC Provider 对话的地址。通常会有一个
+
+该 URL 下的 `.well-known/openid-configuration` 包含有关 Provider 支持内容的信息，例如 https://accounts.google.com/.well-known/openid-configuration。
 
 ```yaml
 data:
@@ -247,12 +238,9 @@ data:
           clientSecret: $dex.oidc.clientSecret
 ```
 
-### Requesting additional ID token claims
+### 申请额外的身份令牌索赔
 
-By default Dex only retrieves the profile and email scopes. In order to retrieve more claims you
-can add them under the `scopes` entry in the Dex configuration. To enable group claims through Dex,
-`insecureEnableGroups` also needs to enabled. Group information is currently only refreshed at authentication
-time and support to refresh group information more dynamically can be tracked here: [dexidp/dex#1065](https://github.com/dexidp/dex/issues/1065).
+默认情况下，Dex 只检索个人资料和电子邮件范围。 要检索更多索赔，可以在 Dex 配置中的 "范围 "条目下添加索赔。 要通过 Dex 启用组索赔，还需要启用 "insecureEnableGroups"。 组信息目前只在身份验证时刷新，支持更动态地刷新组信息可在此处跟踪：[dexidp/dex#1065](https://github.com/dexidp/dex/issues/1065)。
 
 ```yaml
 data:
@@ -274,15 +262,11 @@ data:
           - groups
 ```
 
-!!! warning
-    Because group information is only refreshed at authentication time just adding or removing an account from a group will not change a user's membership until they reauthenticate. Depending on your organization's needs this could be a security risk and could be mitigated by changing the authentication token's lifetime.
+警告 由于组信息只在身份验证时刷新，因此在用户重新身份验证之前，从组中添加或删除帐户不会改变用户的成员资格。 这可能是一个安全风险，可根据贵组织的需要，通过更改身份验证令牌的有效期来降低风险。
 
-### Retrieving claims that are not in the token
+### 检索不在令牌中的 claims
 
-When an Idp does not or cannot support certain claims in an IDToken they can be retrieved separately using
-the UserInfo endpoint. Dex supports this functionality using the `getUserInfo` endpoint. One of the most
-common claims that is not supported in the IDToken is the `groups` claim and both `getUserInfo` and `insecureEnableGroups`
-must be set to true.
+当 Idp 不支持或无法支持 IDToken 中的某些 claims 时，可使用 UserInfo 端点单独检索这些 claims。 Dex 使用 `getUserInfo` 端点支持此功能。 IDToken 中不支持的最常见的 claims 之一是 `groups` claim，且 `getUserInfo` 和 `insecureEnableGroups` 必须都被引用为 true。
 
 ```yaml
 data:
@@ -305,10 +289,9 @@ data:
           getUserInfo: true
 ```
 
-## Existing OIDC Provider
+## 现有 OIDC 提供商
 
-To configure Argo CD to delegate authentication to your existing OIDC provider, add the OAuth2
-configuration to the `argocd-cm` ConfigMap under the `oidc.config` key:
+要配置 Argo CD 将身份验证委托给现有的 OIDC Provider，请将 OAuth2 配置添加到 `oidc.config` 键下的 `argocd-cm` ConfigMap 中：
 
 ```yaml
 data:
@@ -319,7 +302,7 @@ data:
     issuer: https://dev-123456.oktapreview.com
     clientID: aaaabbbbccccddddeee
     clientSecret: $oidc.okta.clientSecret
-    
+
     # Optional list of allowed aud claims. If omitted or empty, defaults to the clientID value above (and the 
     # cliClientID, if that is also specified). If you specify a list and want the clientID to be allowed, you must 
     # explicitly include it in the list.
@@ -352,22 +335,16 @@ data:
     enablePKCEAuthentication: true
 ```
 
-!!! note
-    The callback address should be the /auth/callback endpoint of your Argo CD URL
-    (e.g. https://argocd.example.com/auth/callback).
+注意 回调地址应为 Argo CD URL 的 /auth/callback 端点（如 https://argocd.example.com/auth/callback）。
 
-### Requesting additional ID token claims
+### 申请额外的身份令牌索赔
 
-Not all OIDC providers support a special `groups` scope. E.g. Okta, OneLogin and Microsoft do support a special
-`groups` scope and will return group membership with the default `requestedScopes`.
+并非所有 OIDC Provider 都支持特殊的 "组 "范围。 例如，Okta、OneLogin 和 Microsoft 确实支持特殊的 "组 "范围，并将使用默认的 "requestedScopes "返回组成员信息。
 
-Other OIDC providers might be able to return a claim with group membership if explicitly requested to do so.
-Individual claims can be requested with `requestedIDTokenClaims`, see
-[OpenID Connect Claims Parameter](https://connect2id.com/products/server/docs/guides/requesting-openid-claims#claims-parameter)
-for details. The Argo CD configuration for claims is as follows:
+如果明确提出请求，其他 OIDC 提供商可能会返回带有群组成员资格的 claims。 可以使用 `requestedIDTokenClaims` 请求单个 claims，详情请参见 [OpenID Connect Claims Parameter](https://connect2id.com/products/server/docs/guides/requesting-openid-claims#claims-parameter)。 Argo CD 对 claims 的配置如下：
 
 ```yaml
-  oidc.config: |
+oidc.config: |
     requestedIDTokenClaims:
       email:
         essential: true
@@ -381,16 +358,16 @@ for details. The Argo CD configuration for claims is as follows:
         - urn:mace:incommon:iap:bronze
 ```
 
-For a simple case this can be:
+一个简单的例子可以是
 
 ```yaml
-  oidc.config: |
+oidc.config: |
     requestedIDTokenClaims: {"groups": {"essential": true}}
 ```
 
-### Retrieving group claims when not in the token
+### 不在令牌中时检索组索赔
 
-Some OIDC providers don't return the group information for a user in the ID token, even if explicitly requested using the `requestedIDTokenClaims` setting (Okta for example). They instead provide the groups on the user info endpoint. With the following config, Argo CD queries the user info endpoint during login for groups information of a user:
+有些 OIDC 提供商即使使用 `requestedIDTokenClaims` 设置明确请求，也不会在 ID 令牌中返回用户的群组信息（例如 Okta）。 它们会在用户信息端点上提供群组信息。 通过以下配置，Argo CD 可在登录时查询用户信息端点，以获取用户的群组信息：
 
 ```yaml
 oidc.config: |
@@ -399,15 +376,14 @@ oidc.config: |
     userInfoCacheExpiration: "5m"
 ```
 
-**Note: If you omit the `userInfoCacheExpiration` setting or if it's greater than the expiration of the ID token, the argocd-server will cache group information as long as the ID token is valid!**
+**注意：如果省略了 `userInfoCacheExpiration` 设置，或者该设置大于 ID 令牌的有效期，则只要 ID 令牌有效，argocd-server 就会缓存组信息！ **
 
-### Configuring a custom logout URL for your OIDC provider
+###为 OIDC Provider 配置自定义注销 URL
 
-Optionally, if your OIDC provider exposes a logout API and you wish to configure a custom logout URL for the purposes of invalidating 
-any active session post logout, you can do so by specifying it as follows:
+另外，如果您的 OIDC Provider 提供注销 API，而您又希望配置自定义注销 URL，以便在注销后使任何活动会话失效，则可按如下方式指定该 URL：
 
 ```yaml
-  oidc.config: |
+oidc.config: |
     name: example-OIDC-provider
     issuer: https://example-OIDC-provider.example.com
     clientID: xxxxxxxxx
@@ -416,27 +392,24 @@ any active session post logout, you can do so by specifying it as follows:
     requestedIDTokenClaims: {"groups": {"essential": true}}
     logoutURL: https://example-OIDC-provider.example.com/logout?id_token_hint={{token}}
 ```
-By default, this would take the user to their OIDC provider's login page after logout. If you also wish to redirect the user back to Argo CD after logout, you can specify the logout URL as follows:
+
+默认情况下，这将在注销后将用户带至其 OIDC Provider 的登录页面。 如果还希望在注销后将用户重定向回 Argo CD，可按如下方式指定注销 URL：
 
 ```yaml
 ...
     logoutURL: https://example-OIDC-provider.example.com/logout?id_token_hint={{token}}&post_logout_redirect_uri={{logoutRedirectURL}}
 ```
 
-You are not required to specify a logoutRedirectURL as this is automatically generated by ArgoCD as your base ArgoCD url + Rootpath
+您无需指定注销重定向 URL，因为 ArgoCD 会自动将其生成为您的基本 ArgoCD 网址 + 根路径
 
-!!! note
-   The post logout redirect URI may need to be whitelisted against your OIDC provider's client settings for ArgoCD.
+注：注销后重定向 URI 可能需要根据 OIDC Provider 的 ArgoCD 客户端设置列入白名单。
 
-### Configuring a custom root CA certificate for communicating with the OIDC provider
+### 配置用于与 OIDC Provider 通信的自定义根 CA 证书
 
-If your OIDC provider is setup with a certificate which is not signed by one of the well known certificate authorities
-you can provide a custom certificate which will be used in verifying the OIDC provider's TLS certificate when
-communicating with it.  
-Add a `rootCA` to your `oidc.config` which contains the PEM encoded root certificate:
+如果您的 OIDC 提供商使用的证书不是由知名证书颁发机构签署的，您可以提供自定义证书，该证书将在与 OIDC 提供商通信时用于验证其 TLS 证书。 在您的 `oidc.config` 中添加`rootCA`，其中包含 PEM 编码的根证书：
 
 ```yaml
-  oidc.config: |
+oidc.config: |
     ...
     rootCA: |
       -----BEGIN CERTIFICATE-----
@@ -444,21 +417,21 @@ Add a `rootCA` to your `oidc.config` which contains the PEM encoded root certifi
       -----END CERTIFICATE-----
 ```
 
+## SSO 延伸阅读
 
-## SSO Further Reading
+#### 敏感数据和 SSO 客户端秘密
 
-### Sensitive Data and SSO Client Secrets
+`argocd-secret` 可用于存储可被 ArgoCD 引用的敏感数据。 configmaps 中以 `$` 开头的值解释如下：
 
-`argocd-secret` can be used to store sensitive data which can be referenced by ArgoCD. Values starting with `$` in configmaps are interpreted as follows:
+* 如果 Values 的形式为`$<secret>:a.key.in.k8s.secret` 则查找名称为 `<secret>`（去掉 `$`）的 k8s secret，并读取其值。
+* 否则，在 k8s secret 中查找名为 `argocd-secret` 的密钥。
 
-- If value has the form: `$<secret>:a.key.in.k8s.secret`, look for a k8s secret with the name `<secret>` (minus the `$`), and read its value. 
-- Otherwise, look for a key in the k8s secret named `argocd-secret`. 
+#### 示例
 
-#### Example
+因此，SSO 的 "客户端秘密 "可以存储为 Kubernetes 的秘密，配置清单如下
 
-SSO `clientSecret` can thus be stored as a Kubernetes secret with the following manifests
+`argocd-secret`：
 
-`argocd-secret`:
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -477,7 +450,8 @@ data:
   ...
 ```
 
-`argocd-cm`:
+argocd-cm`：
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -498,17 +472,18 @@ data:
   ...
 ```
 
-#### Alternative
+#### 替代方案
 
-If you want to store sensitive data in **another** Kubernetes `Secret`, instead of `argocd-secret`. ArgoCD knows to check the keys under `data` in your Kubernetes `Secret` for a corresponding key whenever a value in a configmap starts with `$`, then your Kubernetes `Secret` name and `:` (colon).
+如果您想将敏感数据存储在另一个*** Kubernetes `Secret`中，而不是`argocd-secret`中，ArgoCD知道，只要配置maps中的值以`$`开头，然后是您的Kubernetes `Secret`名称和`:`（冒号），ArgoCD就会检查您的Kubernetes `Secret`中`data`下的键是否有相应的键。
 
-Syntax: `$<k8s_secret_name>:<a_key_in_that_k8s_secret>`
+语法： `$<k8s_secret_name>:<a_key_in_that_k8s_secret>`
 
-> NOTE: Secret must have label `app.kubernetes.io/part-of: argocd`
+&gt; 注意：Secret 必须带有标签`app.kubernetes.io/part-of:argocd`。
 
-##### Example
+##### 示例
 
-`another-secret`:
+`another-secret`：
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -526,7 +501,8 @@ data:
   ...
 ```
 
-`argocd-cm`:
+argocd-cm`：
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -546,19 +522,13 @@ data:
   ...
 ```
 
-### Skipping certificate verification on OIDC provider connections
+### 跳过 OIDC Providers 连接上的证书验证
 
-By default, all connections made by the API server to OIDC providers (either external providers or the bundled Dex
-instance) must pass certificate validation. These connections occur when getting the OIDC provider's well-known
-configuration, when getting the OIDC provider's keys, and  when exchanging an authorization code or verifying an ID 
-token as part of an OIDC login flow.
+默认情况下，API 服务器与 OIDC Provider（外部 Provider 或捆绑的 Dex 实例）建立的所有连接都必须通过证书验证。 这些连接发生在获取 OIDC Provider 的知名配置、获取 OIDC Provider 的密钥以及交换授权码或验证 ID 令牌（作为 OIDC 登录流程的一部分）时。
 
-Disabling certificate verification might make sense if:
-* You are using the bundled Dex instance **and** your Argo CD instance has TLS configured with a self-signed certificate
-  **and** you understand and accept the risks of skipping OIDC provider cert verification.
-* You are using an external OIDC provider **and** that provider uses an invalid certificate **and** you cannot solve
-  the problem by setting `oidcConfig.rootCA` **and** you understand and accept the risks of skipping OIDC provider cert 
-  verification.
+在下列情况下，禁用证书验证可能是合理的
 
-If either of those two applies, then you can disable OIDC provider certificate verification by setting
-`oidc.tls.insecure.skip.verify` to `"true"` in the `argocd-cm` ConfigMap.
+* 您正在使用捆绑的 Dex 实例 ****您的 Argo CD 实例使用自签名证书配置了 TLS ****您理解并接受跳过 OIDC 提供商证书验证的风险。
+* 您正在使用外部 OIDC Providers ***该 Providers 使用了无效证书 ***您无法通过设置 `oidcConfig.rootCA` 解决问题 ***您理解并接受跳过 OIDC Providers 证书验证的风险。
+
+如果上述两种情况之一适用，则可以通过在 `argocd-cm` ConfigMap 中将 `oidc.tls.insecure.skip.verify` 设置为 `"true"，禁用 OIDC Provider 证书验证。

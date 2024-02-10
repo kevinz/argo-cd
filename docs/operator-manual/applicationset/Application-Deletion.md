@@ -1,29 +1,31 @@
-# Application Pruning & Resource Deletion
+<!-- TRANSLATED by md-translate -->
+# 应用程序修剪和资源删除
 
-All `Application` resources created by the ApplicationSet controller (from an ApplicationSet) will contain:
+ApplicationSet 控制器（从 ApplicationSet）创建的所有 `Application` 资源都将包含：
 
-- A `.metadata.ownerReferences` reference back to the *parent* `ApplicationSet` resource
-- An Argo CD `resources-finalizer.argocd.argoproj.io` finalizer in `.metadata.finalizers` of the Application if `.syncPolicy.preserveResourcesOnDeletion` is set to false.
+* 返回到_parent_ `ApplicationSet`资源的`.metadata.ownerReferences`引用
+* 如果 `.syncPolicy.preserveResourcesOnDeletion` 设置为 false，应用程序的 `.metadata.finalizers` 中会出现 Argo CD `resources-finalizer.argocd.argoproj.io` finalizer。
 
-The end result is that when an ApplicationSet is deleted, the following occurs (in rough order):
+最终结果是，当删除一个 ApplicationSet 时，会发生以下情况（按大致顺序）：
 
-- The `ApplicationSet` resource itself is deleted
-- Any `Application` resources that were created from this `ApplicationSet` (as identified by owner reference)
-- Any deployed resources (`Deployments`, `Services`, `ConfigMaps`, etc) on the managed cluster, that were created from that `Application` resource (by Argo CD), will be deleted.
-    - Argo CD is responsible for handling this deletion, via [the deletion finalizer](../../../user-guide/app_deletion/#about-the-deletion-finalizer).
-    - To preserve deployed resources, set `.syncPolicy.preserveResourcesOnDeletion` to true in the ApplicationSet.
+* 删除 `ApplicationSet` 资源本身
+* 从该 `ApplicationSet` 创建的任何 `Application` 资源（通过 Owners 引用识别）
+* 将删除（Argo CD）从该 "应用程序 "资源创建的受管集群上的任何已部署资源（"部署"、"服务"、"配置地图 "等）。
+    - Argo CD 负责通过[the deletion finalizer]（.../.../.../user-guide/app_deletion/#about-the-deletion-finalizer）处理该删除。
+    - 要保留已部署的资源，请在 ApplicationSet 中将 `.syncPolicy.preserveResourcesOnDeletion` 设为 true。
 
-Thus the lifecycle of the `ApplicationSet`, the `Application`, and the `Application`'s resources, are equivalent.
+因此，"ApplicationSet"、"Application "和 "Application "资源的生命周期是等同的。
 
-!!! note
-    See also the [controlling resource modification](Controlling-Resource-Modification.md) page for more information about how to prevent deletion or modification of Application resources by the ApplicationSet controller.
+注意 另请参阅 [控制资源修改](Controlling-Resource-Modification.md) 页面，了解有关如何防止 ApplicationSet 控制器删除或修改应用程序资源的更多信息。
 
-It *is* still possible to delete an `ApplicationSet` resource, while preventing `Application`s (and their deployed resources) from also being deleted, using a non-cascading delete:
+使用非级联删除，仍有可能删除 `ApplicationSet` 资源，同时防止 `Application` （及其部署的资源）也被删除：
+
 ```
 kubectl delete ApplicationSet (NAME) --cascade=orphan
 ```
 
-!!! warning
-    Even if using a non-cascaded delete, the `resources-finalizer.argocd.argoproj.io` is still specified on the `Application`. Thus, when the `Application` is deleted, all of its deployed resources will also be deleted. (The lifecycle of the Application, and its *child* objects, are still equivalent.)
+!!! 警告 即使使用非级联删除，"resources-finalizer.argocd.argoproj.io "仍会在 "Application "上指定。 因此，当 "Application "被删除时，其部署的所有资源也将被删除（"Application "及其_child_对象的生命周期仍是等价的）。
 
-    To prevent the deletion of the resources of the Application, such as Services, Deployments, etc, set `.syncPolicy.preserveResourcesOnDeletion` to true in the ApplicationSet. This syncPolicy parameter prevents the finalizer from being added to the Application.
+```
+To prevent the deletion of the resources of the Application, such as Services, Deployments, etc, set `.syncPolicy.preserveResourcesOnDeletion` to true in the ApplicationSet. This syncPolicy parameter prevents the finalizer from being added to the Application.
+```

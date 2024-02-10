@@ -1,27 +1,23 @@
-# Cluster Bootstrapping
+<!-- TRANSLATED by md-translate -->
+# 集群引导
 
-This guide is for operators who have already installed Argo CD, and have a new cluster and are looking to install many apps in that cluster.
+本指南适用于已安装 Argo CD 的操作员，他们拥有一个新的集群，并希望在该集群中安装许多应用程序。
 
-There's no one particular pattern to solve this problem, e.g. you could write a script to create your apps, or you could even manually create them. However, users of Argo CD tend to use the **app of apps pattern**.
+要解决这个问题，并没有一个特定的模式，例如，你可以编写一个脚本来创建应用程序，甚至可以手动创建。 不过，Argo CD 的用户倾向于使用应用程序的***模式。
 
-!!!warning "App of Apps is an admin-only tool"
-    The ability to create Applications in arbitrary [Projects](./declarative-setup.md#projects) 
-    is an admin-level capability. Only admins should have push access to the parent Application's source repository. 
-    Admins should review pull requests to that repository, paying particular attention to the `project` field in each 
-    Application. Projects with access to the namespace in which Argo CD is installed effectively have admin-level 
-    privileges.
+在任意[项目](./declarative-setup.md#projects)中创建应用程序的能力是管理员级别的能力。 只有管理员才有推送访问父应用程序源代码库的权限。 管理员应审查对该源代码库的拉取请求，特别注意每个应用程序中的 "项目 "字段。 可以访问安装 Argo CD 的命名空间的项目实际上拥有管理员级别的权限。
 
-## App Of Apps Pattern
+## Apps Of Apps Pattern
 
-[Declaratively](declarative-setup.md) specify one Argo CD app that consists only of other apps.
+[声明式](declarative-setup.md) 指定一个 Argo CD 应用程序，该程序只由其他应用程序组成。
 
-![Application of Applications](../assets/application-of-applications.png)
+应用程序的应用](.../assets/application-of-applications.png)
 
-### Helm Example
+### Helm 示例
 
-This example shows how to use Helm to achieve this. You can, of course, use another tool if you like.
+本例展示了如何使用 helm 来实现这一目标。 当然，如果您愿意，也可以使用其他工具。
 
-A typical layout of your Git repository for this might be:
+为此，Git 仓库的典型布局可以是
 
 ```
 ├── Chart.yaml
@@ -33,9 +29,9 @@ A typical layout of your Git repository for this might be:
 └── values.yaml
 ```
 
-`Chart.yaml` is boiler-plate.
+Chart.yaml` 是模板。
 
-`templates` contains one file for each child app, roughly:
+templates "大致为每个子应用程序包含一个文件：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -54,15 +50,15 @@ spec:
     path: guestbook
     repoURL: https://github.com/argoproj/argocd-example-apps
     targetRevision: HEAD
-``` 
+```
 
-The sync policy to automated + prune, so that child apps are automatically created, synced, and deleted when the manifest is changed, but you may wish to disable this. I've also added the finalizer, which will ensure that your apps are deleted correctly.
+同步策略为自动+剪枝，因此子应用会在配置清单发生变化时自动创建、同步和删除，但你可能希望禁用这一点。 我还添加了Finalizer，它可以确保你的应用被正确删除。
 
-Fix the revision to a specific Git commit SHA to make sure that, even if the child apps repo changes, the app will only change when the parent app change that revision. Alternatively, you can set it to HEAD or a branch name.
+将修订版本固定为特定的 Git 提交 SHA，以确保即使子应用程序的 repo 发生变化，应用程序也只会在父应用程序更改该修订版本时才会发生变化。 或者，也可以将其设置为 HEAD 或分支名称。
 
-As you probably want to override the cluster server, this is a templated values.
+由于您可能希望覆盖集群服务器，因此这是一个模板值。
 
-`values.yaml` contains the default values:
+`values.yaml` 包含默认值：
 
 ```yaml
 spec:
@@ -70,7 +66,7 @@ spec:
     server: https://kubernetes.default.svc
 ```
 
-Next, you need to create and sync your parent app, e.g. via the CLI:
+接下来，您需要创建并同步父应用程序，例如通过 CLI：
 
 ```bash
 argocd app create apps \
@@ -78,36 +74,34 @@ argocd app create apps \
     --dest-server https://kubernetes.default.svc \
     --repo https://github.com/argoproj/argocd-example-apps.git \
     --path apps  
-argocd app sync apps  
+argocd app sync apps
 ```
 
-The parent app will appear as in-sync but the child apps will be out of sync:
+父应用程序将显示为同步，但子应用程序将不同步：
 
-![New App Of Apps](../assets/new-app-of-apps.png)
+新应用中的新应用](.../assets/new-app-of-apps.png)
 
-> NOTE: You may want to modify this behavior to bootstrap your cluster in waves; see [v1.8 upgrade notes](upgrading/1.7-1.8.md) for information on changing this.
+&gt; 注意：您可能需要修改此行为，以便以波浪方式启动集群；有关修改的信息，请参阅 [v1.8 升级说明](upgrading/1.7-1.8.md)。
 
-You can either sync via the UI, firstly filter by the correct label:
+您可以通过用户界面进行同步，首先根据正确的标签进行筛选：
 
-![Filter Apps](../assets/filter-apps.png)
+过滤器应用程序](../assets/filter-apps.png)
 
-Then select the "out of sync" apps and sync: 
+然后选择 "不同步 "应用程序并同步：
 
-![Sync Apps](../assets/sync-apps.png)
+同步应用程序](.../assets/sync-apps.png)
 
-Or, via the CLI: 
+或通过 CLI：
 
 ```bash
 argocd app sync -l app.kubernetes.io/instance=apps
 ```
 
-View [the example on GitHub](https://github.com/argoproj/argocd-example-apps/tree/master/apps).
+查看 [GitHub 上的示例](https://github.com/argoproj/argocd-example-apps/tree/master/apps)。
 
+### 级联删除.
 
-
-### Cascading deletion
-
-If you want to ensure that child-apps and all of their resources are deleted when the parent-app is deleted make sure to add the appropriate [finalizer](../user-guide/app_deletion.md#about-the-deletion-finalizer) to your `Application` definition
+如果要确保在删除父应用程序时删除子应用程序及其所有资源，请确保在 "应用程序 "定义中添加适当的 [finalizer](../user-guide/app_deletion.md#about-the-deletion-finalizer)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -119,4 +113,4 @@ metadata:
   - resources-finalizer.argocd.argoproj.io
 spec:
  ...
-``` 
+```

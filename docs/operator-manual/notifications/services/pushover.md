@@ -1,7 +1,8 @@
+<!-- TRANSLATED by md-translate -->
 # Pushover
 
-1. Create an app at [pushover.net](https://pushover.net/apps/build).
-2. Store the API key in `<secret-name>` Secret and define the secret name in `<config-map-name>` ConfigMap:
+1.在 [pushover.net](https://pushover.net/apps/build) 上创建应用程序。
+2.将 API 密钥存储在 `<secret-name>` Secret 中，并在 `<config-map-name>` ConfigMap 中定义秘密名称：
 
 ```yaml
 apiVersion: v1
@@ -22,7 +23,7 @@ stringData:
   pushover-token: avtc41pn13asmra6zaiyf7dh6cgx97
 ```
 
-3. Add your user key to your Application resource:
+3.将用户密钥添加到应用程序资源中：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1

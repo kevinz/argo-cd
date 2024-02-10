@@ -1,10 +1,7 @@
-The trigger defines the condition when the notification should be sent. The definition includes name, condition
-and notification templates reference. The condition is a predicate expression that returns true if the notification
-should be sent. The trigger condition evaluation is powered by [antonmedv/expr](https://github.com/antonmedv/expr).
-The condition language syntax is described at [language-definition.md](https://github.com/antonmedv/expr/blob/master/docs/language-definition.md).
+<!-- TRANSLATED by md-translate -->
+触发器定义了应发送通知的条件。 定义包括名称、条件和通知模板引用。 条件是一个谓词表达式，如果应发送通知，则返回 true。 触发器条件评估由 [antonmedv/expr](https://github.com/antonmedv/expr) 提供。条件语言语法在 [language-definition.md](https://github.com/antonmedv/expr/blob/master/docs/language-definition.md) 中描述。
 
-The trigger is configured in the `argocd-notifications-cm` ConfigMap. For example the following trigger sends a notification
-when application sync status changes to `Unknown` using the `app-sync-status` template:
+触发器在 `argocd-notifications-cm` ConfigMap 中配置。 例如，以下触发器使用 `app-sync-status` 模板在应用程序同步状态变为 `Unknown` 时发送通知：
 
 ```yaml
 apiVersion: v1
@@ -17,16 +14,11 @@ data:
       send: [app-sync-status, github-commit-status] # template names
 ```
 
-Each condition might use several templates. Typically, each template is responsible for generating a service-specific notification part.
-In the example above, the `app-sync-status` template "knows" how to create email and Slack notification, and `github-commit-status` knows how to
-generate the payload for GitHub webhook.
+每个条件可能会使用多个模板。 通常，每个模板负责生成特定服务的通知部分。 在上面的示例中，"app-sync-status "模板 "知道 "如何创建电子邮件和 Slack 通知，而 "github-commit-status "则知道如何为 GitHub webhook 生成有效载荷。
 
-## Conditions Bundles
+## 条件捆绑
 
-Triggers are typically managed by administrators and encapsulate information about when and which notification should be sent.
-The end users just need to subscribe to the trigger and specify the notification destination. In order to improve user experience
-triggers might include multiple conditions with a different set of templates for each condition. For example, the following trigger
-covers all stages of sync status operation and use a different template for different cases:
+触发器通常由管理员管理，封装了有关何时以及应发送哪种通知的信息。 最终用户只需订阅触发器并指定通知目的地即可。 为改善用户体验，触发器可能包含多个条件，每个条件有一套不同的模板。 例如，以下触发器涵盖同步状态操作的所有阶段，并针对不同情况使用不同的模板：
 
 ```yaml
 apiVersion: v1
@@ -43,13 +35,9 @@ data:
       send: [app-sync-failed, github-commit-status]
 ```
 
-## Avoid Sending Same Notification Too Often
+### 避免频繁发送相同的通知
 
-In some cases, the trigger condition might be "flapping". The example below illustrates the problem.
-The trigger is supposed to generate a notification once when Argo CD application is successfully synchronized and healthy.
-However, the application health status might intermittently switch to `Progressing` and then back to `Healthy` so the trigger might unnecessarily generate
-multiple notifications. The `oncePer` field configures triggers to generate the notification only when the corresponding application field changes.
-The `on-deployed` trigger from the example below sends the notification only once per observed Git revision of the deployment repository.
+在某些情况下，触发器条件可能会 "闪烁"。 下面的示例说明了这个问题。 触发器本应在 Argo CD 应用程序成功同步且健康时生成一次通知。 然而，应用程序的健康状态可能会间歇性地切换为 "进行中"，然后又切换回 "健康"，因此触发器可能会不必要地生成多个通知。 每一次 "字段可将触发器配置为仅在相应的应用程序字段发生变化时才生成通知。 下面示例中的 "部署时 "触发器仅在每次观察到部署仓库的 Git 修订版本时发送一次通知。
 
 ```yaml
 apiVersion: v1
@@ -67,11 +55,11 @@ data:
 
 **Mono Repo Usage**
 
-When one repo is used to sync multiple applications, the `oncePer: app.status.sync.revision` field will trigger a notification for each commit. For mono repos, the better approach will be using `oncePer: app.status.operationState.syncResult.revision` statement. This way a notification will be sent only for a particular Application's revision.
+当一个 repo 被用于同步多个应用程序时，"oncePer: app.status.sync.revision" 字段将为每次提交触发通知。 对于单 repo，更好的方法是使用 "oncePer: app.status.operationState.syncResult.revision" 语句。 这样，通知将只针对特定应用程序的修订。
 
-### oncePer
+### 一次
 
-The `oncePer` filed is supported like as follows.
+oncePer "文件的支持方式如下。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -85,9 +73,9 @@ metadata:
 oncePer: app.metadata.annotations["example.com/version"]
 ```
 
-## Default Triggers
+## 默认触发器
 
-You can use `defaultTriggers` field instead of specifying individual triggers to the annotations.
+您可以使用 `defaultTriggers` 字段来代替为 Annotations 指定单个触发器。
 
 ```yaml
 apiVersion: v1
@@ -104,7 +92,7 @@ data:
     - on-sync-succeeded
 ```
 
-Specify the annotations as follows to use `defaultTriggers`. In this example, `slack` sends when `on-sync-status-unknown`, and `mattermost` sends when `on-sync-running` and `on-sync-succeeded`.
+指定以下 Annotations 以使用 `defaultTriggers`. 在本例中，`slack` 在 `on-sync-status-unknown` 时发送，`mattermost` 在 `on-sync-running` 和 `on-sync-succeeded` 时发送。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -115,14 +103,14 @@ metadata:
     notifications.argoproj.io/subscribe.mattermost: my-mattermost-channel
 ```
 
-## Functions
+## 功能
 
-Triggers have access to the set of built-in functions.
+触发器可以访问内置函数集。
 
-Example:
+例如
 
 ```yaml
 when: time.Now().Sub(time.Parse(app.status.operationState.startedAt)).Minutes() >= 5
 ```
 
-{!docs/operator-manual/notifications/functions.md!}
+{! docs/operator-manual/notifications/functions.md! }

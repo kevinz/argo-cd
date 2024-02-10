@@ -1,103 +1,111 @@
+<!-- TRANSLATED by md-translate -->
 # Zitadel
-Please also consult the [Zitadel Documentation](https://zitadel.com/docs).
-## Integrating Zitadel and ArgoCD
-These instructions will take you through the entire process of getting your ArgoCD application authenticating and authorizing with Zitadel. You will create an application within Zitadel and configure ArgoCD to use Zitadel for authentication using roles set in Zitadel to determine privileges in ArgoCD.
 
-The following steps are required to integrate ArgoCD with Zitadel:
-1. Create a new project and a new application in Zitadel
-2. Configure the application in Zitadel
-3. Set up roles in Zitadel
-4. Set up an action in Zitadel
-5. Configure ArgoCD configmaps
-6. Test the setup
+还请查阅 [Zitadel 文档](https://zitadel.com/docs)。
 
-The following values will be used in this example:
-- Zitadel FQDN: `auth.example.com`
-- Zitadel Project: `argocd-project`
-- Zitadel Application: `argocd-application`
-- Zitadel Action: `groupsClaim`
-- ArgoCD FQDN: `argocd.example.com`
-- ArgoCD Administrator Role: `argocd_administrators`
-- ArgoCD User Role: `argocd_users`
+## 整合 Zitadel 和 ArgoCD
 
-You may choose different values in your setup; these are used to keep the guide consistent.
+您将在 Zitadel 中创建一个应用程序，并配置 ArgoCD 使用 Zitadel 进行身份验证，使用 Zitadel 中设置的角色来确定 ArgoCD 中的权限。
 
-## Setting up your project and application in Zitadel
-First, we will create a new project within Zitadel. Go to **Projects** and select **Create New Project**.  
-You should now see the following screen.  
+将 ArgoCD 与 Zitadel 整合需要以下步骤：
 
-![Zitadel Project](../../assets/zitadel-project.png "Zitadel Project")
+1.在 Zitadel 中创建新项目和新应用程序
+2.在 Zitadel 中配置应用程序
+3.在 Zitadel 中设置角色
+4.在 Zitadel 中设置操作
+5.配置 ArgoCD configmaps
+6.测试设置
 
-Check the following options:
-- Assert Roles on Authentication
-- Check authorization on Authentication
+本例将被引用以下 Values 值：
 
-![Zitadel Project Settings](../../assets/zitadel-project-settings.png "Zitadel Project Settings")
+* Zitadel FQDN：`auth.example.com`。
+* Zitadel 项目： `argocd-project
+* Zitadel 应用程序：`argocd-application
+* Zitadel 操作：`groupsClaim
+* ArgoCD FQDN：`argocd.example.com
+* ArgoCD 管理员角色：`argocd_administrators
+* ArgoCD 用户角色：`argocd_users
 
-### Roles
+您可以在设置中选择不同的 Values；这些 Values 被引用来保持指南的一致性。
 
-Go to **Roles** and click **New**. Create the following two roles. Use the specified values below for both fields **Key** and **Group**.
-- `argocd_administrators`
-- `argocd_users`
+## 在 Zitadel 中设置项目和应用程序
 
-Your roles should now look like this:
+首先，我们将在 Zitadel 中创建一个新项目。 进入**项目**，选择**创建新项目**。 现在您应该看到以下屏幕。
 
-![Zitadel Project Roles](../../assets/zitadel-project-roles.png "Zitadel Project Roles")
+![Zitadel项目](../../assets/zitadel-project.png "Zitadel项目")
 
-### Authorizations
+检查以下选项：
 
-Next, go to **Authorizations** and assign your user the role `argocd_administrators`.
-Click **New**, enter the name of your user and click **Continue**. Select the role `argocd_administrators` and click **Save**.
+* 在身份验证时证明角色
+* 在身份验证时检查授权
 
-Your authorizations should now look like this:
+![Zitadel 项目设置](.../../assets/zitadel-project-settings.png "Zitadel 项目设置")
 
-![Zitadel Project Authorizations](../../assets/zitadel-project-authorizations.png "Zitadel Project Authorizations")
+### 角色
 
-### Creating an application
+转到**角色**，点击**新建**。 创建以下两个角色。 在**键**和**组**字段中都被引用指定值。
 
-Go to **General** and create a new application. Name the application `argocd-application`.
+* 管理员
+* 用户
 
-For type of the application, select **WEB** and click continue.
+您的角色现在应该是这样的：
 
-![Zitadel Application Setup Step 1](../../assets/zitadel-application-1.png "Zitadel Application Setup Step 1")
+![Zitadel 项目角色](../../assets/zitadel-project-roles.png "Zitadel 项目角色")
 
-Select **CODE** and continue.
+#### 授权
 
-![Zitadel Application Setup Step 2](../../assets/zitadel-application-2.png "Zitadel Application Setup Step 2")
+接下来，进入**授权**，为用户分配角色 "argocd_administrators"。 单击**新建**，输入用户名，然后单击**继续**。 选择角色 "argocd_administrators"，然后单击**保存**。
 
-Next, we will set up the redirect and post-logout URIs. Set the following values:
-- Redirect URI: `https://argocd.example.com/auth/callback`
-- Post Logout URI: `https://argocd.example.com`
+您的授权现在应该是这样的：
 
-The post logout URI is optional. In the example setup users will be taken back to the ArgoCD login page after logging out.
+![Zitadel 项目授权](../../assets/zitadel-project-authorizations.png "Zitadel 项目授权")
 
-![Zitadel Application Setup Step 3](../../assets/zitadel-application-3.png "Zitadel Application Setup Step 3")
+### 创建应用程序
 
-Verify your configuration on the next screen and click **Create** to create the application.
+转到**常规**，创建一个新应用程序。 将应用程序命名为 "argocd-application"。
 
-![Zitadel Application Setup Step 4](../../assets/zitadel-application-4.png "Zitadel Application Setup Step 4")
+在应用程序类型中，选择 **WEB**，然后单击继续。
 
-After clicking **Create** you will be shown the `ClientId` and the `ClientSecret` for your application. Make sure to copy the ClientSecret as you will not be able to retrieve it after closing this window.  
-For our example, the following values are used:
-- ClientId: `227060711795262483@argocd-project`
-- ClientSecret: `UGvTjXVFAQ8EkMv2x4GbPcrEwrJGWZ0sR2KbwHRNfYxeLsDurCiVEpa5bkgW0pl0`
+![Zitadel 应用程序设置步骤 1](../../assets/zitadel-application-1.png "Zitadel 应用程序设置步骤 1")
 
-![Zitadel Application Secrets](../../assets/zitadel-application-secrets.png "Zitadel Application Secrets")
+选择 **代码**，然后继续。
 
-Once you have saved the ClientSecret in a safe place, click **Close** to complete creating the application.
+![Zitadel 应用程序设置步骤 2](../../assets/zitadel-application-2.png "Zitadel 应用程序设置步骤 2")
 
-Go to **Token Settings** and enable the following options:  
-- User roles inside ID Token
-- User Info inside ID Token
+接下来，我们将设置重定向和注销后 URI。 设置以下 Values：
 
-![Zitadel Application Settings](../../assets/zitadel-application-settings.png "Zitadel Application Settings")
+* 重定向 URI： `https://argocd.example.com/auth/callback`
+* 注销后 URI： `https://argocd.example.com`
 
-## Setting up an action in Zitadel
+注销后 URI 为可选项，在示例设置中，用户注销后将返回 ArgoCD 登录页面。
 
-To include the role of the user in the token issued by Zitadel, we will need to set up a Zitadel Action. The authorization in ArgoCD will be determined by the role contained within the auth token.  
-Go to **Actions**, click **New** and choose `groupsClaim` as the name of your action.
+![Zitadel 应用程序设置步骤 3](../../assets/zitadel-application-3.png "Zitadel 应用程序设置步骤 3")
 
-Paste the following code into the action:
+在下一屏幕中确认配置，然后单击 **Create** 创建应用程序。
+
+![Zitadel 应用程序设置步骤 4](../../assets/zitadel-application-4.png "Zitadel 应用程序设置步骤 4")
+
+点击 **Create** 后，您将看到应用程序的 "ClientId "和 "ClientSecret"。 请务必复制 "ClientSecret"，因为关闭此窗口后将无法检索。 在我们的示例中，被引用的 Values 如下：
+
+* ClientId：`227060711795262483@argocd-project`
+* ClientSecret: `UGvTjXVFAQ8EkMv2x4GbPcrEwrJGWZ0sR2KbwHRNfYxeLsDurCiVEpa5bkgW0pl0`
+
+![Zitadel 应用秘密]( ../../assets/zitadel-application-secrets.png "Zitadel 应用秘密")
+
+将客户机密保存到安全位置后，单击**关闭**完成应用程序的创建。
+
+进入**令牌设置**，启用以下选项：
+
+* ID 令牌内的用户角色
+* ID 令牌内的用户信息
+
+Zitadel应用程序设置](.../../assets/zitadel-application-settings.png "Zitadel 应用程序设置")
+
+## 在 Zitadel 中设置行动
+
+要在 Zitadel 签发的令牌中包含用户的角色，我们需要设置一个 Zitadel 操作。 ArgoCD 中的授权将由授权令牌中包含的角色决定。 进入**操作**，点击**新建**，选择 "groupsClaim "作为操作的名称。
+
+将以下代码粘贴到操作中：
 
 ```javascript
 /**
@@ -129,27 +137,27 @@ function groupsClaim(ctx, api) {
 }
 ```
 
-Check **Allowed To Fail** and click **Add** to add your action.  
+选中**允许失败**，然后单击**添加**添加您的操作。
 
-*Note: If **Allowed To Fail** is not checked and a user does not have a role assigned, it may be possible that the user is no longer able to log in to Zitadel as the login flow fails when the action fails.*
+_注意：如果未选中 __允许失败_*，且用户未指定角色，则用户可能无法再登录 Zitadel，因为当操作失败时，登录流程会失败。
 
-Next, add your action to the **Complement Token** flow. Select the **Complement Token** flow from the dropdown and click **Add trigger**.  
-Add your action to both triggers **Pre Userinfo creation** and **Pre access token creation**.
+接下来，将操作添加到**补充令牌**流程中。 从下拉菜单中选择**补充令牌**流程，然后点击**添加触发器**。 将操作添加到**创建用户信息前**和**创建访问令牌前**这两个触发器中。
 
-Your Actions page should now look like the following screenshot:
+您的 "操作 "页面现在应该与下面的截图相似：
 
-![Zitadel Actions](../../assets/zitadel-actions.png "Zitadel Actions")
+![Zitadel行动](../../assets/zitadel-actions.png "Zitadel行动")
 
+## 配置 ArgoCD configmaps
 
-## Configuring the ArgoCD configmaps
+接下来，我们将配置两个 ArgoCD configmaps：
 
-Next, we will configure two ArgoCD configmaps:
-- [argocd-cm.yaml](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml)
-- [argocd-rbac-cm.yaml](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-rbac-cm.yaml)
+* [argocd-cm.yaml](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml)
+* [argocd-rbac-cm.yaml](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-rbac-cm.yaml)
 
-Configure your configmaps as follows while making sure to replace the relevant values such as `url`, `issuer`, `clientID`, `clientSecret` and `logoutURL` with ones matching your setup.
+请按以下步骤配置您的 configmaps，同时确保将`url`、`issuer`、`clientID`、`clientSecret` 和`logoutURL`等相关值替换为与您的设置相匹配的值。
 
 ### argocd-cm.yaml
+
 ```yaml
 ---
 apiVersion: v1
@@ -176,6 +184,7 @@ data:
 ```
 
 ### argocd-rbac-cm.yaml
+
 ```yaml
 ---
 apiVersion: v1
@@ -193,18 +202,16 @@ data:
   policy.default: ''
 ```
 
-The roles specified under `policy.csv` must match the roles configured in Zitadel.  
-The Zitadel role `argocd_administrators` will be assigned the ArgoCD role `admin` granting admin access to ArgoCD.  
-The Zitadel role `argocd_users` will be assigned the ArgoCD role `readonly` granting read-only access to ArgoCD.
+policy.csv "中指定的角色必须与 Zitadel 中配置的角色相匹配。 Zitadel 角色 "argocd_administrators "将被指定为 ArgoCD 角色 "admin"，允许管理员访问 ArgoCD。 Zitadel 角色 "argocd_users "将被指定为 ArgoCD 角色 "readonly"，允许只读访问 ArgoCD。
 
-Deploy your ArgoCD configmaps. ArgoCD and Zitadel should now be set up correctly to allow users to log in to ArgoCD using Zitadel.
+部署您的 ArgoCD configmaps。 ArgoCD 和 Zitadel 现在应该已正确设置，允许用户使用 Zitadel 登录 ArgoCD。
 
-## Testing the setup
+## 测试设置
 
-Go to your ArgoCD instance. You should now see the **LOG IN WITH ZITADEL** button above the usual username/password login.
+进入 ArgoCD 实例，在通常的用户名/密码登录界面上方，您会看到 "用 ZITADEL 登录"（**LOG INH WITH ZITADEL**）按钮。
 
 ![Zitadel ArgoCD Login](../../assets/zitadel-argocd-login.png "Zitadel ArgoCD Login")
 
-After logging in with your Zitadel user go to **User Info**. If everything is set up correctly you should now see the group `argocd_administrators` as shown below.
+使用 Zitadel 用户登录后，转到 ** 用户信息**。 如果一切设置正确，你现在应该可以看到`argocd_administrators`组，如下图所示。
 
-![Zitadel ArgoCD User Info](../../assets/zitadel-argocd-user-info.png "Zitadel ArgoCD User Info")
+![Zitadel ArgoCD 用户信息]( .../../assets/zitadel-argocd-user-info.png "Zitadel ArgoCD 用户信息")

@@ -1,66 +1,42 @@
-# Tracking and Deployment Strategies
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-An Argo CD application spec provides several different ways of tracking Kubernetes resource manifests.
+# 跟踪和部署战略
 
-In all tracking strategies, the app has the option to sync automatically. If [auto-sync](auto_sync.md)
-is configured, the new resources manifests will be applied automatically -- as soon as a difference
-is detected.
+Argo CD 应用程序规范提供了几种跟踪 Kubernetes 资源清单的不同方法。
 
-!!! note
-    In all tracking strategies, any [parameter overrides](parameters.md) take precedence over the Git state.
+在所有追踪策略中，应用程序都有自动同步选项。[自动同步](auto_sync.md)配置后，一旦检测到差异，就会自动应用新的资源清单。
+
+注意 在所有跟踪策略中，任何[参数覆盖](parameters.md)优先于 Git 状态。
 
 ## Helm
 
-Helm chart versions are [Semantic Versions](https://semver.org/). As a result, you can use any of the following version ranges:
+Helm 图表版本有[语义版本](https://semver.org/)因此，您可以被引用以下任何一个版本范围：
 
-| Use Case | How | Examples |
-|-|-|-|
-| Pin to a version (e.g. in production) | Use the version number | `1.2.0` |
-| Track patches (e.g. in pre-production) | Use a range | `1.2.*` or `>=1.2.0 <1.3.0` |
-| Track minor releases (e.g. in QA) | Use a range | `1.*` or `>=1.0.0 <2.0.0` |
-| Use the latest (e.g. in local development) | Use star range |  `*` or `>=0.0.0` |
-| Use the latest including pre-releases | Use star range with `-0` suffix |  `*-0` or `>=0.0.0-0` |
+| 使用案例 | 如何使用 | 示例 | |-|-||| | 引脚指向版本（如生产中） | 使用版本号 | | 使用版本号`1.2.0`| 跟踪补丁（例如在预生产中） | 被引用的范围`1.2.*`或`&gt;=1.2.0<1.3.0`| 跟踪次要发布（例如在 QA 中） | 被引用的范围 | 被引用的次要发布（例如在 QA 中）。`1.*`或`>=1.0.0<2.0.0`| | 使用最新版本（例如在本地开发中） | | 使用星级范围 | | | 使用星级范围`*`或`>=0.0.0`| | 使用最新版本，包括预发布版本 | | 使用星级范围，并带有`-0`后缀`*-0`或`&gt;=0.0.0-0`|.
 
-[Read about version ranges](https://www.telerik.com/blogs/the-mystical-magical-semver-ranges-used-by-npm-bower)
+[了解版本范围](https://www.telerik.com/blogs/the-mystical-magical-semver-ranges-used-by-npm-bower)
 
 ## Git
 
-For Git, all versions are Git references:
+对于 Git，所有版本都是 Git 引用： Git
 
-| Use Case | How | Notes |
-|-|-|-|
-| Pin to a version (e.g. in production) | Either (a) tag the commit with (e.g. `v1.2.0`) and use that tag, or (b) using commit SHA. | See [commit pinning](#commit-pinning). |
-| Track patches (e.g. in pre-production) | Tag/re-tag the commit, e.g. (e.g. `v1.2`) and use that tag. | See [tag tracking](#tag-tracking) |
-| Track minor releases (e.g. in QA) | Re-tag the commit as (e.g. `v1`) and use that tag. | See [tag tracking](#tag-tracking) |
-| Use the latest (e.g. in local development) | Use `HEAD` or `master` (assuming `master` is your master branch). | See [HEAD / Branch Tracking](#head-branch-tracking) |
+| 使用案例 | 如何提交 | 注意事项 | |-|-|-| | 将提交钉在版本上（例如生产中） | (a) 给提交打上标记（例如："...... "或"......"）。`v1.2.0`) 并使用该标记，或 (b) 使用提交 SHA。[提交销号](#commit-pinning)跟踪补丁（例如在预生产中） | 标记/重新标记提交，例如（例如`v1.2`) 并被引用。[标签跟踪](#tag-tracking)| 跟踪次要发布（例如在 QA 中） | 将提交重新标记为（例如`v1`) 并被引用。[标签跟踪](#tag-tracking)| | 被引用的最新版本（如在本地开发中） | 使用`HEAD`或`master`（假设`master`是您的主分支）。[HEAD / 分支跟踪](#head-branch-tracking)|
 
+### head / 分支跟踪
 
-### HEAD / Branch Tracking
+如果指定了分支名称或符号引用（如 HEAD），Argo CD 就会不断将实时状态与指定分支顶端定义的资源清单或符号引用的已解析提交进行比较。
 
-If a branch name, or a symbolic reference (like HEAD) is specified, Argo CD will continually compare
-live state against the resource manifests defined at the tip of the specified branch or the
-resolved commit of the symbolic reference.
+要重新部署应用程序，请更改（至少）其中一个清单，提交并推送到跟踪分支/符号引用。 Argo CD 将检测到更改。
 
-To redeploy an app, make a change to (at least) one of your manifests, commit and push to the tracked branch/symbolic reference. The change will then be detected by Argo CD.
+### 标签跟踪
 
-### Tag Tracking
+如果指定了标签，则会引用指定 Git 标签下的清单来执行同步比较。 这与分支跟踪相比有一些优势，因为标签通常被认为更稳定，更新频率也更低，但需要人工判断什么是标签。
 
-If a tag is specified, the manifests at the specified Git tag will be used to perform the sync
-comparison. This provides some advantages over branch tracking in that a tag is generally considered
-more stable, and less frequently updated, with some manual judgement of what constitutes a tag.
+要重新部署应用程序，用户可使用 Git 更改标签的含义，将其重新标记到不同的提交 SHA 上。 Argo CD 会在执行比较/同步时检测标签的新含义。
 
-To redeploy an app, the user uses Git to change the meaning of a tag by retagging it to a
-different commit SHA. Argo CD will detect the new meaning of the tag when performing the
-comparison/sync.
+### 承诺销号
 
-### Commit Pinning
+如果指定了 Git 提交 SHA，应用程序就会被固定在指定提交时定义的清单上。 这是限制性最强的技术，通常被引用来控制生产环境。
 
-If a Git commit SHA is specified, the app is effectively pinned to the manifests defined at
-the specified commit. This is the most restrictive of the techniques and is typically used to
-control production environments.
-
-Since commit SHAs cannot change meaning, the only way to change the live state of an app
-which is pinned to a commit, is by updating the tracking revision in the application to a different
-commit containing the new manifests. Note that [parameter overrides](parameters.md) can still be set
-on an app which is pinned to a revision.
-
+由于提交 SHA 不能更改含义，因此要更改已固定到某个提交的应用程序的实时状态，唯一的方法就是将应用程序中的跟踪修订更新到包含新清单的不同提交。[参数覆盖](parameters.md)仍可在固定到修订版的应用程序上设置。

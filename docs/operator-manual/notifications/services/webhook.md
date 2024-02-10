@@ -1,31 +1,31 @@
+<!-- TRANSLATED by md-translate -->
 # Webhook
 
-The webhook notification service allows sending a generic HTTP request using the templatized request body and URL.
-Using Webhook you might trigger a Jenkins job, update GitHub commit status.
+Webhook 通知服务允许使用模板化的请求正文和 URL 发送通用 HTTP 请求。 使用 Webhook，您可以触发 Jenkins 作业，更新 GitHub 提交状态。
 
-## Parameters
+## 参数
 
-The Webhook notification service configuration includes following settings:
+Webhook 通知服务配置包括以下设置：
 
-- `url` - the url to send the webhook to
-- `headers` - optional, the headers to pass along with the webhook
-- `basicAuth` - optional, the basic authentication to pass along with the webhook
-- `insecureSkipVerify` - optional bool, true or false
-- `retryWaitMin` - Optional, the minimum wait time between retries. Default value: 1s.
-- `retryWaitMax` - Optional, the maximum wait time between retries. Default value: 5s.
-- `retryMax` - Optional, the maximum number of retries. Default value: 3.
+* `url` - 将网络钩子发送到的网址
+* `headers` - 可选，与 webhook 一起传递的头信息
+* `basicAuth` - 可选项，与 webhook 一起传递的基本身份验证信息
+* `insecureSkipVerify` - 可选的 bool，true 或 false
+* `retryWaitMin` - 可选，重试之间的最短等待时间。默认值：1s。
+* `retryWaitMax` - 可选，重试之间的最长等待时间。默认值：5 秒。
+* `retryMax` - 可选项，重试的最大次数。默认值： 3.
 
-## Retry Behavior
+## 重试行为
 
-The webhook service will automatically retry the request if it fails due to network errors or if the server returns a 5xx status code. The number of retries and the wait time between retries can be configured using the `retryMax`, `retryWaitMin`, and `retryWaitMax` parameters.
+如果由于网络错误或服务器返回 5xx 状态代码导致请求失败，webhook 服务将自动重试请求。 重试次数和重试之间的等待时间可使用 `retryMax`、`retryWaitMin` 和 `retryWaitMax` 参数进行配置。
 
-The wait time between retries is between `retryWaitMin` and `retryWaitMax`. If all retries fail, the `Send` method will return an error.
+重试之间的等待时间介于 `retryWaitMin` 和 `retryWaitMax` 之间。 如果所有重试都失败，"发送 "方法将返回错误。
 
-## Configuration
+## 配置
 
-Use the following steps to configure webhook:
+使用以下步骤配置 webhook：
 
-1 Register webhook in `argocd-notifications-cm` ConfigMap:
+1 在 `argocd-notifications-cm` configMap 中注册 webhook：
 
 ```yaml
 apiVersion: v1
@@ -44,7 +44,7 @@ data:
     insecureSkipVerify: true #optional bool
 ```
 
-2 Define template that customizes webhook request method, path and body:
+2 定义模板，自定义 webhook 请求方法、路径和正文：
 
 ```yaml
 apiVersion: v1
@@ -64,7 +64,7 @@ data:
       send: [github-commit-status]
 ```
 
-3 Create subscription for webhook integration:
+3 为 webhook 集成创建订阅：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -74,9 +74,9 @@ metadata:
     notifications.argoproj.io/subscribe.<trigger-name>.<webhook-name>: ""
 ```
 
-## Examples
+## 示例
 
-### Set GitHub commit status
+#### 设置 GitHub 提交状态
 
 ```yaml
 apiVersion: v1
@@ -91,7 +91,7 @@ data:
       value: token $github-token
 ```
 
-2 Define template that customizes webhook request method, path and body:
+2 定义模板，自定义 webhook 请求方法、路径和正文：
 
 ```yaml
 apiVersion: v1
@@ -122,7 +122,7 @@ data:
           }
 ```
 
-### Start Jenkins Job
+### 开始 Jenkins 工作
 
 ```yaml
 apiVersion: v1
@@ -139,7 +139,7 @@ data:
 type: Opaque
 ```
 
-### Send form-data
+### 发送表单数据
 
 ```yaml
 apiVersion: v1
@@ -160,7 +160,7 @@ data:
         body: key1=value1&key2=value2
 ```
 
-### Send Slack
+### 发送 Slack
 
 ```yaml
 apiVersion: v1

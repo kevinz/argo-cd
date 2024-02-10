@@ -1,69 +1,68 @@
-# High Availability
+<!-- TRANSLATED by md-translate -->
+# 高可用性
 
-Argo CD is largely stateless. All data is persisted as Kubernetes objects, which in turn is stored in Kubernetes' etcd. Redis is only used as a throw-away cache and can be lost. When lost, it will be rebuilt without loss of service.
+Argo CD 在很大程度上是无状态的。 所有数据都以 Kubernetes 对象的形式持久化，而 Kubernetes 对象又存储在 Kubernetes 的 etcd 中。 Redis 只被用作丢弃式缓存，可能会丢失。 丢失后，它会在不损失服务的情况下重建。
 
-A set of [HA manifests](https://github.com/argoproj/argo-cd/tree/master/manifests/ha) are provided for users who wish to run Argo CD in a highly available manner. This runs more containers, and runs Redis in HA mode.
+为希望以高可用方式运行 Argo CD 的用户提供了一套 [HA 配置清单](https://github.com/argoproj/argo-cd/tree/master/manifests/ha)。这样可以运行更多容器，并以 HA 模式运行 Redis。
 
-> **NOTE:** The HA installation will require at least three different nodes due to pod anti-affinity roles in the
-> specs. Additionally, IPv6 only clusters are not supported.
+&gt; 此外，不支持仅 IPv6 的集群。
 
-## Scaling Up
+## 扩大规模
 
 ### argocd-repo-server
 
-**settings:**
+**设置：**
 
-The `argocd-repo-server` is responsible for cloning Git repository, keeping it up to date and generating manifests using the appropriate tool.
+argocd-repo-server "负责克隆 Git 仓库、保持更新并使用相应工具生成配置清单。
 
-* `argocd-repo-server` fork/exec config management tool to generate manifests. The fork can fail due to lack of memory or limit on the number of OS threads.
-The `--parallelismlimit` flag controls how many manifests generations are running concurrently and helps avoid OOM kills.
+* `argocd-repo-server` fork/exec 配置管理工具生成配置清单。分叉可能会因内存不足或操作系统线程数限制而失败。
 
-* the `argocd-repo-server` ensures that repository is in the clean state during the manifest generation using config management tools such as Kustomize, Helm
-or custom plugin. As a result Git repositories with multiple applications might affect repository server performance.
-Read [Monorepo Scaling Considerations](#monorepo-scaling-considerations) for more information.
+parallelismlimit"（并行限制）配置清单标志可控制同时运行多少代配置清单，有助于避免 OOM kills。
 
-* `argocd-repo-server` clones the repository into `/tmp` (or the path specified in the `TMPDIR` env variable). The Pod might run out of disk space if it has too many repositories
-or if the repositories have a lot of files. To avoid this problem mount a persistent volume.
+* 在配置清单生成过程中，"argocd-repo-server "会使用配置管理工具（如 kustomize、Helm）确保版本库处于干净状态。
 
-* `argocd-repo-server` uses `git ls-remote` to resolve ambiguous revisions such as `HEAD`, a branch or a tag name. This operation happens frequently
-and might fail. To avoid failed syncs use the `ARGOCD_GIT_ATTEMPTS_COUNT` environment variable to retry failed requests.
+因此，带有多个应用程序的 Git 仓库可能会影响仓库服务器的性能。 请阅读 [Monorepo 扩展注意事项](#monorepo-scaling-considerations) 了解更多信息。
 
-* `argocd-repo-server` Every 3m (by default) Argo CD checks for changes to the app manifests. Argo CD assumes by default that manifests only change when the repo changes, so it caches the generated manifests (for 24h by default). With Kustomize remote bases, or in case a Helm chart gets changed without bumping its version number, the expected manifests can change even though the repo has not changed. By reducing the cache time, you can get the changes without waiting for 24h. Use `--repo-cache-expiration duration`, and we'd suggest in low volume environments you try '1h'. Bear in mind that this will negate the benefits of caching if set too low.
+* argocd-repo-server "会将版本库克隆到"/tmp"（或 "TMPDIR "环境变量中指定的路径）。如果有太多版本库，Pod 可能会耗尽磁盘空间。
 
-* `argocd-repo-server` executes config management tools such as `helm` or `kustomize` and enforces a 90 second timeout. This timeout can be changed by using the `ARGOCD_EXEC_TIMEOUT` env variable. The value should be in the Go time duration string format, for example, `2m30s`.
+为了避免这个问题，请挂载持久卷。
 
-**metrics:**
+* `argocd-repo-server` 被引用 `git ls-remote` 来解决诸如 `HEAD`、分支或标签名之类的模糊修订。这种操作经常发生
 
-* `argocd_git_request_total` - Number of git requests. This metric provides two tags: `repo` - Git repo URL; `request_type` - `ls-remote` or `fetch`.
+为避免同步失败，可使用 `ARGOCD_GIT_ATTEMPTS_COUNT` 环境变量重试失败的请求。
 
-* `ARGOCD_ENABLE_GRPC_TIME_HISTOGRAM` - Is an environment variable that enables collecting RPC performance metrics. Enable it if you need to troubleshoot performance issues. Note: This metric is expensive to both query and store!
+* `argocd-repo-server` Argo CD 每 3 米（默认情况下）检查一次应用程序配置清单的更改。Argo CD 默认认为配置清单只有在软件仓库发生变化时才会发生变化，因此它会缓存生成的配置清单（默认为 24 小时）。如果使用 Kustomize 远程库，或者 helm chart 在版本号未发生变化的情况下发生更改，即使软件版本库未发生变化，预期配置清单也会发生变化。通过缩短缓存时间，就可以在不等待 24 小时的情况下获得更改。被引用"--repo-cache-expiration duration"（版本库缓存过期持续时间），我们建议在低容量环境中尝试 "1h"。请注意，如果设置过低，会抵消缓存的好处。
+* argocd-repo-server "会执行配置管理工具，如 "helm "或 "kustomize"，并强制执行 90 秒超时。该超时可通过 `ARGOCD_EXEC_TIMEOUT` 环境变量进行更改。该值应采用 Go 时间长度字符串格式，例如 `2m30s`。
+
+**指标：**
+
+* `argocd_git_request_total` - git 请求数。该指标提供了两个标签：`repo` - Git 仓库 URL；`request_type` - `ls-remote` 或 `fetch`。
+* `ARGOCD_ENABLE_GRPC_TIME_HISTOGRAM` - 环境变量，用于收集 RPC 性能指标。如果需要排除性能问题，请启用它。注意：该指标对查询和存储都很昂贵！
 
 ### argocd-application-controller
 
-**settings:**
+**设置：**
 
-The `argocd-application-controller` uses `argocd-repo-server` to get generated manifests and Kubernetes API server to get the actual cluster state.
+argocd-application-controller "被引用 "argocd-repo-server "来获取生成的配置清单，而 "Kubernetes API server "则获取实际的集群状态。
 
-* each controller replica uses two separate queues to process application reconciliation (milliseconds) and app syncing (seconds). The number of queue processors for each queue is controlled by
-`--status-processors` (20 by default) and `--operation-processors` (10 by default) flags. Increase the number of processors if your Argo CD instance manages too many applications.
-For 1000 application we use 50 for `--status-processors` and 25 for `--operation-processors`
+* 每个控制器副本被引用两个独立的队列来处理应用程序调节（毫秒）和应用程序同步（秒）。每个队列的队列处理器数量由
 
-* The manifest generation typically takes the most time during reconciliation. The duration of manifest generation is limited to make sure the controller refresh queue does not overflow.
-The app reconciliation fails with `Context deadline exceeded` error if the manifest generation is taking too much time. As a workaround increase the value of `--repo-server-timeout-seconds` and
-consider scaling up the `argocd-repo-server` deployment.
+状态处理器"（默认为 20 个）和 "操作处理器"（默认为 10 个）标志。 如果 Argo CD 实例管理的应用程序过多，可增加处理器数量。 对于 1000 个应用程序，我们使用 50 个 "状态处理器 "和 25 个 "操作处理器"。
 
-* The controller uses Kubernetes watch APIs to maintain a lightweight Kubernetes cluster cache. This allows avoiding querying Kubernetes during app reconciliation and significantly improves
-performance. For performance reasons the controller monitors and caches only the preferred versions of a resource. During reconciliation, the controller might have to convert cached resources from the
-preferred version into a version of the resource stored in Git. If `kubectl convert` fails because the conversion is not supported then the controller falls back to Kubernetes API query which slows down
-reconciliation. In this case, we advise to use the preferred resource version in Git.
+* 在调节过程中，配置清单的生成通常耗时最长。配置清单生成的持续时间受到限制，以确保控制器刷新队列不会溢出。
 
-* The controller polls Git every 3m by default. You can change this duration using the `timeout.reconciliation` and `timeout.reconciliation.jitter` setting in the `argocd-cm` ConfigMap. The value of the fields is a duration string e.g `60s`, `1m`, `1h` or `1d`.
+如果配置清单生成耗时过长，应用程序调节失败时会出现 "Context deadline exceeded "错误。 作为一种解决方法，可增加"--repo-server-timeout-seconds "的值，并考虑扩大 "argocd-repo-server "的部署规模。
 
-* If the controller is managing too many clusters and uses too much memory then you can shard clusters across multiple
-controller replicas. To enable sharding, increase the number of replicas in `argocd-application-controller` `StatefulSet`
-and repeat the number of replicas in the `ARGOCD_CONTROLLER_REPLICAS` environment variable. The strategic merge patch below demonstrates changes required to configure two controller replicas.
+* 控制器被引用 Kubernetes 观察 API 来维护轻量级 Kubernetes 集群缓存。这就避免了在应用程序调节过程中查询 Kubernetes，并显著改善了应用程序的性能。
 
-* By default, the controller will update the cluster information every 10 seconds. If there is a problem with your cluster network environment that is causing the update time to take a long time, you can try modifying the environment variable `ARGO_CD_UPDATE_CLUSTER_INFO_TIMEOUT` to increase the timeout (the unit is seconds).
+出于性能考虑，控制器只监控和缓存资源的首选版本。 在调节过程中，控制器可能需要将缓存的资源从首选版本转换为存储在 Git 中的资源版本。 如果 "kubectl convert "因不支持转换而失败，控制器就会退回到 Kubernetes API 查询，从而减慢调节速度。 在这种情况下，我们建议使用 Git 中的首选资源版本。
+
+* 控制器默认每 3m 轮询一次 Git。你可以使用 `argocd-cm` configMap 中的 `timeout.reconciliation` 和 `timeout.reconciliation.jitter` 设置来更改这一持续时间。字段的值是持续时间字符串，例如 `60s`、`1m`、`1h` 或 `1d`。
+* 如果控制器管理的集群过多，被引用的内存过大，那么可以将集群分片到多个
+
+要启用分片功能，请增加 `ARGOCD-APPERATION- CONTROLLER``StatefulSet` 中的副本数量，并重复 `ARGOCD_CONTROLLER_REPLICAS` 环境变量中的副本数量。 下面的战略合并补丁演示了配置两个控制器副本所需的更改。
+
+* 默认情况下，控制器将每 10 秒更新一次集群信息。如果集群网络环境出现问题导致更新时间过长，可以尝试修改环境变量 `ARGO_CD_UPDATE_CLUSTER_INFO_TIMEOUT` 来增加超时时间（单位为秒）。
 
 ```yaml
 apiVersion: apps/v1
@@ -80,14 +79,14 @@ spec:
         - name: ARGOCD_CONTROLLER_REPLICAS
           value: "2"
 ```
-* In order to manually set the cluster's shard number, specify the optional `shard` property when creating a cluster. If not specified, it will be calculated on the fly by the application controller.
 
-* The shard distribution algorithm of the `argocd-application-controller` can be set by using the `--sharding-method` parameter. Supported sharding methods are : [legacy (default), round-robin]. `legacy` mode uses an `uid` based distribution (non-uniform). `round-robin` uses an equal distribution across all shards. The `--sharding-method` parameter can also be overriden by setting the key `controller.sharding.algorithm` in the `argocd-cmd-params-cm` `configMap` (preferably) or by setting the `ARGOCD_CONTROLLER_SHARDING_ALGORITHM` environment variable and by specifiying the same possible values.
+* 要手动设置集群的分片编号，请在创建集群时指定可选的 `shard` 属性。如果不指定，应用控制器将自动计算。
+* argocd-application-controller "的分片分配算法可通过使用"--sharding-method "参数来设置。支持的分片方法有[传统（默认）、循环]。传统模式 "使用基于 "uid "的分布（非均匀）。round-robin "模式在所有分片之间使用平均分配。还可以通过在 `argocd-cmd-params-cm` 配置表中设置 `controller.sharding.algorithm` 关键字（最好），或通过设置 `ARGOCD_CONTROLLER_SHARDING_ALGORITHM` 环境变量并指定相同的可能值，来覆盖 `--sharding-method` 参数。
 
-!!! warning "Alpha Feature"
-    The `round-robin` shard distribution algorithm  is an experimental feature. Reshuffling is known to occur in certain scenarios with cluster removal. If the cluster at rank-0 is removed, reshuffling all clusters across shards will occur and may temporarily have negative performance impacts.
+!!! 警告 "alpha 功能" "round-robin "碎片分配算法是一项实验性功能。 众所周知，在某些移除集群的情况下会发生重新洗牌。 如果位于 0 级的集群被移除，则会发生跨碎片重新洗牌所有集群的情况，可能会暂时对性能产生负面影响。
 
-* A cluster can be manually assigned and forced to a `shard` by patching the `shard` field in the cluster secret to contain the shard number, e.g.
+* 可通过修补集群秘密中的 "shard "字段，使其包含分片编号，从而手动分配集群并强制其使用 "分片"，例如
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -110,30 +109,29 @@ stringData:
     }
 ```
 
-* `ARGOCD_ENABLE_GRPC_TIME_HISTOGRAM` - environment variable that enables collecting RPC performance metrics. Enable it if you need to troubleshoot performance issues. Note: This metric is expensive to both query and store!
-
-* `ARGOCD_CLUSTER_CACHE_LIST_PAGE_BUFFER_SIZE` - environment variable controlling the number of pages the controller
-  buffers in memory when performing a list operation against the K8s api server while syncing the cluster cache. This
-  is useful when the cluster contains a large number of resources and cluster sync times exceed the default etcd
-  compaction interval timeout. In this scenario, when attempting to sync the cluster cache, the application controller
-  may throw an error that the `continue parameter is too old to display a consistent list result`. Setting a higher
-  value for this environment variable configures the controller with a larger buffer in which to store pre-fetched
-  pages which are processed asynchronously, increasing the likelihood that all pages have been pulled before the etcd
-  compaction interval timeout expires. In the most extreme case, operators can set this value such that
-  `ARGOCD_CLUSTER_CACHE_LIST_PAGE_SIZE * ARGOCD_CLUSTER_CACHE_LIST_PAGE_BUFFER_SIZE` exceeds the largest resource
-  count (grouped by k8s api version, the granule of parallelism for list operations). In this case, all resources will
-  be buffered in memory -- no api server request will be blocked by processing.
+* ARGOCD_ENABLE_GRPC_TIME_HISTOGRAM` - 用于收集 RPC 性能指标的环境变量。如果需要排除性能问题，请启用它。注意：该指标的查询和存储成本都很高！
+* `ARGOCD_CLUSTER_CACHE_LIST_PAGE_BUFFER_SIZE` - 环境变量，控制执行列表缓存时控制器在内存中缓冲的页数。
+在同步集群缓存时对 k8s api 服务器执行列表操作时在内存中缓冲的页数。这个
+当集群包含大量资源，且集群同步时间超过默认的 etcd
+压缩间隔超时。在这种情况下，当尝试同步集群缓存时，应用程序控制器
+可能会抛出一个错误，即 "继续参数太旧，无法显示一致的列表结果"。为该环境变量设置一个较高的
+环境变量的值，可为控制器配置更大的缓冲区，用于存储预先抓取的
+页面，从而提高在 etcd
+压缩间隔超时之前提取完所有页面的可能性。在最极端的情况下，操作员可以将此值设置为
+ARGOCD_CLUSTER_CACHE_LIST_PAGE_SIZE * ARGOCD_CLUSTER_CACHE_LIST_PAGE_BUFFER_SIZE "超过最大资源数（按 k8s 分组）。
+数（按 k8s api 版本分组，即列表操作的并行粒度）。在这种情况下，所有资源都将
+都将在内存中缓冲，不会阻塞 api 服务器请求的处理。
 
 **metrics**
 
-* `argocd_app_reconcile` - reports application reconciliation duration. Can be used to build reconciliation duration heat map to get a high-level reconciliation performance picture.
-* `argocd_app_k8s_request_total` - number of k8s requests per application. The number of fallback Kubernetes API queries - useful to identify which application has a resource with
-non-preferred version and causes performance issues.
+* `argocd_app_reconcile` - 报告应用程序对账持续时间。可被引用来构建对账持续时间热图，以获得高水平的对账性能图像。
+* `argocd_app_k8s_request_total` - 每个应用程序的 k8s 请求数。回退 Kubernetes API 查询的数量 - 用于识别哪个应用程序的资源带有
+
+非首选版本，导致性能问题。
 
 ### argocd-server
 
-The `argocd-server` is stateless and probably the least likely to cause issues. To ensure there is no downtime during upgrades, consider increasing the number of replicas to `3` or more and repeat the number in the `ARGOCD_API_SERVER_REPLICAS` environment variable. The strategic merge patch below
-demonstrates this.
+argocd-server "是无状态的，可能是最不可能引起问题的。 为确保升级期间不会出现停机，可考虑将副本数量增加到 "3 "或更多，并在 "ARGOCD_API_SERVER_REPLICAS "环境变量中重复该数量。 下面的战略合并补丁演示了这一点。
 
 ```yaml
 apiVersion: apps/v1
@@ -151,46 +149,43 @@ spec:
           value: "3"
 ```
 
-**settings:**
+**设置：**
 
-* The `ARGOCD_API_SERVER_REPLICAS` environment variable is used to divide [the limit of concurrent login requests (`ARGOCD_MAX_CONCURRENT_LOGIN_REQUESTS_COUNT`)](./user-management/index.md#failed-logins-rate-limiting) between each replica.
-* The `ARGOCD_GRPC_MAX_SIZE_MB` environment variable allows specifying the max size of the server response message in megabytes.
-The default value is 200. You might need to increase this for an Argo CD instance that manages 3000+ applications.
+* ARGOCD_API_SERVER_REPLICAS` 环境变量用于在每个副本之间分配 [并发登录请求的限制 (`ARGOCD_MAX_CONCURRENT_LOGIN_REQUESTS_COUNT`)](./user-management/index.md#failed-logins-rate-limiting) 。
+* ARGOCD_GRPC_MAX_SIZE_MB` 环境变量允许以 MB 为单位指定服务器响应信息的最大大小。
+
+默认值为 200，对于管理 3000 多个应用程序的 Argo CD 实例，可能需要增加该值。
 
 ### argocd-dex-server, argocd-redis
 
-The `argocd-dex-server` uses an in-memory database, and two or more instances would have inconsistent data. `argocd-redis` is pre-configured with the understanding of only three total redis servers/sentinels.
+argocd-dex-server "使用内存数据库，两个或更多实例将产生不一致的数据。"argocd-redis "在预配置时了解到总共只有三个 redis 服务器/sentinels。
 
-## Monorepo Scaling Considerations
+## Monorepo 扩展考虑因素
 
-Argo CD repo server maintains one repository clone locally and uses it for application manifest generation. If the manifest generation requires to change a file in the local repository clone then only one concurrent manifest generation per server instance is allowed. This limitation might significantly slowdown Argo CD if you have a mono repository with multiple applications (50+).
+Argo CD 版本库服务器会在本地维护一个版本库克隆，并将其用于应用程序配置清单的生成。 如果配置清单的生成需要更改本地版本库克隆中的文件，则每个服务器实例只允许同时生成一个配置清单。 如果您的单版本库中有多个应用程序（50 个以上），则此限制可能会大大降低 Argo CD 的运行速度。
 
-### Enable Concurrent Processing
+### 启用并行处理
 
-Argo CD determines if manifest generation might change local files in the local repository clone based on the config management tool and application settings.
-If the manifest generation has no side effects then requests are processed in parallel without a performance penalty. The following are known cases that might cause slowness and their workarounds:
+Argo CD 会根据配置管理工具和应用程序设置来确定清单生成是否会更改本地版本库克隆中的本地文件。 如果清单生成没有副作用，则会并行处理请求，而不会影响性能。 以下是可能导致速度变慢的已知情况及其解决方法：
 
-  * **Multiple Helm based applications pointing to the same directory in one Git repository:** ensure that your Helm chart doesn't have conditional
-[dependencies](https://helm.sh/docs/chart_best_practices/dependencies/#conditions-and-tags) and create `.argocd-allow-concurrency` file in the chart directory.
+* ** 基于 Helm 的多个应用程序指向一个 Git 仓库中的同一目录：** 确保您的 Helm 图表不存在有条件的
 
-  * **Multiple Custom plugin based applications:** avoid creating temporal files during manifest generation and create `.argocd-allow-concurrency` file in the app directory, or use the sidecar plugin option, which processes each application using a temporary copy of the repository.
+[依赖项](https://helm.sh/docs/chart_best_practices/dependencies/#conditions-and-tags)，并在 chart 目录中创建 `.argocd-allow-concurrency` 文件。
 
-  * **Multiple Kustomize applications in same repository with [parameter overrides](../user-guide/parameters.md):** sorry, no workaround for now.
+* **基于自定义插件的多个应用程序：**避免在配置清单生成过程中创建临时文件，并在应用程序目录中创建`.argocd-allow-concurrency`文件，或使用 sidecar 插件选项，该选项使用版本库的临时副本处理每个应用程序。
+* **在同一版本库中使用 [parameter overrides](../user-guide/parameters.md) 的多个 kustomize 应用程序：**抱歉，暂时没有解决方法。
 
+### Webhook 和配置清单路径注释
 
-### Webhook and Manifest Paths Annotation
+Argo CD 会主动缓存生成的清单，并使用版本库的提交 SHA 作为缓存密钥。 Git 版本库的新提交会使版本库中配置的所有应用程序的缓存失效。 这可能会对具有多个应用程序的版本库产生负面影响。您可以使用 [webhooks](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/webhook.md) 和 `argocd.argoproj.io/manifest-generate-paths` Application CRD 注释来解决这个问题并提高性能。
 
-Argo CD aggressively caches generated manifests and uses the repository commit SHA as a cache key. A new commit to the Git repository invalidates the cache for all applications configured in the repository.
-This can negatively affect repositories with multiple applications. You can use [webhooks](https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/webhook.md) and the `argocd.argoproj.io/manifest-generate-paths` Application CRD annotation to solve this problem and improve performance.
+`argocd.argoproj.io/manifest-generate-paths` 注解包含一个分号分隔的 Git 仓库路径列表，在配置清单生成过程中使用。 webhook 会将注解中指定的路径与 webhook 有效负载中指定的更改文件进行比较。 如果没有更改文件与 `argocd.argoproj.io/manifest-generate-paths` 中指定的路径相匹配，则 webhook 不会触发应用程序对账，现有缓存将被视为对新提交有效。
 
-The `argocd.argoproj.io/manifest-generate-paths` annotation contains a semicolon-separated list of paths within the Git repository that are used during manifest generation. The webhook compares paths specified in the annotation with the changed files specified in the webhook payload. If no modified files match the paths specified in `argocd.argoproj.io/manifest-generate-paths`, then the webhook will not trigger application reconciliation and the existing cache will be considered valid for the new commit.
+为每个应用程序使用不同版本库的安装***不受此行为的限制，并且很可能无法从使用这些 Annotations 中受益。
 
-Installations that use a different repository for each application are **not** subject to this behavior and will likely get no benefit from using these annotations.
+应用程序配置清单路径 Annotations 支持取决于应用程序所引用的 git 提供商，目前仅支持基于 GitHub、GitLab 和 Gogs 的 repos。
 
-!!! note
-    Application manifest paths annotation support depends on the git provider used for the Application. It is currently only supported for GitHub, GitLab, and Gogs based repos.
-
-* **Relative path** The annotation might contain a relative path. In this case the path is considered relative to the path specified in the application source:
+* **相对路径** Annotations 可能包含相对路径。在这种情况下，路径被视为相对于应用程序源中指定的路径：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -209,7 +204,7 @@ spec:
 # ...
 ```
 
-* **Absolute path** The annotation value might be an absolute path starting with '/'. In this case path is considered as an absolute path within the Git repository:
+* **绝对路径** Annotations 的值可能是以"/"开头的绝对路径。在这种情况下，路径被视为 Git 仓库中的绝对路径：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -226,7 +221,7 @@ spec:
 # ...
 ```
 
-* **Multiple paths** It is possible to put multiple paths into the annotation. Paths must be separated with a semicolon (`;`):
+* **多个路径** 可以在 Annotations 中放入多个路径。路径之间必须用分号 (`;`) 分隔：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -244,54 +239,48 @@ spec:
 # ...
 ```
 
-### Application Sync Timeout & Jitter
+### 应用程序同步超时和抖动
 
-Argo CD has a timeout for application syncs. It will trigger a refresh for each application periodically when the timeout expires.
-With a large number of applications, this will cause a spike in the refresh queue and can cause a spike to the repo-server component. To avoid this, you can set a jitter to the sync timeout which will spread out the refreshes and give time to the repo-server to catch up.
+Argo CD 为应用程序同步设置了一个超时时间。 当超时时间到期时，它会定期触发每个应用程序的刷新。 如果应用程序数量较多，刷新队列中的刷新次数就会激增，从而导致 repo-server 组件的刷新次数激增。 为避免这种情况，可以为同步超时设置一个抖动，这样就可以分散刷新次数，让 repo-server 有时间赶上。
 
-The jitter is the maximum duration that can be added to the sync timeout, so if the sync timeout is 5 minutes and the jitter is 1 minute, then the actual timeout will be between 5 and 6 minutes.
+抖动是可以添加到同步超时中的最大持续时间，因此，如果同步超时为 5 分钟，抖动为 1 分钟，那么实际超时将在 5 至 6 分钟之间。
 
-To configure the jitter you can set the following environment variables:
+要配置抖动，可以设置以下环境变量：
 
-* `ARGOCD_RECONCILIATION_JITTER` - The jitter to apply to the sync timeout. Disabled when value is 0. Defaults to 0.
+* ARGOCD_RECONCILIATION_JITTER` - 应用于同步超时的抖动。Values 为 0 时禁用，默认为 0。
 
-## Rate Limiting Application Reconciliations
+## 限制费率应用调节
 
-To prevent high controller resource usage or sync loops caused either due to misbehaving apps or other environment specific factors,
-we can configure rate limits on the workqueues used by the application controller. There are two types of rate limits that can be configured:
+为防止因行为不端的应用程序或其他特定环境因素造成控制器资源使用率过高或同步循环，我们可以对应用程序控制器使用的工作队列配置速率限制。 可配置的速率限制有两种类型：
 
-  * Global rate limits
-  * Per item rate limits
+* global 费率限制
+* 每个项目的费率限制
 
-The final rate limiter uses a combination of both and calculates the final backoff as `max(globalBackoff, perItemBackoff)`.
+Finalizer 的速率限制器被引用两者的组合，并以 `max(globalBackoff,perItemBackoff)`计算最终的后退。
 
 ### Global rate limits
 
-  This is enabled by default, it is a simple bucket based rate limiter that limits the number of items that can be queued per second.
-This is useful to prevent a large number of apps from being queued at the same time.
+默认情况下已启用，这是一个简单的基于桶的速率限制器，可限制每秒可排队的项目数。 这对于防止大量应用程序同时排队非常有用。
 
-To configure the bucket limiter you can set the following environment variables:
+要配置水桶限制器，可以设置以下环境变量：
 
-  * `WORKQUEUE_BUCKET_SIZE` - The number of items that can be queued in a single burst. Defaults to 500.
-  * `WORKQUEUE_BUCKET_QPS` - The number of items that can be queued per second. Defaults to 50.
+* WORKQUEUE_BUCKET_SIZE` - 单个突发中可排队的项目数。默认为 500。
+* `WORKQUEUE_BUCKET_QPS` - 每秒可排队的项目数。默认为 50。
 
-### Per item rate limits
+### 每个项目的费率限制
 
-  This by default returns a fixed base delay/backoff value but can be configured to return exponential values.
-Per item rate limiter limits the number of times a particular item can be queued. This is based on exponential backoff where the backoff time for an item keeps increasing exponentially
-if it is queued multiple times in a short period, but the backoff is reset automatically if a configured `cool down` period has elapsed since the last time the item was queued.
+默认情况下，它会返回一个固定的基本延迟/回退值，但也可配置为返回指数值。 每个项目速率限制器可限制特定项目的排队次数。 它基于指数回退，如果一个项目在短时间内多次排队，则其回退时间会以指数形式不断增加，但如果自上次排队以来已过了配置的 "冷却 "期，则回退会自动重置。
 
-To configure the per item limiter you can set the following environment variables:
+要配置每个项目限制器，可以设置以下环境变量：
 
-  * `WORKQUEUE_FAILURE_COOLDOWN_NS` : The cool down period in nanoseconds, once period has elapsed for an item the backoff is reset. Exponential backoff is disabled if set to 0(default), eg. values : 10 * 10^9 (=10s)
-  * `WORKQUEUE_BASE_DELAY_NS` : The base delay in nanoseconds, this is the initial backoff used in the exponential backoff formula. Defaults to 1000 (=1μs)
-  * `WORKQUEUE_MAX_DELAY_NS` : The max delay in nanoseconds, this is the max backoff limit. Defaults to 3 * 10^9 (=3s)
-  * `WORKQUEUE_BACKOFF_FACTOR` : The backoff factor, this is the factor by which the backoff is increased for each retry. Defaults to 1.5
+* WORKQUEUE_FAILURE_COOLDOWN_NS：以纳秒为单位的冷却时间，一旦某个项目的冷却时间过期，将重置回退。如果设置为 0（默认值），指数延迟将被禁用，例如 Values : 10 * 10^9 (=10s)
+* WORKQUEUE_BASE_DELAY_NS：以纳秒为单位的基本延迟，这是指数延迟公式中被引用的初始延迟。默认为 1000 (=1μs)
+* WORKQUEUE_MAX_DELAY_NS`：最大延迟（纳秒），这是最大回退限制。默认为 3 * 10^9 (=3 秒)
+* `WORKQUEUE_BACKOFF_FACTOR` ：延迟因子，即每次重试时延迟增加的因子。默认为 1.5
 
-The formula used to calculate the backoff time for an item, where `numRequeue` is the number of times the item has been queued
-and `lastRequeueTime` is the time at which the item was last queued:
+被引用用于计算项目延迟时间的公式，其中 `numRequeue` 是项目排队的次数，`lastRequeueTime` 是项目最后一次排队的时间：
 
-- When `WORKQUEUE_FAILURE_COOLDOWN_NS` != 0 :
+* 当 `WORKQUEUE_FAILURE_COOLDOWN_NS` != 0 时：
 
 ```
 backoff = time.Since(lastRequeueTime) >= WORKQUEUE_FAILURE_COOLDOWN_NS ?
@@ -302,43 +291,44 @@ backoff = time.Since(lastRequeueTime) >= WORKQUEUE_FAILURE_COOLDOWN_NS ?
               )
 ```
 
-- When `WORKQUEUE_FAILURE_COOLDOWN_NS` = 0 :
+* 当 `WORKQUEUE_FAILURE_COOLDOWN_NS` = 0 时：
 
 ```
 backoff = WORKQUEUE_BASE_DELAY_NS
 ```
 
-## HTTP Request Retry Strategy
+## HTTP 请求重试策略
 
-In scenarios where network instability or transient server errors occur, the retry strategy ensures the robustness of HTTP communication by automatically resending failed requests. It uses a combination of maximum retries and backoff intervals to prevent overwhelming the server or thrashing the network.
+在网络不稳定或服务器出现短暂错误的情况下，重试策略会自动重新发送失败的请求，从而确保 HTTP 通信的稳健性。 它将最大重试次数和回退间隔结合起来使用，以防止服务器不堪重负或网络崩溃。
 
-### Configuring Retries
+### 配置重试
 
-The retry logic can be fine-tuned with the following environment variables:
+重试逻辑可通过以下环境变量进行微调：
 
-* `ARGOCD_K8SCLIENT_RETRY_MAX` - The maximum number of retries for each request. The request will be dropped after this count is reached. Defaults to 0 (no retries).
-* `ARGOCD_K8SCLIENT_RETRY_BASE_BACKOFF` - The initial backoff delay on the first retry attempt in ms. Subsequent retries will double this backoff time up to a maximum threshold. Defaults to 100ms.
+* `ARGOCD_K8SCLIENT_RETRY_MAX` - 每个请求的最大重试次数。达到此次数后，请求将被放弃。默认值为 0（无重试）。
+* ARGOCD_K8SCLIENT_RETRY_BASE_BACKOFF` - 首次重试尝试的初始回退延迟（毫秒）。随后的重试将使该延迟时间加倍，直至达到最大阈值。默认为 100ms。
 
-### Backoff Strategy
+#### 后退策略
 
-The backoff strategy employed is a simple exponential backoff without jitter. The backoff time increases exponentially with each retry attempt until a maximum backoff duration is reached.
+采用的回退策略是一种简单的无抖动指数回退，回退时间随着每次重试呈指数增长，直至达到最大回退持续时间。
 
-The formula for calculating the backoff time is:
+后退时间的计算公式为
 
 ```
 backoff = min(retryWaitMax, baseRetryBackoff * (2 ^ retryAttempt))
 ```
-Where `retryAttempt` starts at 0 and increments by 1 for each subsequent retry.
 
-### Maximum Wait Time
+其中，"retryAttempt "从 0 开始，以后每次重试都以 1 为单位递增。
 
-There is a cap on the backoff time to prevent excessive wait times between retries. This cap is defined by:
+### 最长等待时间
 
-`retryWaitMax` - The maximum duration to wait before retrying. This ensures that retries happen within a reasonable timeframe. Defaults to 10 seconds.
+回退时间有一个上限，以防止重试之间等待时间过长。 该上限由以下参数定义：
 
-### Non-Retriable Conditions
+retryWaitMax` - 重试前的最长等待时间。 这将确保重试在合理的时间范围内进行。 默认为 10 秒。
 
-Not all HTTP responses are eligible for retries. The following conditions will not trigger a retry:
+### 不可逆转的条件
 
-* Responses with a status code indicating client errors (4xx) except for 429 Too Many Requests.
-* Responses with the status code 501 Not Implemented.
+并非所有 HTTP 响应都可以重试，以下情况不会触发重试：
+
+* 状态代码为 4xx 的回复，表明客户端出错（429 请求过多除外）。
+* 状态代码为 501 未执行的响应。

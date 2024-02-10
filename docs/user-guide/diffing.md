@@ -1,27 +1,31 @@
-# Diffing Customization
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
 
-It is possible for an application to be `OutOfSync` even immediately after a successful Sync operation. Some reasons for this might be:
+# Diffing 定制
 
-* There is a bug in the manifest, where it contains extra/unknown fields from the actual K8s spec. These extra fields would get dropped when querying Kubernetes for the live state,
-resulting in an `OutOfSync` status indicating a missing field was detected.
-* The sync was performed (with pruning disabled), and there are resources which need to be deleted.
-* A controller or [mutating webhook](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook) is altering the object after it was
-submitted to Kubernetes in a manner which contradicts Git.
-* A Helm chart is using a template function such as [`randAlphaNum`](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml#L16),
-which generates different data every time `helm template` is invoked.
-* For Horizontal Pod Autoscaling (HPA) objects, the HPA controller is known to reorder `spec.metrics`
-  in a specific order. See [kubernetes issue #74099](https://github.com/kubernetes/kubernetes/issues/74099).
-  To work around this, you can order `spec.metrics` in Git in the same order that the controller
-  prefers.
+应用程序有可能`OutOfSync`造成这种情况的一些原因可能是
 
-In case it is impossible to fix the upstream issue, Argo CD allows you to optionally ignore differences of problematic resources.
-The diffing customization can be configured for single or multiple application resources or at a system level.
+* 清单中存在一个 Bug，其中包含来自实际 k8s 规范的额外/未知字段。 在查询 Kubernetes 的实时状态时，这些额外字段会被丢弃、
 
-## Application Level Configuration
+导致`OutOfSync`状态，表明检测到缺少一个字段。
 
-Argo CD allows ignoring differences at a specific JSON path, using [RFC6902 JSON patches](https://tools.ietf.org/html/rfc6902) and [JQ path expressions](https://stedolan.github.io/jq/manual/#path(path_expression)). It is also possible to ignore differences from fields owned by specific managers defined in `metadata.managedFields` in live resources.
+已同步执行（已禁用剪枝功能），但有资源需要删除。 * 控制器或[突变网络钩子](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook)在对象被删除后对其进行了更改。 * 控制器或[突变网络钩子](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook)在对象被删除后对其进行了更改。
 
-The following sample application is configured to ignore differences in `spec.replicas` for all deployments:
+提交给 Kubernetes 的方式与 Git 相矛盾。
+
+* helm chart 被引用模板函数，如 [`randAlphaNum`](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml#L16) 、 [`andAlphaNum`](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml#L16) 、 [`andAlphaNum`](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml#L16) 、 [`andAlphaNum`](https://github.com/helm/charts/blob/master/stable/redis/templates/secret.yaml#L16) 。
+
+每次都产生不同的数据`helm template`被调用。
+
+* 对于水平 Pod Autoscaling (HPA) 对象，已知 HPA 控制器会按照特定顺序重新排列 `spec.metrics` 。请参阅 [kubernetes issue #74099](https://github.com/kubernetes/kubernetes/issues/74099) 。要解决这个问题，可以在 Git 中按照控制器偏好的顺序排列 `spec.metrics` 。
+
+如果无法修复上游问题，Argo CD 允许您选择忽略有问题资源的差异。 可为单个或多个应用程序资源或在系统级别配置差异定制。
+
+## 应用程序级配置
+
+Argo CD 允许忽略特定 JSON 路径上的差异，使用被引用的[RFC6902 JSON 补丁](https://tools.ietf.org/html/rfc6902)和[JQ 路径表达式](https://stedolan.github.io/jq/manual/#path(path_expression))也可以忽略与在`metadata.managedFields`活资源中。
+
+以下示例应用程序被配置为忽略`spec.replicas`用于所有部署：
 
 ```yaml
 spec:
@@ -32,8 +36,7 @@ spec:
     - /spec/replicas
 ```
 
-Note that the `group` field relates to the [Kubernetes API group](https://kubernetes.io/docs/reference/using-api/#api-groups) without the version.
-The above customization could be narrowed to a resource with the specified name and optional namespace:
+请注意`group`字段涉及[Kubernetes API 小组](https://kubernetes.io/docs/reference/using-api/#api-groups)上述定制可以缩小到具有指定名称和可选名称空间的资源：
 
 ```yaml
 spec:
@@ -46,7 +49,8 @@ spec:
     - /spec/replicas
 ```
 
-To ignore elements of a list, you can use JQ path expressions to identify list items based on item content:
+要忽略列表中的元素，可以使用 JQ 路径表达式根据项目内容识别列表项目： - 要忽略列表中的元素，可以使用 JQ 路径表达式根据项目内容识别列表项目
+
 ```yaml
 spec:
   ignoreDifferences:
@@ -56,7 +60,8 @@ spec:
     - .spec.template.spec.initContainers[] | select(.name == "injected-init-container")
 ```
 
-To ignore fields owned by specific managers defined in your live resources:
+忽略实时资源中定义的特定 managed 所拥有的字段：
+
 ```yaml
 spec:
   ignoreDifferences:
@@ -66,9 +71,9 @@ spec:
     - kube-controller-manager
 ```
 
-The above configuration will ignore differences from all fields owned by `kube-controller-manager` for all resources belonging to this application.
+上述配置将忽略由`kube-controller-manager`的所有资源。
 
-If you have a slash `/` in your pointer path, you can use the `~1` character. For example:
+如果有斜线`/`在你的指针路径中，你可以使用被引用的`~1`例如
 
 ```yaml
 spec:
@@ -77,11 +82,9 @@ spec:
     jsonPointers: /metadata/labels/node-role.kubernetes.io~1worker
 ```
 
-## System-Level Configuration
+## 系统级配置
 
-The comparison of resources with well-known issues can be customized at a system level. Ignored differences can be configured for a specified group and kind
-in `resource.customizations` key of `argocd-cm` ConfigMap. Following is an example of a customization which ignores the `caBundle` field
-of a `MutatingWebhookConfiguration` webhooks:
+可在系统级别上自定义与众所周知的问题进行资源比较。`resource.customizations`的关键`argocd-cm`下面是一个自定义的例子，它忽略了`caBundle`的字段`MutatingWebhookConfiguration`网络钩子：.
 
 ```yaml
 data:
@@ -90,7 +93,7 @@ data:
     - '.webhooks[]?.clientConfig.caBundle'
 ```
 
-Resource customization can also be configured to ignore all differences made by a managedField.manager at the system level. The example below shows how to configure Argo CD to ignore changes made by `kube-controller-manager` in `Deployment` resources.
+资源定制也可以配置为忽略由 managedField.manager 在系统级别上做出的所有差异。 下面的示例显示了如何配置 Argo CD 忽略由`kube-controller-manager`于`Deployment`资源
 
 ```yaml
 data:
@@ -99,7 +102,7 @@ data:
     - kube-controller-manager
 ```
 
-It is possible to configure ignoreDifferences to be applied to all resources in every Application managed by an Argo CD instance. In order to do so, resource customizations can be configured like in the example below:
+可以将 ignoreDifferences 配置为应用于 Argo CD 实例管理的每个应用程序中的所有资源。 为此，可以像下面的示例一样配置资源自定义： Argo CD 实例管理
 
 ```yaml
 data:
@@ -110,8 +113,7 @@ data:
     - /spec/replicas
 ```
 
-The `status` field of `CustomResourceDefinitions` is often stored in Git/Helm manifest and should be ignored during diffing. The `ignoreResourceStatusField` setting simplifies
-handling that edge case:
+status`领域`CustomResourceDefinitions`通常存储在 Git/Helm 清单中，在差异化过程中应忽略。
 
 ```yaml
 data:
@@ -123,11 +125,11 @@ data:
     ignoreResourceStatusField: crd
 ```
 
-By default `status` field is ignored during diffing for `CustomResourceDefinition` resource. The behavior can be extended to all resources using `all` value or disabled using `none`.
+默认情况下`status`字段在为`CustomResourceDefinition`该行为可扩展自所有被引用的资源。`all`值或被引用禁用。`none`.
 
-### Ignoring RBAC changes made by AggregateRoles
+### 忽略 AggregateRoles 所做的 RBAC 更改
 
-If you are using [Aggregated ClusterRoles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles) and don't want Argo CD to detect the `rules` changes as drift, you can set `resource.compareoptions.ignoreAggregatedRoles: true`. Then Argo CD will no longer detect these changes as an event that requires syncing.
+如果您被引用的是[聚合群集角色](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles)并且不希望 Argo CD 检测到`rules`您可以设置`resource.compareoptions.ignoreAggregatedRoles: true`然后，Argo CD 将不再把这些更改检测为需要同步的事件。
 
 ```yaml
 apiVersion: v1
@@ -140,31 +142,29 @@ data:
     ignoreAggregatedRoles: true
 ```
 
-## Known Kubernetes types in CRDs (Resource limits, Volume mounts etc)
+## CRD 中已知的 Kubernetes 类型（资源限制、卷挂载等）
 
-Some CRDs are re-using data structures defined in the Kubernetes source base and therefore inheriting custom
-JSON/YAML marshaling. Custom marshalers might serialize CRDs in a slightly different format that causes false
-positives during drift detection.
+一些 CRD 正在重复使用 Kubernetes 源代码库中定义的数据结构，因此继承了自定义 JSON/YAML 编译。 自定义编译器可能会以略有不同的格式对 CRD 进行序列化，从而在漂移检测过程中造成误报。
 
-A typical example is the `argoproj.io/Rollout` CRD that re-using `core/v1/PodSpec` data structure. Pod resource requests
-might be reformatted by the custom marshaller of `IntOrString` data type:
+一个典型的例子是`argoproj.io/Rollout`被引用的 CRD`core/v1/PodSpec`Pod 资源请求可能会被"...... "的自定义 marshaller 重新格式化。`IntOrString`数据类型：
 
-from:
+来自
+
 ```yaml
 resources:
   requests:
     cpu: 100m
 ```
 
-to:
+到：
+
 ```yaml
 resources:
   requests:
     cpu: 0.1
 ```
 
-The solution is to specify which CRDs fields are using built-in Kubernetes types in the `resource.customizations`
-section of `argocd-cm` ConfigMap:
+解决方法是在`resource.customizations`部分`argocd-cm`配置地图：
 
 ```yaml
 apiVersion: v1
@@ -181,7 +181,6 @@ data:
       type: core/v1/PodSpec
 ```
 
-The list of supported Kubernetes types is available in [diffing_known_types.txt](https://raw.githubusercontent.com/argoproj/argo-cd/master/util/argo/normalizers/diffing_known_types.txt) and additionally:
+支持的 Kubernetes 类型列表可在[diffing_known_types.txt](https://raw.githubusercontent.com/argoproj/argo-cd/master/util/argo/normalizers/diffing_known_types.txt)此外
 
-* `core/Quantity`
-* `meta/v1/duration`
+* 核心/数量

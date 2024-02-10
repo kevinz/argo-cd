@@ -1,26 +1,27 @@
-# Controlling if/when the ApplicationSet controller modifies `Application` resources
+<!-- TRANSLATED by md-translate -->
+# 控制 ApplicationSet 控制器是否/何时修改 `Application` 资源
 
-The ApplicationSet controller supports a number of settings that limit the ability of the controller to make changes to generated Applications, for example, preventing the controller from deleting child Applications.
+ApplicationSet 控制器支持一系列限制控制器对生成的应用程序进行更改的设置，例如，防止控制器删除子应用程序。
 
-These settings allow you to exert control over when, and how, changes are made to your Applications, and to their corresponding cluster resources (`Deployments`, `Services`, etc).
+通过这些设置，您可以控制对应用程序及其相应集群资源（"部署"、"服务 "等）进行更改的时间和方式。
 
-Here are some of the controller settings that may be modified to alter the ApplicationSet controller's resource-handling behaviour.
+以下是一些控制器设置，可以通过修改这些设置来改变 ApplicationSet 控制器的资源处理行为。
 
-## Dry run: prevent ApplicationSet from creating, modifying, or deleting all Applications
+### 干运行：防止 ApplicationSet 创建、修改或删除所有应用程序
 
-To prevent the ApplicationSet controller from creating, modifying, or deleting any `Application` resources, you may enable `dry-run` mode. This essentially switches the controller into a "read only" mode, where the controller Reconcile loop will run, but no resources will be modified.
+为防止 ApplicationSet 控制器创建、修改或删除任何 "应用程序 "资源，可以启用 "干运行 "模式。 这基本上是将控制器切换为 "只读 "模式，在该模式下，控制器的 "重构 "循环将运行，但不会修改任何资源。
 
-To enable dry-run, add `--dryrun true` to the ApplicationSet Deployment's container launch parameters.
+要启用干运行，请在 ApplicationSet 部署的容器启动参数中添加 `--dryrun true"。
 
-See 'How to modify ApplicationSet container parameters' below for detailed steps on how to add this parameter to the controller.
+有关如何将此参数添加到控制器的详细步骤，请参阅下面的 "如何修改 ApplicationSet 容器参数"。
 
-## Managed Applications modification Policies
+### 管理应用程序修改政策
 
-The ApplicationSet controller supports a parameter `--policy`, which is specified on launch (within the controller Deployment container), and which restricts what types of modifications will be made to managed Argo CD `Application` resources.
+ApplicationSet 控制器支持参数"--政策"，该参数在启动时（在控制器部署容器内）指定，用于限制对 Argo CD "应用程序 "资源进行哪些类型的修改。
 
-The `--policy` parameter takes four values: `sync`, `create-only`, `create-delete`, and `create-update`. (`sync` is the default, which is used if the `--policy` parameter is not specified; the other policies are described below).
+策略 "参数有四个 Values 值："同步"、"仅创建"、"创建-删除 "和 "创建-更新"（"同步 "为默认值，如果未指定"--策略 "参数，则使用该值；其他策略将在下文介绍）。
 
-It is also possible to set this policy per ApplicationSet.
+也可以按 ApplicationSet 设置该策略。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -29,24 +30,24 @@ spec:
   # (...)
   syncPolicy:
     applicationsSync: create-only # create-update, create-delete sync
-
 ```
 
-- Policy `create-only`: Prevents ApplicationSet controller from modifying or deleting Applications. Prevents Application controller from deleting Applications according to [ownerReferences](https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/).
-- Policy `create-update`: Prevents ApplicationSet controller from deleting Applications. Update is allowed. Prevents Application controller from deleting Applications according to [ownerReferences](https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/).
-- Policy `create-delete`: Prevents ApplicationSet controller from modifying Applications. Delete is allowed.
-- Policy `sync`: Update and Delete are allowed.
+* 仅限创建 "策略：防止 ApplicationSet 控制器修改或删除应用程序。防止应用程序控制器根据 [ownerReferences](https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/) 的来源自删除应用程序。
+* 策略 `create-update`：防止 ApplicationSet 控制器删除应用程序。允许更新。防止应用程序控制器根据 [OwnerReferences](https://kubernetes.io/docs/concepts/overview/working-with-objects/owners-dependents/) 删除应用程序。
+* 策略 `创建-删除`：防止 ApplicationSet 控制器修改应用程序。允许删除。
+* 策略 `sync`：允许更新和删除。
 
-If the controller parameter `--policy` is set, it takes precedence on the field `applicationsSync`. It is possible to allow per ApplicationSet sync policy by setting variable `ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_POLICY_OVERRIDE` to argocd-cmd-params-cm `applicationsetcontroller.enable.policy.override` or directly with controller parameter `--enable-policy-override` (default to `false`).
+如果控制器参数 `--policy`被设置，它将优先于字段 `applicationsSync`. 可以通过将变量 `ARGOCD_APPLICATIONSET_CONTROLLER_ENABLE_POLICY_OVERRIDE` 设置为 argocd-cmd-params-cm `applicationsetcontroller.enable.policy.override` 或直接使用控制器参数 `--enable-policy-override`（默认为 `false`）来允许每个 ApplicationSet 的同步策略。
 
-### Controller parameter
+### 控制器参数
 
-To allow the ApplicationSet controller to *create* `Application` resources, but prevent any further modification, such as deletion, or modification of Application fields, add this parameter in the ApplicationSet controller:
+要允许 ApplicationSet 控制器_创建_"应用程序 "资源，但阻止任何进一步的修改，如删除或修改应用程序字段，请在 ApplicationSet 控制器中添加此参数：
+
 ```
 --policy create-only
 ```
 
-At ApplicationSet level
+在 ApplicationSet 层级
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -57,16 +58,17 @@ spec:
     applicationsSync: create-only
 ```
 
-## Policy - `create-update`: Prevent ApplicationSet controller from deleting Applications
+## 策略 - `create-update`：防止 ApplicationSet 控制器删除应用程序
 
-To allow the ApplicationSet controller to create or modify `Application` resources, but prevent Applications from being deleted, add the following parameter to the ApplicationSet controller `Deployment`:
+要允许 ApplicationSet 控制器创建或修改 "应用程序 "资源，但阻止删除应用程序，可在 ApplicationSet 控制器 "部署 "中添加以下参数：
+
 ```
 --policy create-update
 ```
 
-This may be useful to users looking for additional protection against deletion of the Applications generated by the controller.
+这可能对寻求额外保护以防止控制器生成的应用程序被删除的用户有用。
 
-At ApplicationSet level
+在 ApplicationSet 层级
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -77,16 +79,13 @@ spec:
     applicationsSync: create-update
 ```
 
-## Ignore certain changes to Applications
+## 忽略应用程序的某些更改
 
-The ApplicationSet spec includes an `ignoreApplicationDifferences` field, which allows you to specify which fields of 
-the ApplicationSet should be ignored when comparing Applications.
+ApplicationSet 规范包含一个 "ignoreApplicationDifferences "字段，可用于指定在比较应用程序时应忽略 ApplicationSet 的哪些字段。
 
-The field supports multiple ignore rules. Each ignore rule may specify a list of either `jsonPointers` or 
-`jqPathExpressions` to ignore.
+该字段支持多条忽略规则。 每条忽略规则可指定要忽略的 `jsonPointers` 或 `jqPathExpressions` 列表。
 
-You may optionally also specify a `name` to apply the ignore rule to a specific Application, or omit the `name` to apply
-the ignore rule to all Applications.
+也可选择指定 "名称"，将忽略规则应用于特定应用程序；或省略 "名称"，将忽略规则应用于所有应用程序。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -100,12 +99,11 @@ spec:
         - .spec.source.helm.values
 ```
 
-### Allow temporarily toggling auto-sync
+###允许临时切换自动同步
 
-One of the most common use cases for ignoring differences is to allow temporarily toggling auto-sync for an Application.
+忽略差异的最常见用例之一是允许临时切换应用程序的自动同步。
 
-For example, if you have an ApplicationSet that is configured to automatically sync Applications, you may want to temporarily
-disable auto-sync for a specific Application. You can do this by adding an ignore rule for the `spec.syncPolicy.automated` field.
+例如，如果您有一个配置为自动同步应用程序的 ApplicationSet，您可能希望暂时禁用特定应用程序的自动同步。 您可以通过为 `spec.syncPolicy.automated` 字段添加忽略规则来实现这一点。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -116,21 +114,15 @@ spec:
         - /spec/syncPolicy
 ```
 
-### Limitations of `ignoreApplicationDifferences`
+###`ignoreApplicationDifferences` 的限制
 
-When an ApplicationSet is reconciled, the controller will compare the ApplicationSet spec with the spec of each Application
-that it manages. If there are any differences, the controller will generate a patch to update the Application to match the
-ApplicationSet spec.
+调节 ApplicationSet 时，控制器会将 ApplicationSet 规范与它所管理的每个应用程序的规范进行比较。 如果存在任何差异，控制器会生成一个补丁来更新应用程序，使其与 ApplicationSet 规范相匹配。
 
-The generated patch is a MergePatch. According to the MergePatch documentation, "existing lists will be completely 
-replaced by new lists" when there is a change to the list.
+根据 MergePatch 文档，当列表发生变化时，"现有列表将被新列表完全替换"。
 
-This limits the effectiveness of `ignoreApplicationDifferences` when the ignored field is in a list. For example, if you
-have an application with multiple sources, and you want to ignore changes to the `targetRevision` of one of the sources,
-changes in other fields or in other sources will cause the entire `sources` list to be replaced, and the `targetRevision`
-field will be reset to the value defined in the ApplicationSet.
+当被忽略的字段位于一个列表中时，这就限制了 `ignoreApplicationDifferences` 的有效性。 例如，如果您的应用程序有多个源，而您想忽略其中一个源的 `targetRevision` 的更改，那么其他字段或其他源的更改将导致整个 `sources` 列表被替换，而 `targetRevision` 字段将重置为 ApplicationSet 中定义的值。
 
-For example, consider this ApplicationSet:
+例如，请看这个 ApplicationSet：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -148,8 +140,7 @@ spec:
         targetRevision: main
 ```
 
-You can freely change the `targetRevision` of the `repo1` source, and the ApplicationSet controller will not overwrite
-your change.
+您可以随意更改 `repo1` 源代码的 `targetRevision` 版本，ApplicationSet 控制器不会覆盖您的更改。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -162,8 +153,7 @@ spec:
     targetRevision: main
 ```
 
-However, if you change the `targetRevision` of the `repo2` source, the ApplicationSet controller will overwrite the entire
-`sources` field.
+但是，如果更改了 `repo2` 源的 `targetRevision` ，ApplicationSet 控制器将覆盖整个 `sources` 字段。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -176,18 +166,14 @@ spec:
     targetRevision: main
 ```
 
-!!! note
-    [Future improvements](https://github.com/argoproj/argo-cd/issues/15975) to the ApplicationSet controller may 
-    eliminate this problem. For example, the `ref` field might be made a merge key, allowing the ApplicationSet 
-    controller to generate and use a StrategicMergePatch instead of a MergePatch. You could then target a specific 
-    source by `ref`, ignore changes to a field in that source, and changes to other sources would not cause the ignored 
-    field to be overwritten.
+注意[未来的改进](https://github.com/argoproj/argo-cd/issues/15975) ApplicationSet 控制器可能会消除这个问题。例如，可以将 `ref` 字段设为合并键，允许 ApplicationSet 控制器生成并使用 StrategicMergePatch 而不是 MergePatch。这样，您就可以通过 `ref` 针对特定源，忽略对该源中字段的更改，而对其他源的更改不会导致被忽略的字段被覆盖。
 
-## Prevent an `Application`'s child resources from being deleted, when the parent Application is deleted
+## 当父应用程序被删除时，防止 `Application` 的子资源被删除
 
-By default, when an `Application` resource is deleted by the ApplicationSet controller, all of the child resources of the Application will be deleted as well (such as, all of the Application's `Deployments`, `Services`, etc).
+默认情况下，当 ApplicationSet 控制器删除 "应用程序 "资源时，该应用程序的所有子资源也将被删除（例如，该应用程序的所有 "部署"、"服务 "等）。
 
-To prevent an Application's child resources from being deleted when the parent Application is deleted, add the `preserveResourcesOnDeletion: true` field to the `syncPolicy` of the ApplicationSet:
+要防止在删除父应用程序时删除应用程序的子资源，请在 ApplicationSet 的 `syncPolicy` 中添加 `preserveResourcesOnDeletion: true` 字段：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -197,33 +183,33 @@ spec:
     preserveResourcesOnDeletion: true
 ```
 
-More information on the specific behaviour of `preserveResourcesOnDeletion`, and deletion in ApplicationSet controller and Argo CD in general, can be found on the [Application Deletion](Application-Deletion.md) page.
+有关 "preserveResourcesOnDeletion "的具体行为以及 ApplicationSet 控制器和 Argo CD 中一般删除行为的更多信息，请参阅 [Application Deletion](Application-Deletion.md)页面。
 
+## 防止应用程序的子资源被修改
 
-## Prevent an Application's child resources from being modified
+对 ApplicationSet 所做的更改会传播到 ApplicationSet 所管理的应用程序，然后 Argo CD 会将应用程序的更改传播到相应的集群资源（如 [Argo CD Integration](Argo-CD-Integration.md)）。
 
-Changes made to the ApplicationSet will propagate to the Applications managed by the ApplicationSet, and then Argo CD will propagate the Application changes to the underlying cluster resources (as per [Argo CD Integration](Argo-CD-Integration.md)).
+应用程序更改向集群的传播由[自动同步设置](.../.../user-guide/auto_sync.md)管理，[自动同步设置]在 ApplicationSet `template` 字段中被引用：
 
-The propagation of Application changes to the cluster is managed by the [automated sync settings](../../user-guide/auto_sync.md), which are referenced in the ApplicationSet `template` field:
+* spec.template.syncPolicy.automated`：如果启用，应用程序的更改将自动传播到集群的集群资源。
+    - 在 ApplicationSet 模板中取消设置此项，可 "暂停 "对 "应用程序 "资源所管理集群资源的更新。
+* `spec.template.syncPolicy.automated.prune`：默认情况下，当 Argo CD 检测到 Git 中不再定义资源时，自动同步不会删除该资源。
+    - 为更加安全起见，请将此设置为 false，以防止后备 Git 仓库的意外更改影响集群资源。
 
-- `spec.template.syncPolicy.automated`: If enabled, changes to Applications will automatically propagate to the cluster resources of the cluster. 
-    - Unset this within the ApplicationSet template to 'pause' updates to cluster resources managed by the `Application` resource.
-- `spec.template.syncPolicy.automated.prune`: By default, Automated sync will not delete resources when Argo CD detects the resource is no longer defined in Git.
-    - For extra safety, set this to false to prevent unexpected changes to the backing Git repository from affecting cluster resources.
+### 如何修改 ApplicationSet 容器启动参数
 
+有几种方法可以修改 ApplicationSet 容器参数，从而启用上述设置。
 
-## How to modify ApplicationSet container launch parameters
+#### A) 使用 `kubectl edit` 修改集群上的部署情况
 
-There are a couple of ways to modify the ApplicationSet container parameters, so as to enable the above settings.
+编辑集群上的 ApplicationSet-controller `Deployment` 资源：
 
-### A) Use `kubectl edit` to modify the deployment on the cluster
-
-Edit the applicationset-controller `Deployment` resource on the cluster:
 ```
 kubectl edit deployment/argocd-applicationset-controller -n argocd
 ```
 
-Locate the `.spec.template.spec.containers[0].command` field, and add the required parameter(s):
+找到 `.spec.template.spec.containers[0].command` 字段，并添加所需的参数：
+
 ```yaml
 spec:
     # (...)
@@ -239,13 +225,14 @@ spec:
     # (...)
 ```
 
-Save and exit the editor. Wait for a new `Pod` to start containing the updated parameters.
+保存并退出编辑器，等待包含更新参数的新 "Pod "启动。
 
-### Or, B) Edit the `install.yaml` manifest for the ApplicationSet installation
+#### 或者，B) 编辑 ApplicationSet 安装的 `install.yaml` 配置清单
 
-Rather than directly editing the cluster resource, you may instead choose to modify the installation YAML that is used to install the ApplicationSet controller:
+与其直接编辑集群资源，不如选择修改被引用用于安装 ApplicationSet 控制器的安装 YAML：
 
-Applicable for applicationset versions less than 0.4.0. 
+适用于版本小于 0.4.0 的应用程序集。
+
 ```bash
 # Clone the repository
 
@@ -264,16 +251,14 @@ cd applicationset/manifests
 kubectl apply -n argocd -f install.yaml
 ```
 
-## Preserving changes made to an Applications annotations and labels
+## 保存对应用程序 Annotations 和标签所做的更改
 
-!!! note
-    The same behavior can be achieved on a per-app basis using the [`ignoreApplicationDifferences`](#ignore-certain-changes-to-applications) 
-    feature described above. However, preserved fields may be configured globally, a feature that is not yet available
-    for `ignoreApplicationDifferences`.
+注意：使用上述 [`ignoreApplicationDifferences`](#ignore-certain-changes-to-applications)功能，可以在每个应用程序上实现相同的行为。 不过，保留字段可以进行全局配置，"ignoreApplicationDifferences`"尚不具备这一功能。
 
-It is common practice in Kubernetes to store state in annotations, operators will often make use of this. To allow for this, it is possible to configure a list of annotations that the ApplicationSet should preserve when reconciling.
+在 Kubernetes 中，将状态存储在 Annotations 中是一种常见做法，操作员通常会利用这一点。 为了实现这一点，可以配置一个 Annotations 列表，以便 ApplicationSet 在对账时保留这些注释。
 
-For example, imagine that we have an Application created from an ApplicationSet, but a custom annotation and label has since been added (to the Application) that does not exist in the `ApplicationSet` resource:
+例如，假设我们从 ApplicationSet 创建了一个应用程序，但后来（在应用程序中）添加了一个自定义 Annotations 和标签，而该标签并不存在于`ApplicationSet`资源中：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -288,7 +273,8 @@ spec:
   # (...)
 ```
 
-To preserve this annotation and label we can use the `preservedFields` property of the `ApplicationSet` like so:
+要保留此 Annotations 和标签，我们可以像这样使用 `ApplicationSet` 的 `preservedFields` 属性：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -299,18 +285,15 @@ spec:
     labels: ["my-custom-label"]
 ```
 
-The ApplicationSet controller will leave this annotation and label as-is when reconciling, even though it is not defined in the metadata of the ApplicationSet itself.
+尽管 ApplicationSet 本身的元数据中没有定义该注解和标签，但在对账时，ApplicationSet 控制器仍会保留该注解和标签。
 
-By default, the Argo CD notifications and the Argo CD refresh type annotations are also preserved.
+默认情况下，Argo CD 通知和 Argo CD 刷新类型 Annotations 也会保留。
 
-!!!note
-  One can also set global preserved fields for the controller by passing a comma separated list of annotations and labels to 
-  `ARGOCD_APPLICATIONSET_CONTROLLER_GLOBAL_PRESERVED_ANNOTATIONS` and `ARGOCD_APPLICATIONSET_CONTROLLER_GLOBAL_PRESERVED_LABELS` respectively.
+注意 我们还可以通过向 `ARGOCD_APPLICATIONSET_CONTROLLER_GLOBAL_PRESERVED_ANNOTATIONS` 和 `ARGOCD_APPLICATIONSET_CONTROLLER_GLOBAL_PRESERVED_LABELS` 分别传递逗号分隔的 Annotations 和标签列表，为控制器设置全局保留字段。
 
-## Debugging unexpected changes to Applications
+## 调试应用程序的意外更改
 
-When the ApplicationSet controller makes a change to an application, it logs the patch at the debug level. To see these
-logs, set the log level to debug in the `argocd-cmd-params-cm` ConfigMap in the `argocd` namespace:
+ApplicationSet 控制器更改应用程序时，会在调试级别记录补丁。 要查看这些日志，请在 `argocd` 名称空间的 `argocd-cmd-params-cm` ConfigMap 中将日志级别设置为调试：
 
 ```yaml
 apiVersion: v1

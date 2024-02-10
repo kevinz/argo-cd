@@ -1,5 +1,7 @@
-The subscription to Argo CD application events can be defined using `notifications.argoproj.io/subscribe.<trigger>.<service>: <recipient>` annotation.
-For example, the following annotation subscribes two Slack channels to notifications about every successful synchronization of the Argo CD application:
+<!-- TRANSLATED by md-translate -->
+<!-- TRANSLATED by md-translate -->
+
+对 Argo CD 应用程序事件的引用可通过以下方式定义`notifications.argoproj.io/subscribe.<trigger>.<service>:<recipient>`例如，下面的注解订阅了两个 Slack 频道，以接收 Argo CD 应用程序每次成功同步的通知： Argo CD 应用程序每次成功同步的通知
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -9,13 +11,11 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my-channel1;my-channel2
 ```
 
-Annotation key consists of following parts:
+注释密钥由以下部分组成：
 
-* `on-sync-succeeded` - trigger name
-* `slack` - notification service name
-* `my-channel1;my-channel2` - a semicolon separated list of recipients
+* `on-sync-succeeded` - 触发器名称 * `slack` - 通知服务名称 * `my-channel1;my-channel2` - 以分号分隔的收件人列表
 
-You can create subscriptions for all applications of the Argo CD project by adding the same annotation to AppProject CRD:
+通过在 AppProject CRD 中添加相同的注释，可以为 Argo CD 项目的所有应用程序创建订阅： AppProject CRD
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -25,11 +25,9 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.slack: my-channel1;my-channel2
 ```
 
-## Default Subscriptions
+## 默认订阅
 
-The subscriptions might be configured globally in the `argocd-notifications-cm` ConfigMap using `subscriptions` field. The default subscriptions
-are applied to all applications. The trigger and applications might be configured using the
-`triggers` and `selector` fields:
+订阅可以在`argocd-notifications-cm`被引用的配置Map`subscriptions`默认订阅被引用到所有应用程序。 触发器和应用程序可以使用`triggers`和`selector`领域：
 
 ```yaml
 apiVersion: v1
@@ -53,7 +51,7 @@ data:
       - on-sync-status-unknown
 ```
 
-If you want to use webhook in subscriptions, you need to store the custom name to recipients.
+如果要在订阅中使用 webhook，则需要将自定义名称存储到收件人中。
 
 ```yaml
 apiVersion: v1

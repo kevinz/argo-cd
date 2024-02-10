@@ -1,15 +1,16 @@
-# Merge Generator
+<!-- TRANSLATED by md-translate -->
+# 合并生成器
 
-The Merge generator combines parameters produced by the base (first) generator with matching parameter sets produced by subsequent generators. A _matching_ parameter set has the same values for the configured _merge keys_. _Non-matching_ parameter sets are discarded. Override precedence is bottom-to-top: the values from a matching parameter set produced by generator 3 will take precedence over the values from the corresponding parameter set produced by generator 2.
+合并生成器将基本（第一个）生成器生成的参数与后续生成器生成的匹配参数集合并。 匹配参数集的配置_合并键_值相同，非匹配参数集将被丢弃。 覆盖优先级是自下而上的：生成器 3 生成的匹配参数集中的值优先于生成器 2 生成的相应参数集中的值。
 
-Using a Merge generator is appropriate when a subset of parameter sets require overriding.
+当需要覆盖参数集的子集时，使用合并生成器是合适的。
 
-## Example: Base Cluster generator + override Cluster generator + List generator 
+## 示例：基本集群生成器 + 覆盖集群生成器 + 列表生成器
 
-As an example, imagine that we have two clusters:
+举个例子，设想我们有两个集群：
 
-- A `staging` cluster (at `https://1.2.3.4`)
-- A `production` cluster (at `https://2.4.6.8`)
+* 暂存 "集群（位于 `https://1.2.3.4`)
+* 生产 "集群（位于 `https://2.4.6.8`)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -61,31 +62,12 @@ spec:
         namespace: default
 ```
 
-The base Cluster generator scans the [set of clusters defined in Argo CD](Generators-Cluster.md), finds the staging and production cluster secrets, and produces two corresponding sets of parameters:
+基本集群生成器会扫描[Argo CD 中定义的集群集](Generators-Cluster.md)，找到暂存集群和生产集群秘密，并生成两组相应的参数：
+
 ```yaml
 - name: staging
   server: https://1.2.3.4
   values.kafka: 'true'
-  values.redis: 'false'
-  
-- name: production
-  server: https://2.4.6.8
-  values.kafka: 'true'
-  values.redis: 'false'
-```
-
-The override Cluster generator scans the [set of clusters defined in Argo CD](Generators-Cluster.md), finds the staging cluster secret (which has the required label), and produces the following parameters:
-```yaml
-- name: staging
-  server: https://1.2.3.4
-  values.kafka: 'false'
-```
-
-When merged with the base generator's parameters, the `values.kafka` value for the staging cluster is set to `'false'`.
-```yaml
-- name: staging
-  server: https://1.2.3.4
-  values.kafka: 'false'
   values.redis: 'false'
 
 - name: production
@@ -94,13 +76,37 @@ When merged with the base generator's parameters, the `values.kafka` value for t
   values.redis: 'false'
 ```
 
-Finally, the List cluster generates a single set of parameters:
+覆盖集群生成器会扫描[Argo CD 中定义的集群集](Generators-Cluster.md)，找到暂存集群 secret（具有所需的标签），并生成以下参数：
+
+```yaml
+- name: staging
+  server: https://1.2.3.4
+  values.kafka: 'false'
+```
+
+与基本生成器的参数合并后，暂存集群的 `values.kafka` 值将设为 `'false'`。
+
+```yaml
+- name: staging
+  server: https://1.2.3.4
+  values.kafka: 'false'
+  values.redis: 'false'
+
+- name: production
+  server: https://2.4.6.8
+  values.kafka: 'true'
+  values.redis: 'false'
+```
+
+Finally, the List cluster generates a single set of parameters：
+
 ```yaml
 - server: https://2.4.6.8
   values.redis: 'true'
 ```
 
-When merged with the updated base parameters, the `values.redis` value for the production cluster is set to `'true'`. This is the merge generator's final output:
+与更新的基础参数合并后，生产集群的 `values.redis` 值将设为 `'true'`。 这就是合并生成器的最终输出：
+
 ```yaml
 - name: staging
   server: https://1.2.3.4
@@ -113,11 +119,12 @@ When merged with the updated base parameters, the `values.redis` value for the p
   values.redis: 'true'
 ```
 
-## Example: Use value interpolation in merge
+## 示例：在合并中被引用插值法
 
-Some generators support additional values and interpolating from generated variables to selected values. This can be used to teach the merge generator which generated variables to use to combine different generators.
+有些生成器支持附加值和从生成变量到选定值的插值，这可以用来教合并生成器使用哪些生成变量来合并不同的生成器。
 
-The following example combines discovered clusters and a git repository by cluster labels and the branch name:
+下面的示例通过集群标签和分支名称将已发现的集群和 git 仓库结合起来：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -164,10 +171,10 @@ spec:
         namespace: default
 ```
 
-Assuming a cluster named `germany01` with the label `metadata.labels.location=Germany` and a git repository containing a directory called `Germany`, this could combine to values as follows:
+假设有一个名为 "germany01"、标签为 "metadata.labels.location=Germany "的集群，以及一个包含名为 "Germany "的目录的 git 仓库，这可以组合成如下值：
 
 ```yaml
-  # From the cluster generator
+# From the cluster generator
 - name: germany01
   server: https://1.2.3.4
   # From the git generator
@@ -178,55 +185,53 @@ Assuming a cluster named `germany01` with the label `metadata.labels.location=Ge
   # […]
 ```
 
+## 限制
 
-## Restrictions
-
-1. You should specify only a single generator per array entry. This is not valid:
-
-        - merge:
-            generators:
-            - list: # (...)
-              git: # (...)
-
-    - While this *will* be accepted by Kubernetes API validation, the controller will report an error on generation. Each generator should be specified in a separate array element, as in the examples above.
-
-1. The Merge generator does not support [`template` overrides](Template.md#generator-templates) specified on child generators. This `template` will not be processed:
-
-        - merge:
-            generators:
-              - list:
-                  elements:
-                    - # (...)
-                  template: { } # Not processed
-
-1. Combination-type generators (Matrix or Merge) can only be nested once. For example, this will not work:
-
-        - merge:
-            generators:
-              - merge:
-                  generators:
-                    - merge:  # This third level is invalid.
-                        generators:
-                          - list:
-                              elements:
-                                - # (...)
-
-1. Merging on nested values while using `goTemplate: true` is currently not supported, this will not work
-
-        spec:
-          goTemplate: true
-          generators:
-          - merge:
-              mergeKeys:
-                - values.merge
-
-1. When using a Merge generator nested inside another Matrix or Merge generator, [Post Selectors](Generators-Post-Selector.md) for this nested generator's generators will only be applied when enabled via `spec.applyNestedSelectors`.
-
-        - merge:
-            generators:
-              - merge:
-                  generators:
-                    - list
-                        elements:
-                          - # (...)
-                      selector: { } # Only applied when applyNestedSelectors is true
+1.每个数组条目只能指定一个发生器。这种情况无效：
+    ```
+    - 合并：
+         generators：
+         - list：# (...)
+           git：# (...)
+    ```- 虽然 Kubernetes API 验证会接受这种方法，但控制器在生成时会报错。每个生成器都应在单独的数组元素中指定，如上面的示例。
+2.合并生成器不支持在子生成器上指定 [`模板`覆盖](Template.md#generator-templates)。该 `template` 将不会被处理：
+    ```
+    - 合并：
+         生成器：
+           - list：
+               elements：
+                 - # (...)
+               模板：{ }# 未处理
+    ```
+3.组合型生成器（矩阵或合并）只能嵌套一次。例如，这样做是不行的：
+    ```
+    - 合并：
+         生成器：
+           - merge：
+               generators：
+                 - 合并：  # 第三层无效。
+                     生成器
+                       - list：
+                           elements：
+                             - # (...)
+    ```
+4.目前不支持在使用 `goTemplate: true` 时对嵌套值进行合并，这将不起作用
+    ```
+    规格：
+       goTemplate: true
+       生成器：
+       - merge：
+           mergeKeys：
+             - values.merge
+    ```
+5.当使用嵌套在另一个矩阵或合并生成器内部的合并生成器时，只有通过 `spec.applyNestedSelectors` 启用后，才会引用此嵌套生成器的生成器的 [Post Selectors](Generators-Post-Selector.md)。
+    ```
+    - 合并：
+         生成器：
+           - 合并
+               生成器
+                 - 列表
+                     元素：
+                       - # (...)
+                   选择器{ }# 仅在 applyNestedSelectors 为 true 时应用
+    ```

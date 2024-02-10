@@ -1,18 +1,16 @@
-# Git Generator
+<!-- TRANSLATED by md-translate -->
+# Git 生成器
 
-The Git generator contains two subtypes: the Git directory generator, and Git file generator.
+Git 生成器包含两个子类型：Git 目录生成器和 Git 文件生成器。
 
-!!! warning
-    Git generators are often used to make it easier for (non-admin) developers to create Applications.
-    If the `project` field in your ApplicationSet is templated, developers may be able to create Applications under Projects with excessive permissions.
-    For ApplicationSets with a templated `project` field, [the source of truth _must_ be controlled by admins](./Security.md#templated-project-field)
-    - in the case of git generators, PRs must require admin approval.
+警告 Git 生成器通常用于方便（非管理员）开发人员创建应用程序。 如果 ApplicationSet 中的 `project` 字段是模板化的，开发人员可能会在权限过大的项目下创建应用程序。 对于带有模板化 `project` 字段的 ApplicationSet，[真相来源 _must_ 必须_由管理员控制](./Security.md#templated-project-field) - 在 git 生成器的情况下，PR 必须需要管理员批准。
 
-## Git Generator: Directories
+## Git 生成器：目录
 
-The Git directory generator, one of two subtypes of the Git generator, generates parameters using the directory structure of a specified Git repository.
+Git 目录生成器是 Git 生成器的两个子类型之一，它使用指定 Git 仓库的目录结构生成参数。
 
-Suppose you have a Git repository with the following directory structure:
+假设您有一个 Git 仓库，其目录结构如下：
+
 ```
 ├── argo-workflows
 │   ├── kustomization.yaml
@@ -24,12 +22,13 @@ Suppose you have a Git repository with the following directory structure:
     └── values.yaml
 ```
 
-This repository contains two directories, one for each of the workloads to deploy:
+该资源库包含两个目录，每个目录对应一个要部署的工作负载：
 
-- an Argo Workflow controller kustomization YAML file
-- a Prometheus Operator Helm chart
+* Argo 工作流程控制器 kustomize YAML 文件
+* 一个 Prometheus Operator Helm 图表
 
-We can deploy both workloads, using this example:
+我们可以通过这个例子，部署这两种工作负载：
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -61,28 +60,29 @@ spec:
         syncOptions:
         - CreateNamespace=true
 ```
-(*The full example can be found [here](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-directory).*)
 
-The generator parameters are:
+（_完整示例见 [此处](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-directory)。_）
 
-- `{{.path.path}}`: The directory paths within the Git repository that match the `path` wildcard.
-- `{{index .path.segments n}}`: The directory paths within the Git repository that match the `path` wildcard, split into array elements (`n` - array index)
-- `{{.path.basename}}`: For any directory path within the Git repository that matches the `path` wildcard, the right-most path name is extracted (e.g. `/directory/directory2` would produce `directory2`).
-- `{{.path.basenameNormalized}}`: This field is the same as `path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `path.basename` of `directory_2` would produce `directory-2` here).
+发电机参数为
 
-**Note**: The right-most path name always becomes `{{.path.basename}}`. For example, for `- path: /one/two/three/four`, `{{.path.basename}}` is `four`.
+* {{.path.path}}`：Git 仓库中与 `path` 通配符匹配的目录路径。
+* `{{index .path.segments n}}`：Git 仓库中与`path`通配符匹配的目录路径，分成数组元素（`n` - 数组索引）
+* {{.path.basename}}`：对于 Git 仓库中任何与`path`通配符匹配的目录路径，将提取最右边的路径名（例如，`/directory/directory2`将产生`directory2`）。
+* {{.path.basenameNormalized}}`：该字段与 `path.basename`相同，但会用`-`替换不支持的字符（例如，`path`为`/directory/directory_2`，`path.basename`为`directory_2`，则此处会生成`directory-2`）。
 
-**Note**: If the `pathParamPrefix` option is specified, all `path`-related parameter names above will be prefixed with the specified value and a dot separator. E.g., if `pathParamPrefix` is `myRepo`, then the generated parameter name would be `.myRepo.path` instead of `.path`. Using this option is necessary in a Matrix generator where both child generators are Git generators (to avoid conflicts when merging the child generators’ items).
+**注意**：最右边的路径名总是变成"{{.path.basename}}"。 例如，对于"- path: /one/two/three/four"，"{{.path.basename}}"就是 "four"。
 
-Whenever a new Helm chart/Kustomize YAML/Application/plain subdirectory is added to the Git repository, the ApplicationSet controller will detect this change and automatically deploy the resulting manifests within new `Application` resources.
+**注**：如果指定了`pathParamPrefix`选项，则上述所有与`path`相关的参数名将以指定值和点号分隔符作为前缀。 例如，如果`pathParamPrefix`为`myRepo`，则生成的参数名将为`.myRepo.path`，而不是`.path`。 在两个子生成器均为 Git 生成器的矩阵生成器中，有必要引用该选项（以避免合并子生成器的项目时发生冲突）。
 
-As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
+每当在 Git 仓库中添加新的 helm chart/Kustomize YAML/Application/plain 子目录时，ApplicationSet 控制器就会检测到这一变化，并自动在新的 `Application` 资源中配置由此产生的清单。
 
-### Exclude directories
+与其他生成器一样，集群必须已在 Argo CD 中定义，才能为其生成应用程序。
 
-The Git directory generator will automatically exclude directories that begin with `.` (such as `.git`).
+### 排除目录
 
-The Git directory generator also supports an `exclude` option in order to exclude directories in the repository from being scanned by the ApplicationSet controller:
+Git 目录生成器会自动排除以`.`开头的目录（如`.git`）。
+
+Git 目录生成器还支持 "exclude"（排除）选项，以便将版本库中的目录排除在 ApplicationSet 控制器的扫描范围之外：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -114,17 +114,20 @@ spec:
         server: https://kubernetes.default.svc
         namespace: '{{.path.basename}}'
 ```
-(*The full example can be found [here](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-directory/excludes).*)
 
-This example excludes the `exclude-helm-guestbook` directory from the list of directories scanned for this `ApplicationSet` resource.
+（_完整示例见 [此处](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-directory/excludes)。_）
 
-!!! note "Exclude rules have higher priority than include rules"
+此示例从该 `ApplicationSet` 资源扫描的目录列表中排除了 `exclude- helm-guestbook` 目录。
 
-    If a directory matches at least one `exclude` pattern, it will be excluded. Or, said another way, *exclude rules take precedence over include rules.*
+注意 "排除规则的优先级高于包含规则"。
 
-    As a corollary, which directories are included/excluded is not affected by the order of `path`s in the `directories` field list (because, as above, exclude rules always take precedence over include rules). 
+```
+If a directory matches at least one `exclude` pattern, it will be excluded. Or, said another way, *exclude rules take precedence over include rules.*
 
-For example, with these directories:
+As a corollary, which directories are included/excluded is not affected by the order of `path`s in the `directories` field list (because, as above, exclude rules always take precedence over include rules).
+```
+
+例如，这些目录
 
 ```
 .
@@ -133,7 +136,8 @@ For example, with these directories:
     ├── f
     └── g
 ```
-Say you want to include `/d/e`, but exclude `/d/f` and `/d/g`. This will *not* work:
+
+假设您想包含 `/d/e`，但不包括 `/d/f` 和 `/d/g`：
 
 ```yaml
 - path: /d/e
@@ -141,9 +145,10 @@ Say you want to include `/d/e`, but exclude `/d/f` and `/d/g`. This will *not* w
 - path: /d/*
   exclude: true
 ```
-Why? Because the exclude `/d/*` exclude rule will take precedence over the `/d/e` include rule. When the `/d/e` path in the Git repository is processed by the ApplicationSet controller, the controller detects that at least one exclude rule is matched, and thus that directory should not be scanned.
 
-You would instead need to do:
+因为 `/d/*` 排除规则优先于 `/d/e` 包括规则。 当 Git 仓库中的 `/d/e` 路径被 ApplicationSet 控制器处理时，控制器会检测到至少有一条排除规则匹配，因此不应扫描该目录。
+
+您需要做的是
 
 ```yaml
 - path: /d/*
@@ -153,7 +158,7 @@ You would instead need to do:
   exclude: true
 ```
 
-Or, a shorter way (using [path.Match](https://golang.org/pkg/path/#Match) syntax) would be:
+或者，更简短的方法（使用 [path.Match](https://golang.org/pkg/path/#Match) 语法）是：
 
 ```yaml
 - path: /d/*
@@ -161,11 +166,11 @@ Or, a shorter way (using [path.Match](https://golang.org/pkg/path/#Match) syntax
   exclude: true
 ```
 
-### Root Of Git Repo
+### Git 仓库根目录
 
-The Git directory generator can be configured to deploy from the root of the git repository by providing `'*'` as the `path`.
+可以通过提供 `'*'` 作为 `path` 来配置 Git 目录生成器，以便从 git 仓库的根目录进行部署。
 
-To exclude directories, you only need to put the name/[path.Match](https://golang.org/pkg/path/#Match) of the directory you do not want to deploy.
+要排除目录，只需输入不想部署的目录的名称/[path.Match](https://golang.org/pkg/path/#Match)。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -198,11 +203,12 @@ spec:
         namespace: '{{.path.basename}}'
 ```
 
-### Pass additional key-value pairs via `values` field
+### 通过 `values` 字段传递额外的键值对
 
-You may pass additional, arbitrary string key-value pairs via the `values` field of the git directory generator. Values added via the `values` field are added as `values.(field)`.
+您可以通过 git 目录生成器的 `values` 字段传递额外的任意字符串键值对。 通过 `values` 字段添加的值以 `values.(field)` 的形式添加。
 
-In this example, a `cluster` parameter value is passed. It is interpolated from the `branch` and `path` variable, to then be used to determine the destination namespace.
+在此示例中，传递了一个 `cluster` 参数值，它是从 `branch` 和 `path` 变量中插值出来的，然后被引用来确定目标名称空间。
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -234,16 +240,16 @@ spec:
         namespace: '{{.values.cluster}}'
 ```
 
-!!! note
-    The `values.` prefix is always prepended to values provided via `generators.git.values` field. Ensure you include this prefix in the parameter name within the `template` when using it.
+注意 `values.` 前缀总是被引用到通过 `generators.git.values` 字段提供的值中。 使用时请确保在 `template` 中的参数名称中包含此前缀。
 
-In `values` we can also interpolate all fields set by the git directory generator as mentioned above.
+在 `values` 中，我们还可以插值上述由 git 目录生成器设置的所有字段。
 
-## Git Generator: Files
+## Git 生成器：文件
 
-The Git file generator is the second subtype of the Git generator. The Git file generator generates parameters using the contents of JSON/YAML files found within a specified repository.
+Git 文件生成器是 Git 生成器的第二个子类型。 Git 文件生成器使用在指定版本库中找到的 JSON/YAML 文件内容生成参数。
 
-Suppose you have a Git repository with the following directory structure:
+假设您有一个 Git 仓库，其目录结构如下：
+
 ```
 ├── apps
 │   └── guestbook
@@ -259,13 +265,14 @@ Suppose you have a Git repository with the following directory structure:
 └── git-generator-files.yaml
 ```
 
-The directories are:
+这些目录是
 
-- `guestbook` contains the Kubernetes resources for a simple guestbook application
-- `cluster-config` contains JSON/YAML files describing the individual engineering clusters: one for `dev` and one for `prod`.
-- `git-generator-files.yaml` is the example `ApplicationSet` resource that deploys `guestbook` to the specified clusters.
+* guestbook "包含一个简单留言簿应用程序的 Kubernetes 资源
+* `cluster-config` 包含描述各个工程集群的 JSON/YAML 文件：一个用于`dev`，一个用于`prod`。
+* `git-generator-files.yaml`是将`guestbook`部署到指定集群的示例`ApplicationSet`资源。
 
-The `config.json` files contain information describing the cluster (along with extra sample data):
+`config.json` 文件包含描述集群的信息（以及额外的示例数据）：
+
 ```json
 {
   "aws_account": "123456",
@@ -278,7 +285,8 @@ The `config.json` files contain information describing the cluster (along with e
 }
 ```
 
-Git commits containing changes to the `config.json` files are automatically discovered by the Git generator, and the contents of those files are parsed and converted into template parameters. Here are the parameters generated for the above JSON:
+Git 生成器会自动发现包含对 `config.json` 文件改动的 Git 提交，并解析这些文件的内容，将其转换为模板参数。 以下是为上述 JSON 生成的参数：
+
 ```text
 aws_account: 123456
 asset_id: 11223344
@@ -287,8 +295,8 @@ cluster.name: engineering-dev
 cluster.address: https://1.2.3.4
 ```
 
+所有发现的 `config.json` 文件的生成参数将被替换到 ApplicationSet 模板中：
 
-And the generated parameters for all discovered `config.json` files will be substituted into ApplicationSet template:
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -317,33 +325,34 @@ spec:
         server: '{{.cluster.address}}'
         namespace: guestbook
 ```
-(*The full example can be found [here](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-files-discovery).*)
 
-Any `config.json` files found under the `cluster-config` directory will be parameterized based on the `path` wildcard pattern specified. Within each file JSON fields are flattened into key/value pairs, with this ApplicationSet example using the `cluster.address` and `cluster.name` parameters in the template.
+（_完整示例见 [此处](https://github.com/argoproj/argo-cd/tree/master/applicationset/examples/git-generator-files-discovery)。_）
 
-As with other generators, clusters *must* already be defined within Argo CD, in order to generate Applications for them.
+在 `cluster-config` 目录下找到的任何 `config.json` 文件都将根据指定的 `path` 通配符模式进行参数化。 每个文件中的 JSON 字段都会被扁平化为键/值对，本 ApplicationSet 示例在模板中使用了 `cluster.address` 和 `cluster.name` 参数。
 
-In addition to the flattened key/value pairs from the configuration file, the following generator parameters are provided:
+与其他生成器一样，集群必须已在 Argo CD 中定义，才能为其生成应用程序。
 
-- `{{.path.path}}`: The path to the directory containing matching configuration file within the Git repository. Example: `/clusters/clusterA`, if the config file was `/clusters/clusterA/config.json`
-- `{{index .path n}}`: The path to the matching configuration file within the Git repository, split into array elements (`n` - array index). Example: `index .path 0: clusters`, `index .path 1: clusterA`
-- `{{.path.basename}}`: Basename of the path to the directory containing the configuration file (e.g. `clusterA`, with the above example.)
-- `{{.path.basenameNormalized}}`: This field is the same as `.path.basename` with unsupported characters replaced with `-` (e.g. a `path` of `/directory/directory_2`, and `.path.basename` of `directory_2` would produce `directory-2` here).
-- `{{.path.filename}}`: The matched filename. e.g., `config.json` in the above example.
-- `{{.path.filenameNormalized}}`: The matched filename with unsupported characters replaced with `-`.
+除了配置文件中的扁平化键/值对，还提供了以下生成器参数：
 
-**Note**: The right-most *directory* name always becomes `{{.path.basename}}`. For example, from `- path: /one/two/three/four/config.json`, `{{.path.basename}}` will be `four`. 
-The filename can always be accessed using `{{.path.filename}}`. 
+* {{.path.path}}`：Git 仓库中包含匹配配置文件的目录的路径。例如： `/clusters/clusterA`，如果配置文件是 `/clusters/clusterA/config.json
+* {{索引 .路径 n}}`：Git 仓库中匹配配置文件的路径，分为数组元素（`n` - 数组索引）。例如：`index .path 0: 集群`, `index .path 1: 集群A`。
+* `{{.path.basename}}`：包含配置文件的目录的路径基名（如上例中的`clusterA`）。
+* {{.path.basenameNormalized}}`：该字段与 `.path.basename`相同，但会用`-`替换不支持的字符（例如，`path`为`/directory/directory_2`，`.path.basename`为`directory_2`，则此处会产生`directory-2`）。
+* {{.path.filename}}`：匹配的文件名。例如，上例中的 `config.json`。
+* {{.path.filenameNormalized}}`：匹配的文件名，其中不支持的字符用 `-` 替换。
 
-**Note**: If the `pathParamPrefix` option is specified, all `path`-related parameter names above will be prefixed with the specified value and a dot separator. E.g., if `pathParamPrefix` is `myRepo`, then the generated parameter name would be `myRepo.path` instead of `path`. Using this option is necessary in a Matrix generator where both child generators are Git generators (to avoid conflicts when merging the child generators’ items).
+**注意**：最右边的_目录名总是变成`{{.path.basename}}`。 例如，从`- path: /one/two/three/four/config.json`开始，`{{.path.basename}}`将变成`four`。 文件名总是可以被`{{.path.filename}}`引用。
 
-**Note**: The default behavior of the Git file generator is very greedy. Please see [Git File Generator Globbing](./Generators-Git-File-Globbing.md) for more information.
+**注**：如果指定了`pathParamPrefix`选项，则上述所有与`path`相关的参数名将以指定值和点号分隔符作为前缀。 例如，如果`pathParamPrefix`为`myRepo`，则生成的参数名将为`myRepo.path`，而不是`path`。 在两个子生成器均为 Git 生成器的矩阵生成器中，有必要引用该选项（以避免合并子生成器的项目时发生冲突）。
 
-### Pass additional key-value pairs via `values` field
+**注**：Git 文件生成器的默认行为非常贪婪，请参阅 [Git File Generator Globbing](./Generators-Git-File-Globbing.md)，了解更多信息。
 
-You may pass additional, arbitrary string key-value pairs via the `values` field of the git files generator. Values added via the `values` field are added as `values.(field)`.
+### 通过 `values` 字段传递额外的键值对
 
-In this example, a `base_dir` parameter value is passed. It is interpolated from `path` segments, to then be used to determine the source path.
+您可以通过 git 文件生成器的 `values` 字段传递额外的任意字符串键值对。 通过 `values` 字段添加的值以 `values.(field)` 的形式添加。
+
+在此示例中，传递了一个 `base_dir` 参数值，它是从 `path` 片段中插值出来的，然后用来确定源路径。
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
@@ -375,52 +384,37 @@ spec:
         namespace: guestbook
 ```
 
-!!! note
-    The `values.` prefix is always prepended to values provided via `generators.git.values` field. Ensure you include this prefix in the parameter name within the `template` when using it.
+注意 `values.` 前缀总是被引用到通过 `generators.git.values` 字段提供的值中。 使用时请确保在 `template` 中的参数名称中包含此前缀。
 
-In `values` we can also interpolate all fields set by the git files generator as mentioned above.
+在 `values` 中，我们还可以插值上述由 git 文件生成器设置的所有字段。
 
-## Webhook Configuration
+## Webhook 配置
 
-When using a Git generator, ApplicationSet polls Git repositories every three minutes to detect changes. To eliminate
-this delay from polling, the ApplicationSet webhook server can be configured to receive webhook events. ApplicationSet supports
-Git webhook notifications from GitHub and GitLab. The following explains how to configure a Git webhook for GitHub, but the same process should be applicable to other providers.
+使用 Git 生成器时，ApplicationSet 会每隔三分钟轮询一次 Git 仓库以检测更改。 为了消除轮询带来的延迟，可以配置 ApplicationSet webhook 服务器以接收 webhook 事件。 ApplicationSet 支持来自 GitHub 和 GitLab 的 Git webhook 通知。 下面将说明如何为 GitHub 配置 Git webhook，但相同的过程应适用于其他 Provider。
 
-!!! note
-    The ApplicationSet controller webhook does not use the same webhook as the API server as defined [here](../webhook.md). ApplicationSet exposes a webhook server as a service of type ClusterIP. An ApplicationSet specific Ingress resource needs to be created to expose this service to the webhook source.
+注意 ApplicationSet 控制器 webhook 使用的 webhook 与[此处](../webhook.md)定义的 API 服务器不同。 ApplicationSet 将 webhook 服务器作为 ClusterIP 类型的服务公开。 需要创建一个 ApplicationSet 专用 ingress 资源，以便将此服务公开给 webhook 源。
 
-### 1. Create the webhook in the Git provider
+#### 1.在 Git Providers 中创建 webhook
 
-In your Git provider, navigate to the settings page where webhooks can be configured. The payload
-URL configured in the Git provider should use the `/api/webhook` endpoint of your ApplicationSet instance
-(e.g. `https://applicationset.example.com/api/webhook`). If you wish to use a shared secret, input an
-arbitrary value in the secret. This value will be used when configuring the webhook in the next step.
+在 Git Provider 中，导航至可配置 webhook 的设置页面。 在 Git Provider 中配置的有效载荷 URL 应使用 ApplicationSet 实例的 `/api/webhook` 端点（如 `https://applicationset.example.com/api/webhook`）。如果希望使用共享秘密，请在秘密中输入任意值。该值将在下一步配置 webhook 时被引用。
 
-![Add Webhook](../../assets/applicationset/webhook-config.png "Add Webhook")
+![添加 Webhook](.../.../assets/applicationset/webhook-config.png "Add Webhook")
 
-!!! note
-    When creating the webhook in GitHub, the "Content type" needs to be set to "application/json". The default value "application/x-www-form-urlencoded" is not supported by the library used to handle the hooks
+注意 在 GitHub 中创建 webhook 时，需要将 "内容类型 "设置为 "application/json"。 用于处理钩子的库不支持默认值 "application/x-www-form-urlencoded"。
 
-### 2. Configure ApplicationSet with the webhook secret (Optional)
+#### 2. 使用网络钩子秘密配置 ApplicationSet（可选）
 
-Configuring a webhook shared secret is optional, since ApplicationSet will still refresh applications
-generated by Git generators, even with unauthenticated webhook events. This is safe to do since
-the contents of webhook payloads are considered untrusted, and will only result in a refresh of the
-application (a process which already occurs at three-minute intervals). If ApplicationSet is publicly
-accessible, then configuring a webhook secret is recommended to prevent a DDoS attack.
+配置 webhook 共享秘密是可选的，因为即使有未经验证的 webhook 事件，ApplicationSet 仍会刷新 Git 生成器生成的应用程序。 这样做是安全的，因为 webhook 有效载荷的内容被认为是不可信任的，只会导致应用程序的刷新（这个过程已经每隔三分钟发生一次）。 如果 ApplicationSet 可被公开访问，则建议配置 webhook 秘密，以防止 DDoS 攻击。
 
-In the `argocd-secret` Kubernetes secret, include the Git provider's webhook secret configured in step 1.
+在 `argocd-secret` Kubernetes secret 中，包含步骤 1 中配置的 Git Provider 的 webhook secret。
 
-Edit the Argo CD Kubernetes secret:
+编辑 Argo CD Kubernetes secret：
 
 ```bash
 kubectl edit secret argocd-secret -n argocd
 ```
 
-TIP: for ease of entering secrets, Kubernetes supports inputting secrets in the `stringData` field,
-which saves you the trouble of base64 encoding the values and copying it to the `data` field.
-Simply copy the shared webhook secret created in step 1, to the corresponding
-GitHub/GitLab/BitBucket key under the `stringData` field:
+提示：为了方便输入秘密，Kubernetes 支持在 `stringData` 字段中输入秘密，这样就省去了对值进行 base64 编码并复制到 `data` 字段的麻烦。 只需将步骤 1 中创建的共享 webhook 秘密复制到 `stringData` 字段下相应的 GitHub/GitLab/BitBucket 密钥中即可：
 
 ```yaml
 apiVersion: v1
@@ -440,4 +434,4 @@ stringData:
   webhook.gitlab.secret: shhhh! it's a gitlab secret
 ```
 
-After saving, please restart the ApplicationSet pod for the changes to take effect.
+保存后，请重新启动 ApplicationSet pod 使更改生效。

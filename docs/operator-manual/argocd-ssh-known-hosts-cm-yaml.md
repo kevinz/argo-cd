@@ -1,6 +1,7 @@
-# argocd-ssh-known-hosts-cm.yaml example
+<!-- TRANSLATED by md-translate -->
+# argocd-ssh-known-hosts-cm.yaml 示例
 
-An example of an argocd-ssh-known-hosts-cm.yaml file:
+argocd-ssh-known-hosts-cm.yaml 文件的示例：
 
 ```yaml
 {!docs/operator-manual/argocd-ssh-known-hosts-cm.yaml!}

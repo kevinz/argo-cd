@@ -1,20 +1,21 @@
-# Ingress Configuration
+<!-- TRANSLATED by md-translate -->
+# ingress 配置
 
-Argo CD API server runs both a gRPC server (used by the CLI), as well as a HTTP/HTTPS server (used by the UI).
-Both protocols are exposed by the argocd-server service object on the following ports:
+Argo CD API 服务器同时运行 gRPC 服务器（被 CLI 引用）和 HTTP/HTTPS 服务器（被用户界面引用）。 这两种协议都通过 argocd-server 服务对象在以下端口上公开：
 
 * 443 - gRPC/HTTPS
-* 80 - HTTP (redirects to HTTPS)
+* 80 - HTTP（重定向至 HTTPS）
 
-There are several ways how Ingress can be configured.
+有几种方法可以配置 ingress。
 
 ## [Ambassador](https://www.getambassador.io/)
 
-The Ambassador Edge Stack can be used as a Kubernetes ingress controller with [automatic TLS termination](https://www.getambassador.io/docs/latest/topics/running/tls/#host) and routing capabilities for both the CLI and the UI.
+Ambassador Edge Stack 可被用作 Kubernetes ingress 控制器，具有 CLI 和 UI 的[自动 TLS 终止](https://www.getambassador.io/docs/latest/topics/running/tls/#host) 和路由功能。
 
-The API server should be run with TLS disabled. Edit the `argocd-server` deployment to add the `--insecure` flag to the argocd-server command, or simply set `server.insecure: "true"` in the `argocd-cmd-params-cm` ConfigMap [as described here](server-commands/additional-configuration-method.md). Given the `argocd` CLI includes the port number in the request `host` header, 2 Mappings are required.
+API 服务器应在禁用 TLS 的情况下运行。 编辑 `argocd-server` 部署，在 argocd-server 命令中添加 `--insecure` 标志，或在 `argocd-cmd-params-cm` ConfigMap 中设置 `server.insecure: "true"` [如此处所述](server-commands/additional-configuration-method.md)。 鉴于 `argocd` CLI 在请求的 `host` 头中包含端口号，因此需要 2 个 configmaps。
 
-### Option 1: Mapping CRD for Host-based Routing
+### 选项 1：为基于主机的路由选择映射 CRD
+
 ```yaml
 apiVersion: getambassador.io/v2
 kind: Mapping
@@ -41,15 +42,15 @@ spec:
   grpc: true
 ```
 
-Login with the `argocd` CLI:
+使用 `argocd` CLI 登录：
 
 ```shell
 argocd login <host>
 ```
 
-### Option 2: Mapping CRD for Path-based Routing
+### 选项 2：为基于路径的路由选择映射 CRD
 
-The API server must be configured to be available under a non-root path (e.g. `/argo-cd`). Edit the `argocd-server` deployment to add the `--rootpath=/argo-cd` flag to the argocd-server command.
+API 服务器必须配置为在非根目录下可用（例如 `/argo-cd`）。 编辑 `argocd-server` 部署，在 argocd-server 命令中添加 `--rootpath=/argo-cd` flag。
 
 ```yaml
 apiVersion: getambassador.io/v2
@@ -63,25 +64,28 @@ spec:
   service: argocd-server:443
 ```
 
-Login with the `argocd` CLI using the extra `--grpc-web-root-path` flag for non-root paths.
+使用 `argocd` CLI 登录，对非 root 路径使用额外的 `--grpc-web-root-path` flag。
 
 ```shell
 argocd login <host>:<port> --grpc-web-root-path /argo-cd
 ```
 
 ## [Contour](https://projectcontour.io/)
-The Contour ingress controller can terminate TLS ingress traffic at the edge.
 
-The Argo CD API server should be run with TLS disabled. Edit the `argocd-server` Deployment to add the `--insecure` flag to the argocd-server container command, or simply set `server.insecure: "true"` in the `argocd-cmd-params-cm` ConfigMap [as described here](server-commands/additional-configuration-method.md).
+Contour ingress 控制器可在边缘终止 TLS ingress 流量。
 
-It is also possible to provide an internal-only ingress path and an external-only ingress path by deploying two instances of Contour: one behind a private-subnet LoadBalancer service and one behind a public-subnet LoadBalancer service. The private Contour deployment will pick up Ingresses annotated with `kubernetes.io/ingress.class: contour-internal` and the public Contour deployment will pick up Ingresses annotated with `kubernetes.io/ingress.class: contour-external`.
+Argo CD API 服务器应在禁用 TLS 的情况下运行。 编辑 `argocd-server` 部署，在 argocd-server 容器命令中添加 `--insecure` flag，或在 `argocd-cmd-params-cm` ConfigMap 中设置 `server.insecure: "true"[如此处所述](server-commands/additional-configuration-method.md)。
 
-This provides the opportunity to deploy the Argo CD UI privately but still allow for SSO callbacks to succeed.
+还可以通过部署两个 Contour 实例来提供仅限内部的 ingress 路径和仅限外部的 ingress 路径：一个部署在私有子网 LoadBalancer 服务后面，另一个部署在公有子网 LoadBalancer 服务后面。 私有 Contour 部署将拾取注释为 "kubernetes.io/ingress.class: contour-internal "的 ingresses，公有 Contour 部署将拾取注释为 "kubernetes.io/ingress.class: contour-external "的 ingresses。
 
-### Private Argo CD UI with  Multiple Ingress Objects and BYO Certificate
-Since Contour Ingress supports only a single protocol per Ingress object, define three Ingress objects. One for private HTTP/HTTPS, one for private gRPC, and one for public HTTPS SSO callbacks.
+这就提供了私下部署 Argo CD UI 的机会，但仍允许 SSO 回调成功。
 
-Internal HTTP/HTTPS Ingress:
+### 具有多个 ingress 对象和 BYO 证书的私人 Argo CD UI
+
+由于 Contour Ingress 每个 Ingress 对象只支持一个协议，因此要定义三个 Ingress 对象：一个用于私有 HTTP/HTTPS，一个用于私有 gRPC，一个用于公共 HTTPS SSO 回调。
+
+内部 HTTP/HTTPS ingress：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -108,7 +112,8 @@ spec:
     secretName: your-certificate-name
 ```
 
-Internal gRPC Ingress:
+内部 gRPC ingress：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -134,7 +139,8 @@ spec:
     secretName: your-certificate-name
 ```
 
-External HTTPS SSO Callback Ingress:
+外部 HTTPS SSO 回调 ingress：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -161,23 +167,17 @@ spec:
     secretName: your-certificate-name
 ```
 
-The argocd-server Service needs to be annotated with `projectcontour.io/upstream-protocol.h2c: "https,443"` to wire up the gRPC protocol proxying.
+argocd-server 服务需要注释为 `projectcontour.io/upstream-protocol.h2c: "https,443"`，以连接 gRPC 协议代理。
 
-The API server should then be run with TLS disabled. Edit the `argocd-server` deployment to add the
-`--insecure` flag to the argocd-server command, or simply set `server.insecure: "true"` in the `argocd-cmd-params-cm` ConfigMap [as described here](server-commands/additional-configuration-method.md).
+编辑 `argocd-server` 部署，在 argocd-server 命令中添加 `--insecure` flag，或者直接在 `argocd-cmd-params-cm` ConfigMap 中设置 `server.insecure: "true"[如此处所述](server-commands/additional-configuration-method.md)。
 
 ## [kubernetes/ingress-nginx](https://github.com/kubernetes/ingress-nginx)
 
-### Option 1: SSL-Passthrough
+### 选项 1：SSL-直通
 
-Argo CD serves multiple protocols (gRPC/HTTPS) on the same port (443), this provides a
-challenge when attempting to define a single nginx ingress object and rule for the argocd-service,
-since the `nginx.ingress.kubernetes.io/backend-protocol` [annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol)
-accepts only a single value for the backend protocol (e.g. HTTP, HTTPS, GRPC, GRPCS).
+Argo CD 在同一个端口（443）上为多个协议（gRPC/HTTPS）提供服务，这给尝试为 argocd-service 定义单个 nginx ingress 对象和规则带来了挑战，因为 `nginx.ingress.kubernetes.io/backend-protocol` [annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#backend-protocol) 只接受后端协议的单个值（例如 HTTP、HTTPS、GRPC、GRPCS）。
 
-In order to expose the Argo CD API server with a single ingress rule and hostname, the
-`nginx.ingress.kubernetes.io/ssl-passthrough` [annotation](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#ssl-passthrough)
-must be used to passthrough TLS connections and terminate TLS at the Argo CD API server.
+为了使用单一的 ingress 规则和主机名暴露 Argo CD API 服务器，必须引用 `nginx.ingress.kubernetes.io/ssl-passthrough` [notations](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#ssl-passthrough)来直通 TLS 连接，并在 Argo CD API 服务器上终止 TLS。
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -203,12 +203,9 @@ spec:
               name: https
 ```
 
-The above rule terminates TLS at the Argo CD API server, which detects the protocol being used,
-and responds appropriately. Note that the `nginx.ingress.kubernetes.io/ssl-passthrough` annotation
-requires that the `--enable-ssl-passthrough` flag be added to the command line arguments to
-`nginx-ingress-controller`.
+上述规则会在 Argo CD API 服务器上终止 TLS，该服务器会检测正在使用的协议，并作出适当的响应。 请注意，"nginx.ingress.kubernetes.io/ssl-passthrough "注释要求在 "nginx-ingress-controller "的命令行参数中添加"--enable-ssl-passthrough "标志。
 
-#### SSL-Passthrough with cert-manager and Let's Encrypt
+#### 使用 cert-manager 和 Let's Encrypt 的 SSL 直通功能
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -242,13 +239,14 @@ spec:
     secretName: argocd-server-tls # as expected by argocd-server
 ```
 
-### Option 2: SSL Termination at Ingress Controller
+### 选项 2：在 ingress 控制器上终止 SSL
 
-An alternative approach is to perform the SSL termination at the Ingress. Since an `ingress-nginx` Ingress supports only a single protocol per Ingress object, two Ingress objects need to be defined using the `nginx.ingress.kubernetes.io/backend-protocol` annotation, one for HTTP/HTTPS and the other for gRPC.
+另一种方法是在 Ingress 上执行 SSL 终止。 由于 `ingress-nginx` Ingress 每个 Ingress 对象只支持一个协议，因此需要使用 `nginx.ingress.kubernetes.io/backend-protocol` 注解定义两个 Ingress 对象，一个用于 HTTP/HTTPS，另一个用于 gRPC。
 
-Each ingress will be for a different domain (`argocd.example.com` and `grpc.argocd.example.com`). This requires that the Ingress resources use different TLS `secretName`s to avoid unexpected behavior.
+每个 ingress 将用于不同的域（`argocd.example.com` 和 `grpc.argocd.example.com`）。这就要求 ingress 资源使用不同的 TLS `secretName`s 以避免意外行为。
 
-HTTP/HTTPS Ingress:
+HTTP/HTTPS ingress：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -277,7 +275,8 @@ spec:
     secretName: argocd-ingress-http
 ```
 
-gRPC Ingress:
+gRPC ingress：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -305,23 +304,20 @@ spec:
     secretName: argocd-ingress-grpc
 ```
 
-The API server should then be run with TLS disabled. Edit the `argocd-server` deployment to add the
-`--insecure` flag to the argocd-server command, or simply set `server.insecure: "true"` in the `argocd-cmd-params-cm` ConfigMap [as described here](server-commands/additional-configuration-method.md).
+编辑 `argocd-server` 部署，在 argocd-server 命令中添加 `--insecure` flag，或者直接在 `argocd-cmd-params-cm` ConfigMap 中设置 `server.insecure: "true"[如此处所述](server-commands/additional-configuration-method.md)。
 
-The obvious disadvantage to this approach is that this technique requires two separate hostnames for
-the API server -- one for gRPC and the other for HTTP/HTTPS. However it allows TLS termination to
-happen at the ingress controller.
-
+这种方法的明显缺点是，API 服务器需要两个独立的主机名--一个用于 gRPC，另一个用于 HTTP/HTTPS。 不过，它允许在 ingress 控制器上终止 TLS。
 
 ## [Traefik (v2.2)](https://docs.traefik.io/)
 
-Traefik can be used as an edge router and provide [TLS](https://docs.traefik.io/user-guides/grpc/) termination within the same deployment.
+Traefik 可被引用为边缘路由器，并在同一部署中提供 [TLS](https://docs.traefik.io/user-guides/grpc/) 终端。
 
-It currently has an advantage over NGINX in that it can terminate both TCP and HTTP connections _on the same port_ meaning you do not require multiple hosts or paths.
+与 NGINX 相比，它目前的优势在于可以在同一端口上终止 TCP 和 HTTP 连接，这意味着你不需要多个主机或路径。
 
-The API server should be run with TLS disabled. Edit the `argocd-server` deployment to add the `--insecure` flag to the argocd-server command or set `server.insecure: "true"` in the `argocd-cmd-params-cm` ConfigMap [as described here](server-commands/additional-configuration-method.md).
+运行 API 服务器时应禁用 TLS。 编辑 `argocd-server` 部署，在 argocd-server 命令中添加 `--insecure` flag，或在 `argocd-cmd-params-cm` ConfigMap 中设置 `server.insecure: "true"`[如此处所述](server-commands/additional-configuration-method.md)。
 
-### IngressRoute CRD
+### 入口路线 CRD
+
 ```yaml
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -349,10 +345,11 @@ spec:
     certResolver: default
 ```
 
-## AWS Application Load Balancers (ALBs) And Classic ELB (HTTP Mode)
-AWS ALBs can be used as an L7 Load Balancer for both UI and gRPC traffic, whereas Classic ELBs and NLBs can be used as L4 Load Balancers for both.
+### AWS 应用程序负载平衡器 (ALB) 和经典 ELB（HTTP 模式）
 
-When using an ALB, you'll want to create a second service for argocd-server. This is necessary because we need to tell the ALB to send the GRPC traffic to a different target group then the UI traffic, since the backend protocol is HTTP2 instead of HTTP1.
+AWS ALB 可被用作 UI 和 gRPC 流量的 L7 负载平衡器，而 Classic ELB 和 NLB 可被用作 UI 和 gRPC 流量的 L4 负载平衡器。
+
+使用 ALB 时，需要为 argocd-server 创建第二个服务，因为我们需要告诉 ALB 将 GRPC 流量发送到与 UI 流量不同的目标组，因为后端协议是 HTTP2 而不是 HTTP1。
 
 ```yaml
 apiVersion: v1
@@ -376,10 +373,10 @@ spec:
   type: NodePort
 ```
 
-Once we create this service, we can configure the Ingress to conditionally route all `application/grpc` traffic to the new HTTP2 backend, using the `alb.ingress.kubernetes.io/conditions` annotation, as seen below. Note: The value after the . in the condition annotation _must_ be the same name as the service that you want traffic to route to - and will be applied on any path with a matching serviceName.
+创建此服务后，我们就可以使用 `alb.ingress.kubernetes.io/conditions` 注解配置 Ingress，使其有条件地将所有 `application/grpc` 流量路由到新的 HTTP2 后端，如下所示。 注意：条件注解中 .后面的值必须与您希望流量路由到的服务名称相同，并且会被引用到具有匹配服务名称的任何路径上。
 
 ```yaml
-  apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1
   kind: Ingress
   metadata:
     annotations:
@@ -415,15 +412,16 @@ Once we create this service, we can configure the Ingress to conditionally route
 ```
 
 ## [Istio](https://www.istio.io)
-You can put Argo CD behind Istio using following configurations. Here we will achive both serving Argo CD behind istio and using subpath on Istio
 
-First we need to make sure that we can run Argo CD with subpath (ie /argocd). For this we have used install.yaml from argocd project as is
+您可以使用以下配置将 Argo CD 置于 Istio 之后。 在这里，我们将同时实现将 Argo CD 置于 Istio 之后和在 Istio 上使用子路径这两个目标
+
+首先，我们需要确保可以通过子路径（即 /argocd）运行 Argo CD。 为此，我们被引用了 argocd 项目中的 install.yaml 文件，如下所示
 
 ```bash
 curl -kLs -o install.yaml https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-save following file as kustomization.yml
+将以下文件保存为 kustomize.yml
 
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -433,9 +431,9 @@ resources:
 
 patches:
 - path: ./patch.yml
-``` 
+```
 
-And following lines as patch.yml
+以下各行作为 patch.yml
 
 ```yaml
 # Use --insecure so Ingress can send traffic with HTTP
@@ -467,13 +465,13 @@ spec:
          value: "0"
 ```
 
-After that install Argo CD  (there should be only 3 yml file defined above in current directory )
+然后安装 Argo CD（当前目录下应该只有上面定义的 3 个 yml 文件）
 
 ```bash
 kubectl apply -k ./ -n argocd --wait=true
 ```
 
-Be sure you create secret for Isito ( in our case secretname is argocd-server-tls on argocd Namespace). After that we create Istio Resources
+确保为 Isito 创建了 Secret（在我们的例子中，secretname 是 argocd 名称空间中的 argocd-server-tls）。 之后，我们创建 Istio 资源
 
 ```yaml
 apiVersion: networking.istio.io/v1alpha3
@@ -537,33 +535,33 @@ spec:
           number: 80
 ```
 
-And now we can browse http://{{ IP }}/argocd (it will be rewritten to https://{{ IP }}/argocd
+现在我们可以浏览 http://{{ IP }}/argocd （它将被改写为 https://{{ IP }}/argocd
 
+## 使用 Kubernetes ingress 的谷歌云负载平衡器
 
-## Google Cloud load balancers with Kubernetes Ingress
+您可以利用 GKE 与 Google Cloud 的集成，只需引用 Kubernetes 对象就能部署负载平衡器。
 
-You can make use of the integration of GKE with Google Cloud to deploy Load Balancers using just Kubernetes objects.
+为此，我们需要这五个对象：
 
-For this we will need these five objects:
-- A Service
-- A BackendConfig
-- A FrontendConfig
-- A secret with your SSL certificate
-- An Ingress for GKE
+* A 服务
+* 一个后台配置
+* 前端配置
+* 带有 SSL 证书的秘密
+* 一个 GKE 的 ingress
 
-If you need detail for all the options available for these Google integrations, you can check the [Google docs on configuring Ingress features](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features)
+如果您需要详细了解这些 Google 集成的所有可用选项，可以查看 [关于配置 ingress 功能的 Google 文档](https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features)
 
-### Disable internal TLS
+### 禁用内部 TLS
 
-First, to avoid internal redirection loops from HTTP to HTTPS, the API server should be run with TLS disabled.
+首先，为避免从 HTTP 到 HTTPS 的内部重定向循环，应禁用 TLS 运行 API 服务器。
 
-Edit the `--insecure` flag in the `argocd-server` command of the argocd-server deployment, or simply set `server.insecure: "true"` in the `argocd-cmd-params-cm` ConfigMap [as described here](server-commands/additional-configuration-method.md).
+编辑 argocd-server 部署的 `argocd-server` 命令中的 `--insecure` flag，或在 `argocd-cmd-params-cm` ConfigMap [如此处所述](server-commands/additional-configuration-method.md) 中简单设置 `server.insecure: "true"。
 
-### Creating a service
+### 创建服务
 
-Now you need an externally accessible service. This is practically the same as the internal service Argo CD has, but with Google Cloud annotations. Note that this service is annotated to use a [Network Endpoint Group](https://cloud.google.com/load-balancing/docs/negs) (NEG) to allow your load balancer to send traffic directly to your pods without using kube-proxy, so remove the `neg` annotation it that's not what you want.
+现在，您需要一个可从外部访问的服务。 这实际上与 Argo CD 的内部服务相同，但使用了 Google Cloud 注释。请注意，该服务被引用为使用 [Network Endpoint Group](https://cloud.google.com/load-balancing/docs/negs) (NEG)，以允许负载平衡器直接向您的 pod 发送流量，而无需使用 kube-proxy，因此如果您不希望这样，请移除 `neg` 注释。
 
-The service:
+服务：
 
 ```yaml
 apiVersion: v1
@@ -585,9 +583,9 @@ spec:
     app.kubernetes.io/name: argocd-server
 ```
 
-### Creating a BackendConfig
+### 创建 BackendConfig
 
-See that previous service referencing a backend config called `argocd-backend-config`? So lets deploy it using this yaml:
+看到之前的服务被引用了一个名为 `argocd-backend-config` 的后端配置了吗？ 让我们用这个 yaml 来部署它：
 
 ```yaml
 apiVersion: cloud.google.com/v1
@@ -606,11 +604,11 @@ spec:
     port: 8080
 ```
 
-It uses the same health check as the pods.
+它被引用的健康检查与豆荚相同。
 
-### Creating a FrontendConfig
+### 创建 FrontendConfig
 
-Now we can deploy a frontend config with an HTTP to HTTPS redirect:
+现在，我们可以部署一个 HTTP 到 HTTPS 重定向的前端配置：
 
 ```yaml
 apiVersion: networking.gke.io/v1beta1
@@ -624,33 +622,38 @@ spec:
 ```
 
 ---
-!!! note
 
-    The next two steps (the certificate secret and the Ingress) are described supposing that you manage the certificate yourself, and you have the certificate and key files for it. In the case that your certificate is Google-managed, fix the next two steps using the [guide to use a Google-managed SSL certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs#creating_an_ingress_with_a_google-managed_certificate).
+注意
+
+```
+The next two steps (the certificate secret and the Ingress) are described supposing that you manage the certificate yourself, and you have the certificate and key files for it. In the case that your certificate is Google-managed, fix the next two steps using the [guide to use a Google-managed SSL certificate](https://cloud.google.com/kubernetes-engine/docs/how-to/managed-certs#creating_an_ingress_with_a_google-managed_certificate).
+```
 
 ---
 
-### Creating a certificate secret
+### 创建证书秘密
 
-We need now to create a secret with the SSL certificate we want in our load balancer. It's as easy as executing this command on the path you have your certificate keys stored:
+现在，我们需要在负载平衡器中创建一个包含 SSL 证书的 Secret。 在存储证书密钥的路径上执行此命令即可：
 
 ```
 kubectl -n argocd create secret tls secret-yourdomain-com \
   --cert cert-file.crt --key key-file.key
 ```
 
-### Creating an Ingress
+### 创建一个 ingress
 
-And finally, to top it all, our Ingress. Note the reference to our frontend config, the service, and to the certificate secret.
-
----
-!!! note
-
-   GKE clusters running versions earlier than `1.21.3-gke.1600`, [the only supported value for the pathType field](https://cloud.google.com/kubernetes-engine/docs/how-to/load-balance-ingress#creating_an_ingress) is `ImplementationSpecific`. So you must check your GKE cluster's version. You need to use different YAML depending on the version.
+最后，最重要的是我们的 ingress。 请注意我们的前端配置、服务和证书秘密的引用。
 
 ---
 
-If you use the version earlier than `1.21.3-gke.1600`, you should use the following Ingress resource:
+注意
+
+运行版本早于 `1.21.3-gke.1600`的 GKE 集群，[pathType 字段唯一支持的值](https://cloud.google.com/kubernetes-engine/docs/how-to/load-balance-ingress#creating_an_ingress) 是 `ImplementationSpecific`。因此，您必须检查 GKE 集群的版本。您需要根据版本使用不同的 YAML。
+
+---
+
+如果使用的版本早于 `1.21.3-gke.1600`，则应使用以下 ingress 资源：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -675,7 +678,8 @@ spec:
                 number: 80
 ```
 
-If you use the version `1.21.3-gke.1600` or later, you should use the following Ingress resource:
+如果使用 `1.21.3-gke.1600` 或更高版本，则应使用以下 ingress 资源：
+
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -700,28 +704,28 @@ spec:
                 number: 80
 ```
 
-As you may know already, it can take some minutes to deploy the load balancer and become ready to accept connections. Once it's ready, get the public IP address for your Load Balancer, go to your DNS server (Google or third party) and point your domain or subdomain (i.e. argocd.example.com) to that IP address.
+您可能已经知道，部署负载平衡器并准备好接受连接可能需要几分钟时间。 准备就绪后，获取负载平衡器的公共 IP 地址，转到 DNS 服务器（谷歌或第三方），将您的域名或子域（如 argocd.example.com）指向该 IP 地址。
 
-You can get that IP address describing the Ingress object like this:
+您可以像这样获取描述 ingress 对象的 IP 地址：
 
 ```
 kubectl -n argocd describe ingresses argocd | grep Address
 ```
 
-Once the DNS change is propagated, you're ready to use Argo with your Google Cloud Load Balancer
+DNS 更改传播后，您就可以将 Argo 与 Google Cloud Load Balancer 结合使用了。
 
-## Authenticating through multiple layers of authenticating reverse proxies
+## 通过多层验证反向代理进行验证
 
-Argo CD endpoints may be protected by one or more reverse proxies layers, in that case, you can provide additional headers through the `argocd` CLI `--header` parameter to authenticate through those layers.
+Argo CD 端点可能受到一个或多个反向代理层的保护，在这种情况下，您可以通过 `argocd` CLI `--header` 参数提供额外的标头，以便通过这些层进行身份验证。
 
 ```shell
 $ argocd login <host>:<port> --header 'x-token1:foo' --header 'x-token2:bar' # can be repeated multiple times
 $ argocd login <host>:<port> --header 'x-token1:foo,x-token2:bar' # headers can also be comma separated
 ```
-## ArgoCD Server and UI Root Path (v1.5.3)
 
-Argo CD server and UI can be configured to be available under a non-root path (e.g. `/argo-cd`).
-To do this, add the `--rootpath` flag into the `argocd-server` deployment command:
+## ArgoCD 服务器和用户界面根路径（v1.5.3）
+
+Argo CD 服务器和用户界面可配置为在非根路径下可用（例如 `/argo-cd`）。 为此，请在 `argocd-server` 部署命令中添加 `--rootpath` 标志：
 
 ```yaml
 spec:
@@ -736,8 +740,8 @@ spec:
         - --rootpath
         - /argo-cd
 ```
-NOTE: The flag `--rootpath` changes both API Server and UI base URL.
-Example nginx.conf:
+
+注意：flag `--rootpath`会同时更改 API 服务器和用户界面的基本 URL。 nginx.conf 示例：
 
 ```
 worker_processes 1;
@@ -752,28 +756,28 @@ http {
         listen 443;
 
         location /argo-cd/ {
-            proxy_pass         https://localhost:8080/argo-cd/;
-            proxy_redirect     off;
-            proxy_set_header   Host $host;
-            proxy_set_header   X-Real-IP $remote_addr;
-            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header   X-Forwarded-Host $server_name;
+            proxy_pass https://localhost:8080/argo-cd/;
+            proxy_redirect off;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Host $server_name;
             # buffering should be disabled for api/v1/stream/applications to support chunked response
             proxy_buffering off;
         }
     }
 }
 ```
-Flag ```--grpc-web-root-path ``` is used to provide a non-root path (e.g. /argo-cd)
+
+flag `--grpc-web-root-path`用于提供非根目录路径（如 /argo-cd）
 
 ```shell
 $ argocd login <host>:<port> --grpc-web-root-path /argo-cd
 ```
 
-## UI Base Path
+## UI 基本路径
 
-If the Argo CD UI is available under a non-root path (e.g. `/argo-cd` instead of `/`) then the UI path should be configured in the API server.
-To configure the UI path add the `--basehref` flag into the `argocd-server` deployment command:
+如果 Argo CD 用户界面在非根目录下可用（例如，"/argo-cd "而非"/"），则应在 API 服务器中配置用户界面路径。 要配置用户界面路径，请在 "argocd-server "部署命令中添加"--basehref "相应的标志：
 
 ```yaml
 spec:
@@ -789,8 +793,7 @@ spec:
         - /argo-cd
 ```
 
-NOTE: The flag `--basehref` only changes the UI base URL. The API server will keep using the `/` path so you need to add a URL rewrite rule to the proxy config.
-Example nginx.conf with URL rewrite:
+注意：flag `--basehref`只能更改用户界面的基本 URL。 API 服务器将继续使用 `/` 路径，因此需要在代理配置中添加 URL 重写规则。带有 URL 重写的 nginx.conf 示例：
 
 ```
 worker_processes 1;
@@ -805,13 +808,13 @@ http {
         listen 443;
 
         location /argo-cd {
-            rewrite /argo-cd/(.*) /$1  break;
-            proxy_pass         https://localhost:8080;
-            proxy_redirect     off;
-            proxy_set_header   Host $host;
-            proxy_set_header   X-Real-IP $remote_addr;
-            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header   X-Forwarded-Host $server_name;
+            rewrite /argo-cd/(.*) /$1 break;
+            proxy_pass https://localhost:8080;
+            proxy_redirect off;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Host $server_name;
             # buffering should be disabled for api/v1/stream/applications to support chunked response
             proxy_buffering off;
         }

@@ -1,181 +1,162 @@
-# Getting Started
+<!-- TRANSLATED by md-translate -->
+# 入门
 
-!!! tip
-    This guide assumes you have a grounding in the tools that Argo CD is based on. Please read [understanding the basics](understand_the_basics.md) to learn about these tools.
+提示 本指南假定您已掌握 Argo CD 所基于的工具。 请阅读[了解基础知识](understand_the_basics.md) 了解这些工具。
 
-## Requirements
+## 要求
 
-* Installed [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) command-line tool.
-* Have a [kubeconfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/) file (default location is `~/.kube/config`).
-* CoreDNS. Can be enabled for microk8s by `microk8s enable dns && microk8s stop && microk8s start`
+* 安装了 [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) 命令行工具。
+* 拥有 [kubeconfig](https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/) 文件（默认位置为 `~/.kube/config`）。
+* CoreDNS.可通过 `microk8s enable dns &amp;&amp; microk8s stop &amp;&amp; microk8s start` 为 microk8s 启用。
 
-## 1. Install Argo CD
+## 1. 安装 Argo CD
 
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-This will create a new namespace, `argocd`, where Argo CD services and application resources will live.
+这将创建一个新的命名空间 "argocd"，Argo CD 服务和应用程序资源将存放于此。
 
-!!! warning
-    The installation manifests include `ClusterRoleBinding` resources that reference `argocd` namespace. If you are installing Argo CD into a different
-    namespace then make sure to update the namespace reference.
+!!! 警告 安装配置清单中包含的 `ClusterRoleBinding` 资源引用了 `argocd` 名称空间。 如果您要将 Argo CD 安装到不同的名称空间，请确保更新名称空间引用。
 
-!!! tip
-    If you are not interested in UI, SSO, and multi-cluster features, then you can install only the [core](operator-manual/core/#installing) Argo CD components.
+提示 如果您对用户界面、SSO 和多集群功能不感兴趣，那么可以只安装 [core](operator-manual/core/#installing) Argo CD 组件。
 
-This default installation will have a self-signed certificate and cannot be accessed without a bit of extra work.
-Do one of:
+该默认安装将使用自签名证书，如果不做一些额外的工作就无法访问。 请执行以下操作之一：
 
-* Follow the [instructions to configure a certificate](operator-manual/tls.md) (and ensure that the client OS trusts it).
-* Configure the client OS to trust the self signed certificate.
-* Use the --insecure flag on all Argo CD CLI operations in this guide.
+* 按照[配置证书的说明](operator-manual/tls.md)进行操作（并确保客户机操作系统信任它）。
+* 配置客户端操作系统以信任自签名证书。
+* 在本指南中，所有 Argo CD CLI 操作均被引用 --insecure 标志。
 
-Use `argocd login --core` to [configure](./user-guide/commands/argocd_login.md) CLI access and skip steps 3-5.
+使用 `argocd login --core` [configure](./user-guide/commands/argocd_login.md) CLI 访问并跳过步骤 3-5。
 
-## 2. Download Argo CD CLI
+## 2. 下载 Argo CD CLI
 
-Download the latest Argo CD version from [https://github.com/argoproj/argo-cd/releases/latest](https://github.com/argoproj/argo-cd/releases/latest). More detailed installation instructions can be found via the [CLI installation documentation](cli_installation.md).
+从 [https://github.com/argoproj/argo-cd/releases/latest](https://github.com/argoproj/argo-cd/releases/latest)下载最新的 Argo CD 版本。更详细的安装说明可通过 [CLI 安装文档](cli_installation.md)查找。
 
-Also available in Mac, Linux and WSL Homebrew:
+还提供 Mac、Linux 和 WSL Homebrew 版本：
 
 ```bash
 brew install argocd
 ```
 
-## 3. Access The Argo CD API Server
+## 3. 访问 Argo CD API 服务器
 
-By default, the Argo CD API server is not exposed with an external IP. To access the API server,
-choose one of the following techniques to expose the Argo CD API server:
+默认情况下，Argo CD API 服务器不公开外部 IP。 要访问 API 服务器，请选择以下技术之一公开 Argo CD API 服务器：
 
-### Service Type Load Balancer
-Change the argocd-server service type to `LoadBalancer`:
+#### 服务类型 负载平衡器
+
+将 argocd-server 服务类型更改为 "LoadBalancer"：
 
 ```bash
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 ```
 
-### Ingress
-Follow the [ingress documentation](operator-manual/ingress.md) on how to configure Argo CD with ingress.
+### ingress
 
-### Port Forwarding
-Kubectl port-forwarding can also be used to connect to the API server without exposing the service.
+请按照 [ingress 文档](operator-manual/ingress.md) 了解如何使用 ingress 配置 Argo CD。
+
+### 端口转发
+
+Kubectl 端口转发功能也可用于连接 API 服务器，而无需公开服务。
 
 ```bash
 kubectl port-forward svc/argocd-server -n argocd 8080:443
 ```
 
-The API server can then be accessed using https://localhost:8080
+然后可通过 https://localhost:8080 被引用访问 API 服务器
 
+## 4. 使用 CLI 登录
 
-## 4. Login Using The CLI
-
-The initial password for the `admin` account is auto-generated and stored as
-clear text in the field `password` in a secret named `argocd-initial-admin-secret`
-in your Argo CD installation namespace. You can simply retrieve this password
-using the `argocd` CLI:
+admin "账户的初始密码会自动生成，并以明文形式存储在 Argo CD 安装命名空间中名为 "argocd-initial-admin-secret "的秘密中的 "password "字段中。 您只需使用 "argocd "CLI 即可引用该密码：
 
 ```bash
 argocd admin initial-password -n argocd
 ```
 
-!!! warning
-    You should delete the `argocd-initial-admin-secret` from the Argo CD
-    namespace once you changed the password. The secret serves no other
-    purpose than to store the initially generated password in clear and can
-    safely be deleted at any time. It will be re-created on demand by Argo CD
-    if a new admin password must be re-generated.
+警告 更改密码后，应删除 Argo CD 名称空间中的 "argocd-initial-admin-secret"。 该秘密除了以明文存储最初生成的密码外，没有其他用途，可随时安全删除。 如果必须重新生成新的管理员密码，Argo CD 将根据要求重新创建该秘密。
 
-Using the username `admin` and the password from above, login to Argo CD's IP or hostname:
+被引用用户名 "admin "和密码，登录 Argo CD 的 IP 或主机名：
 
 ```bash
 argocd login <ARGOCD_SERVER>
 ```
 
-!!! note
-    The CLI environment must be able to communicate with the Argo CD API server. If it isn't directly accessible as described above in step 3, you can tell the CLI to access it using port forwarding through one of these mechanisms: 1) add `--port-forward-namespace argocd` flag to every CLI command; or 2) set `ARGOCD_OPTS` environment variable: `export ARGOCD_OPTS='--port-forward-namespace argocd'`.
+!!! 注意 CLI 环境必须能够与 Argo CD API 服务器通信。 如果不能如上文第 3 步所述直接访问它，可以通过以下机制之一告诉 CLI 使用端口转发访问它：1）在每条 CLI 命令中添加 `--port-forward-namespace argocd` 标志；或 2）设置 `ARGOCD_OPTS` 环境变量：`export ARGOCD_OPTS='--port-forward-namespace argocd'`。
 
-Change the password using the command:
+使用该命令更改密码：
 
 ```bash
 argocd account update-password
 ```
 
-## 5. Register A Cluster To Deploy Apps To (Optional)
+## 5. 注册要部署应用程序的集群（可选）
 
-This step registers a cluster's credentials to Argo CD, and is only necessary when deploying to
-an external cluster. When deploying internally (to the same cluster that Argo CD is running in),
-https://kubernetes.default.svc should be used as the application's K8s API server address.
+此步骤将集群的凭据注册到 Argo CD，只有在部署到外部集群时才有必要。 在内部部署时（部署到运行 Argo CD 的同一集群），https://kubernetes.default.svc 应被引用为应用程序的 k8s API 服务器地址。
 
-First list all clusters contexts in your current kubeconfig:
+首先列出当前 kubeconfig 中的所有集群上下文：
+
 ```bash
 kubectl config get-contexts -o name
 ```
 
-Choose a context name from the list and supply it to `argocd cluster add CONTEXTNAME`. For example,
-for docker-desktop context, run:
+从列表中选择一个上下文名称，并将其提供给 `argocd cluster add CONTEXTNAME`。 例如，对于 docker-desktop 上下文，运行
+
 ```bash
 argocd cluster add docker-desktop
 ```
 
-The above command installs a ServiceAccount (`argocd-manager`), into the kube-system namespace of
-that kubectl context, and binds the service account to an admin-level ClusterRole. Argo CD uses this
-service account token to perform its management tasks (i.e. deploy/monitoring).
+上述命令将一个 ServiceAccount（"argocd-manager"）安装到该 kubectl 上下文的 kube-system namespace 中，并将该服务帐户绑定到管理员级别的 ClusterRole 上。 Argo CD 使用该服务帐户令牌来执行管理任务（即部署/监控）。
 
-!!! note
-    The rules of the `argocd-manager-role` role can be modified such that it only has `create`, `update`, `patch`, `delete` privileges to a limited set of namespaces, groups, kinds.
-    However `get`, `list`, `watch` privileges are required at the cluster-scope for Argo CD to function.
+注意 `argocd-manager-role` 角色的规则可以修改，使其只对有限的一组 namespace、组、种类拥有 `create`、`update`、`patch`、`delete` 权限。 不过，Argo CD 需要在集群范围内拥有 `get`、`list`、`watch` 权限。
 
-## 6. Create An Application From A Git Repository
+## 6. 从 Git 仓库创建应用程序
 
-An example repository containing a guestbook application is available at
-[https://github.com/argoproj/argocd-example-apps.git](https://github.com/argoproj/argocd-example-apps.git) to demonstrate how Argo CD works.
+在 [https://github.com/argoproj/argocd-example-apps.git](https://github.com/argoproj/argocd-example-apps.git)上提供了一个包含留言簿应用程序的示例资源库，以演示 Argo CD 如何工作。
 
-### Creating Apps Via CLI
+### 通过 CLI 创建应用程序
 
-First we need to set the current namespace to argocd running the following command:
+首先，我们需要运行以下命令将当前 namespace 设置为 argocd：
 
 ```bash
 kubectl config set-context --current --namespace=argocd
 ```
 
-Create the example guestbook application with the following command:
+使用以下命令创建留言簿应用程序示例：
 
 ```bash
 argocd app create guestbook --repo https://github.com/argoproj/argocd-example-apps.git --path guestbook --dest-server https://kubernetes.default.svc --dest-namespace default
 ```
 
-### Creating Apps Via UI
+### 通过用户界面创建应用程序
 
-Open a browser to the Argo CD external UI, and login by visiting the IP/hostname in a browser and use the credentials set in step 4.
+打开浏览器，进入 Argo CD 外部用户界面，在浏览器中访问 IP/主机名并使用步骤 4 中设置的凭据登录。
 
-After logging in, click the **+ New App** button as shown below:
+登录后，点击 **+ 新应用程序** 按钮，如下图所示：
 
-![+ new app button](assets/new-app.png)
+![+ 新应用程序按钮](assets/new-app.png)
 
-Give your app the name `guestbook`, use the project `default`, and leave the sync policy as `Manual`:
+将应用程序命名为 "guestbook"，被引用的项目为 "default"，同步策略为 "Manual"：
 
-![app information](assets/app-ui-information.png)
+应用程序信息](assets/app-ui-information.png)
 
-Connect the [https://github.com/argoproj/argocd-example-apps.git](https://github.com/argoproj/argocd-example-apps.git) repo to Argo CD by setting repository url to the github repo url, leave revision as `HEAD`, and set the path to `guestbook`:
+将 [https://github.com/argoproj/argocd-example-apps.git](https://github.com/argoproj/argocd-example-apps.git) repo 连接到 Argo CD，方法是将 repository url 设置为 github repo url，将修订版本保留为 `HEAD`，并将路径设置为 `guestbook`：
 
-![connect repo](assets/connect-repo.png)
+[连接 repo]（assets/connect-repo.png）
 
-For **Destination**, set cluster URL to `https://kubernetes.default.svc` (or `in-cluster` for cluster name) and namespace to `default`:
+对于 **目的地**，将集群 URL 设置为 `https://kubernetes.default.svc`（或将集群名称设置为 `in-cluster`），将 namespace 设置为 `default`：
 
-![destination](assets/destination.png)
+目的地](assets/destination.png)
 
-After filling out the information above, click **Create** at the top of the UI to create the `guestbook` application:
+填写完上述信息后，点击用户界面顶部的**创建**，即可创建 "留言簿 "应用程序：
 
-![destination](assets/create-app.png)
+![目的地](assets/create-app.png)
 
+## 7. 同步（部署）应用程序
 
-## 7. Sync (Deploy) The Application
+### 通过 CLI 同步
 
-### Syncing via CLI
-
-Once the guestbook application is created, you can now view its status:
+创建留言簿应用程序后，您就可以查看其状态了：
 
 ```bash
 $ argocd app get guestbook
@@ -190,24 +171,19 @@ Sync Policy:        <none>
 Sync Status:        OutOfSync from  (1ff8a67)
 Health Status:      Missing
 
-GROUP  KIND        NAMESPACE  NAME          STATUS     HEALTH
-apps   Deployment  default    guestbook-ui  OutOfSync  Missing
-       Service     default    guestbook-ui  OutOfSync  Missing
+GROUP KIND NAMESPACE NAME STATUS HEALTH
+apps Deployment default guestbook-ui OutOfSync Missing
+       Service default guestbook-ui OutOfSync Missing
 ```
 
-The application status is initially in `OutOfSync` state since the application has yet to be
-deployed, and no Kubernetes resources have been created. To sync (deploy) the application, run:
+应用程序状态最初处于 "OutOfSync "状态，因为应用程序尚未部署，也未创建任何 Kubernetes 资源。 要同步（部署）应用程序，请运行
 
 ```bash
 argocd app sync guestbook
 ```
 
-This command retrieves the manifests from the repository and performs a `kubectl apply` of the
-manifests. The guestbook app is now running and you can now view its resource components, logs,
-events, and assessed health status.
+该命令从资源库中获取配置清单，并对清单执行 "kubectl apply"。 guestbook 应用程序现已运行，你现在可以查看其资源组件、日志、事件和评估的健康状态。
 
-### Syncing via UI
+### 通过用户界面进行同步
 
-![guestbook app](assets/guestbook-app.png)
-![view app](assets/guestbook-tree.png)
-
+[留言簿应用程序](assets/guestbook-app.png) ![查看应用程序](assets/guestbook-tree.png)

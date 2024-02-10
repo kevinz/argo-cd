@@ -1,68 +1,58 @@
-# Keycloak
+<!-- TRANSLATED by md-translate -->
+# 钥匙斗篷
 
-# Integrating Keycloak and ArgoCD
+# 整合 Keycloak 和 ArgoCD
 
-These instructions will take you through the entire process of getting your ArgoCD application authenticating with Keycloak. 
-You will create a client within Keycloak and configure ArgoCD to use Keycloak for authentication, using groups set in Keycloak
-to determine privileges in Argo.
+这些说明将引导您完成 ArgoCD 应用程序与 Keycloak 进行身份验证的整个过程。 您将在 Keycloak 中创建一个客户端，并配置 ArgoCD 使用 Keycloak 进行身份验证，使用 Keycloak 中设置的组来确定 Argo 中的权限。
 
-## Creating a new client in Keycloak
+## 在 Keycloak 中创建新客户端
 
-First we need to setup a new client. Start by logging into your keycloak server, select the realm you want to use (`master` by default)
-and then go to __Clients__ and click the __Create client__ button at the top.
+首先，我们需要设置一个新客户端。 首先登录你的 keycloak 服务器，选择你要使用的领域（默认为 "master"），然后进入**客户端**，点击顶部的**创建客户端**按钮。
 
-![Keycloak add client](../../assets/keycloak-add-client.png "Keycloak add client")
+![Keycloak添加客户端](../../assets/keycloak-add-client.png "Keycloak 添加客户端")
 
-Enable the __Client authentication__.
+启用**客户端验证**。
 
-![Keycloak add client Step 2](../../assets/keycloak-add-client_2.png "Keycloak add client Step 2")
+![Keycloak添加客户端步骤2]( .././assets/keycloak-add-client_2.png "Keycloak添加客户端步骤2")
 
-Configure the client by setting the __Root URL__, __Web origins__, __Admin URL__ to the hostname (https://{hostname}).
+通过将 **根 URL**、**网络起源**、**管理 URL** 设置为主机名 (https://{hostname})来配置客户端。
 
-Also you can set __Home URL__ to your _/applications_ path and __Valid Post logout redirect URIs__ to "+".
+此外，您还可以将 ** 主页 URL** 设为 _/applications_ 路径，将 **Valid Post logout 重定向 URIs** 设为 "+"。
 
-The Valid Redirect URIs should be set to https://{hostname}/auth/callback (you can also set the less secure https://{hostname}/* for testing/development purposes,
-but it's not recommended in production).
+有效重定向 URI 应设置为 https://{hostname}/auth/callback（也可以设置安全性较低的 https://{hostname}/*，用于测试/开发目的，但不建议在生产中使用）。
 
-![Keycloak configure client](../../assets/keycloak-configure-client.png "Keycloak configure client")
+![Keycloak配置客户端](../../assets/keycloak-configure-client.png "Keycloak 配置客户端")
 
-Make sure to click __Save__. There should be a tab called __Credentials__. You can copy the Secret that we'll use in our ArgoCD 
-configuration.
+确保点击**保存**。 应该会出现一个名为**凭证**的选项卡。 您可以复制我们在 ArgoCD 配置中将被引用的秘密。
 
-![Keycloak client secret](../../assets/keycloak-client-secret.png "Keycloak client secret")
+![Keycloak 客户端秘密](../../assets/keycloak-client-secret.png "Keycloak 客户端秘密")
 
-## Configuring the groups claim
+## 配置组索赔
 
-In order for ArgoCD to provide the groups the user is in we need to configure a groups claim that can be included in the authentication token.
-To do this we'll start by creating a new __Client Scope__ called _groups_.
+为了让 ArgoCD 提供用户所在的群组，我们需要配置一个可包含在身份验证令牌中的群组 claims。 为此，我们将首先创建一个名为 _groups_ 的新 ** 客户端范围**。
 
-![Keycloak add scope](../../assets/keycloak-add-scope.png "Keycloak add scope")
+![Keycloak添加范围](../../assets/keycloak-add-scope.png "Keycloak add scope")
 
-Once you've created the client scope you can now add a Token Mapper which will add the groups claim to the token when the client requests
-the groups scope. In the Tab "Mappers", click on "Configure a new mapper" and choose __Group Membership__.
-Make sure to set the __Name__ as well as the __Token Claim Name__ to _groups_. Also disable the "Full group path".
+创建客户端范围后，现在可以添加令牌映射器，当客户端请求群组范围时，该映射器会将群组权利要求添加到令牌中。 在 "映射器 "选项卡中，点击 "配置新映射器 "并选择 "群组成员 "**。 确保将**名称**和**令牌权利要求名称**设置为_groups_。 同时禁用 "完整群组路径"。
 
-![Keycloak groups mapper](../../assets/keycloak-groups-mapper.png "Keycloak groups mapper")
+![Keycloak组映射器]( .././assets/keycloak-groups-mapper.png "Keycloak组映射器")
 
-We can now configure the client to provide the _groups_ scope. Go back to the client we've created earlier and go to the Tab "Client Scopes".
-Click on "Add client scope", choose the _groups_ scope and add it either to the __Default__ or to the __Optional__ Client Scope. If you put it in the Optional
-category you will need to make sure that ArgoCD requests the scope in its OIDC configuration. Since we will always want group information, I recommend
-using the Default category.
+现在我们可以配置客户端以提供 _groups_ 作用域。 回到我们之前创建的客户端，进入 "客户端作用域 "选项卡。 点击 "添加客户端作用域"，选择 _groups_ 作用域并将其添加到 **Default** 或 **Optional** 客户端作用域中。 如果将其放在可选类别中，则需要确保 ArgoCD 在其 OIDC 配置中请求该作用域。 由于我们总是需要组信息，因此我建议使用默认类别。
 
-![Keycloak client scope](../../assets/keycloak-client-scope.png "Keycloak client scope")
+![Keycloak客户端范围](../../assets/keycloak-client-scope.png "Keycloak客户端范围")
 
-Create a group called _ArgoCDAdmins_ and have your current user join the group.
+创建一个名为 _ArgoCDAdmins_ 的组，并让当前用户加入该组。
 
-![Keycloak user group](../../assets/keycloak-user-group.png "Keycloak user group")
+![Keycloak用户组](../../assets/keycloak-user-group.png "Keycloak用户组")
 
-## Configuring ArgoCD OIDC
+## 配置 ArgoCD OIDC
 
-Let's start by storing the client secret you generated earlier in the argocd secret _argocd-secret_.
+我们先把之前生成的客户端秘密存储在 argocd secret _argocd-secret_ 中。
 
-1. First you'll need to encode the client secret in base64: `$ echo -n '83083958-8ec6-47b0-a411-a8c55381fbd2' | base64`
-2. Then you can edit the secret and add the base64 value to a new key called _oidc.keycloak.clientSecret_ using `$ kubectl edit secret argocd-secret`.
-   
-Your Secret should look something like this:
+1.首先，您需要用 base64 对客户秘密进行编码： `$ echo -n '83083958-8ec6-47b0-a411-a8c55381fbd2' | base64`.
+2.然后，您可以使用 `$ kubectl edit secret argocd-secret` 编辑秘密，并将 base64 值添加到名为 _oidc.keycloak.clientSecret_ 的新密钥中。
+
+您的 Secret 应该是这样的：
 
 ```yaml
 apiVersion: v1
@@ -75,10 +65,9 @@ data:
   ...
 ```
 
-Now we can configure the config map and add the oidc configuration to enable our keycloak authentication.
-You can use `$ kubectl edit configmap argocd-cm`.
+现在，我们可以配置 configmaps 并添加 oidc 配置，以启用 keycloak 身份验证。 可以使用 `$ kubectl edit configmap argocd-cm`。
 
-Your ConfigMap should look like this:
+您的 ConfigMap 应该是这样的：
 
 ```yaml
 apiVersion: v1
@@ -95,18 +84,17 @@ data:
     requestedScopes: ["openid", "profile", "email", "groups"]
 ```
 
-Make sure that:
+确保
 
-- __issuer__ ends with the correct realm (in this example _master_)
-- __issuer__ on Keycloak releases older than version 17 the URL must include /auth (in this example /auth/realms/master)
-- __clientID__ is set to the Client ID you configured in Keycloak
-- __clientSecret__ points to the right key you created in the _argocd-secret_ Secret
-- __requestedScopes__ contains the _groups_ claim if you didn't add it to the Default scopes
+* **issuer** 以正确的 realm 结束（本例中为 _master_）。
+* 在 Keycloak 版本大于 17 的版本中，**issuer** URL 必须包含 /auth（本例中为 /auth/realms/master）。
+* **clientID** 设置为您在 Keycloak 中配置的客户端 ID
+* **clientSecret** 指向您在 _argocd-secret_ Secret 中创建的正确密钥
+* 如果没有添加到默认作用域，**requestedScopes** 包含 _groups_ claims
 
-## Configuring ArgoCD Policy
+## 配置 ArgoCD 策略
 
-Now that we have an authentication that provides groups we want to apply a policy to these groups.
-We can modify the _argocd-rbac-cm_ ConfigMap using `$ kubectl edit configmap argocd-rbac-cm`.
+现在我们有了一个提供组的身份验证，我们想对这些组应用策略。 我们可以使用 `$ kubectl edit configmap argocd-rbac-cm`修改 _argocd-rbac-cm_ ConfigMap。
 
 ```yaml
 apiVersion: v1
@@ -118,10 +106,10 @@ data:
     g, ArgoCDAdmins, role:admin
 ```
 
-In this example we give the role _role:admin_ to all users in the group _ArgoCDAdmins_.
+在本例中，我们将 _role:admin_ 角色赋予 _ArgoCDAdmins_ 组中的所有用户。
 
-## Login
+## 登录
 
-You can now login using our new Keycloak OIDC authentication:
+您现在可以使用我们新的 Keycloak OIDC 身份验证登录：
 
-![Keycloak ArgoCD login](../../assets/keycloak-login.png "Keycloak ArgoCD login")
+![Keycloak ArgoCD login](../../assets/keycloak-login.png "Keycloak ArgoCD 登录")

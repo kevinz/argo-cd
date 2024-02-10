@@ -1,10 +1,11 @@
-## Failed to parse new settings
+<!-- TRANSLATED by md-translate -->
+## 解析新设置失败
 
-### error converting YAML to JSON
+将 YAML 转换为 JSON 的 #### 错误
 
-YAML syntax is incorrect.
+YAML 语法不正确。
 
-**incorrect:**
+**不正确：**
 
 ```yaml
 apiVersion: v1
@@ -17,7 +18,7 @@ data:
     icon: :rocket:
 ```
 
-**correct:**
+**正确：**
 
 ```yaml
 apiVersion: v1
@@ -30,12 +31,12 @@ data:
     icon: ":rocket:"
 ```
 
-### service type 'xxxx' is not supported
+#### 服务类型 'xxxx' 不支持
 
-You need to check your argocd-notifications controller version. For instance, the teams integration is to support `v1.1.0` and more.
+您需要检查您的 argocd-notifications 控制器版本。 例如，团队集成支持 `v1.1.0` 及更高版本。
 
-## Failed to notify recipient
+## 通知收件人失败
 
-### notification service 'xxxx' is not supported
+### 不支持 "XXXX "通知服务
 
-You have not defined `xxxx` in `argocd-notifications-cm` or to fail to parse settings.
+您未在 `argocd-notifications-cm` 中定义 `xxxx` 或无法解析设置。

@@ -1,38 +1,26 @@
-# ApplicationSet Security
+<!-- TRANSLATED by md-translate -->
+# ApplicationSet 安全性
 
-ApplicationSet is a powerful tool, and it is crucial to understand its security implications before using it.
+ApplicationSet 是一个功能强大的工具，在被引用之前，了解其安全含义至关重要。
 
-## Only admins may create/update/delete ApplicationSets
+## 只有管理员可以创建/更新/删除 ApplicationSet
 
-ApplicationSets can create Applications under arbitrary [Projects](../../user-guide/projects.md). Argo CD setups often
-include Projects (such as the `default`) with high levels of permissions, often including the ability to manage the 
-resources of Argo CD itself (like the RBAC ConfigMap).
+ApplicationSet 可在任意 [Projects](../../user-guide/projects.md) 下创建应用程序。 Argo CD 设置通常包括具有高级权限的 Project（如 `default`），通常包括管理 Argo CD 本身资源的能力（如 RBAC ConfigMap）。
 
-ApplicationSets can also quickly create an arbitrary number of Applications and just as quickly delete them.
+ApplicationSet 还可以快速创建任意数量的应用程序，并同样快速地删除它们。
 
-Finally, ApplicationSets can reveal privileged information. For example, the [git generator](./Generators-Git.md) can
-read Secrets in the Argo CD namespace and send them to arbitrary URLs (e.g. URL provided for the `api` field) as auth headers.
-(This functionality is intended for authorizing requests to SCM providers like GitHub, but it could be abused by a malicious user.)
+最后，ApplicationSet 可以泄露权限信息。 例如，[git generator](./Generators-Git.md) 可以读取 Argo CD namespace 中的 Secrets，并将其作为 auth 标头发送到任意 URL（例如为 `api` 字段提供的 URL）（此功能旨在授权向 GitHub 等 SCM Provider 提出的请求，但可能会被恶意用户滥用）。
 
-For these reasons, **only admins** may be given permission (via Kubernetes RBAC or any other mechanism) to create, 
-update, or delete ApplicationSets.
+出于这些原因，***只有管理员**才有权限（通过 Kubernetes RBAC 或任何其他机制）创建、更新或删除 ApplicationSet。
 
-## Admins must apply appropriate controls for ApplicationSets' sources of truth
+## 管理员必须对 ApplicationSet 的真相来源应用适当的控制措施
 
-Even if non-admins can't create ApplicationSet resources, they may be able to affect the behavior of ApplicationSets.
+即使非管理员不能创建 ApplicationSet 资源，他们也有可能影响 ApplicationSet 的行为。
 
-For example, if an ApplicationSet uses a [git generator](./Generators-Git.md), a malicious user with push access to the
-source git repository could generate an excessively high number of Applications, putting strain on the ApplicationSet
-and Application controllers. They could also cause the SCM provider's rate limiting to kick in, degrading ApplicationSet
-service.
+例如，如果 ApplicationSet 使用 [git 生成器](./Generators-Git.md)，拥有源 git 仓库推送权限的恶意用户可能会生成过多的应用程序，给 ApplicationSet 和应用程序控制器造成压力。 他们还可能导致 SCM Provider 的速率限制启动，从而降低 ApplicationSet 的服务水平。
 
-### Templated `project` field
+### 模板化的 "项目 "字段
 
-It's important to pay special attention to ApplicationSets where the `project` field is templated. A malicious user with
-write access to the generator's source of truth (for example, someone with push access to the git repo for a git
-generator) could create Applications under Projects with insufficient restrictions. A malicious user with the ability to
-create an Application under an unrestricted Project (like the `default` Project) could take control of Argo CD itself
-by, for example, modifying its RBAC ConfigMap.
+需要特别注意的是，ApplicationSet 中的 `project` 字段是模板化的。 拥有生成器真实源写入权限的恶意用户（例如，拥有 git 生成器 git 仓库推送权限的人）可以在限制不足的项目下创建应用程序。 拥有在不受限制的项目（如 `default` 项目）下创建应用程序能力的恶意用户可以通过修改 RBAC ConfigMap 等方式控制 Argo CD 本身。
 
-If the `project` field is not hard-coded in an ApplicationSet's template, then admins _must_ control all sources of 
-truth for the ApplicationSet's generators.
+如果 ApplicationSet 模板中没有硬编码 "项目 "字段，则管理员必须控制 ApplicationSet 生成器的所有真相来源。

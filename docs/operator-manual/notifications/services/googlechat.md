@@ -1,19 +1,20 @@
-# Google Chat
+<!-- TRANSLATED by md-translate -->
+# 谷歌聊天
 
-## Parameters
+## 参数
 
-The Google Chat notification service send message notifications to a google chat webhook. This service uses the following settings:
+谷歌聊天通知服务向谷歌聊天 webhook 发送消息通知。 该服务被引用的设置如下：
 
-* `webhooks` - a map of the form `webhookName: webhookUrl`
+* `webhooks` - 格式为 `webhookName: webhookUrl` 的映射表
 
-## Configuration
+## 配置
 
-1. Open `Google chat` and go to the space to which you want to send messages
-2. From the menu at the top of the page, select **Configure Webhooks**
-3. Under **Incoming Webhooks**, click **Add Webhook**
-4. Give a name to the webhook, optionally add an image and click **Save**
-5. Copy the URL next to your webhook
-6. Store the URL in `argocd-notification-secret` and declare it in `argocd-notifications-cm`
+1.打开 "谷歌聊天"，进入要发送信息的空间
+2.从页面顶部的菜单中选择 **配置 Webhook**。
+3.在**传入网络钩子**下，点击**添加网络钩子**
+4.为网络钩子命名，可选择添加镜像，然后单击**保存**
+5.复制网络钩子旁边的 URL
+6.将 URL 存储在 `argocd-notification-secret` 中，并在 `argocd-notifications-cm` 中声明方式
 
 ```yaml
 apiVersion: v1
@@ -32,10 +33,10 @@ kind: Secret
 metadata:
   name: <secret-name>
 stringData:
-  space-webhook-url: https://chat.googleapis.com/v1/spaces/<space_id>/messages?key=<key>&token=<token>  
+  space-webhook-url: https://chat.googleapis.com/v1/spaces/<space_id>/messages?key=<key>&token=<token>
 ```
 
-6. Create a subscription for your space
+6.为您的空间创建订阅
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -45,16 +46,16 @@ metadata:
     notifications.argoproj.io/subscribe.on-sync-succeeded.googlechat: spaceName
 ```
 
-## Templates
+## 模板
 
-You can send [simple text](https://developers.google.com/chat/reference/message-formats/basic) or [card messages](https://developers.google.com/chat/reference/message-formats/cards) to a Google Chat space. A simple text message template can be defined as follows:
+您可以向 Google Chat 空间发送[简单文本](https://developers.google.com/chat/reference/message-formats/basic) 或[卡片信息](https://developers.google.com/chat/reference/message-formats/cards)。简单文本信息模板可定义如下：
 
 ```yaml
 template.app-sync-succeeded: |
   message: The app {{ .app.metadata.name }} has successfully synced!
 ```
 
-A card message can be defined as follows:
+贺卡信息的定义如下
 
 ```yaml
 template.app-sync-succeeded: |
@@ -77,15 +78,14 @@ template.app-sync-succeeded: |
                   topLabel: Author
                   text: {{ (call .repo.GetCommitMetadata .app.status.sync.revision).Author }}
 ```
-All [Card fields](https://developers.google.com/chat/api/reference/rest/v1/cards#Card_1) are supported and can be used
-in notifications. It is also possible to use the previous (now deprecated) `cards` key to use the legacy card fields,
-but this is not recommended as Google has deprecated this field and recommends using the newer `cardsV2`.
 
-The card message can be written in JSON too.
+支持所有[卡片字段](https://developers.google.com/chat/api/reference/rest/v1/cards#Card_1)，并可在通知中使用。也可以使用以前的（现已废弃）"cards "键来使用传统的卡片字段，但不建议这样做，因为 Google 已废弃了该字段，建议使用较新的 "cardsV2"。
 
-## Chat Threads
+卡片信息也可以用 JSON 格式编写。
 
-It is possible send both simple text and card messages in a chat thread by specifying a unique key for the thread. The thread key can be defined as follows:
+## 聊天主题
+
+通过为线程指定唯一密钥，可以在聊天线程中发送简单文本和卡片信息。 线程密钥定义如下：
 
 ```yaml
 template.app-sync-succeeded: |

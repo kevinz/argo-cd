@@ -1,5 +1,8 @@
-# Triggers and Templates Catalog
-## Triggers
+<!-- TRANSLATED by md-translate -->
+# 触发器和模板目录
+
+## 触发器
+
 |          NAME          |                          DESCRIPTION                          |                      TEMPLATE                       |
 |------------------------|---------------------------------------------------------------|-----------------------------------------------------|
 | on-created             | Application is created.                                       | [app-created](#app-created)                         |
@@ -7,33 +10,38 @@
 | on-deployed            | Application is synced and healthy. Triggered once per commit. | [app-deployed](#app-deployed)                       |
 | on-health-degraded     | Application has degraded                                      | [app-health-degraded](#app-health-degraded)         |
 | on-sync-failed         | Application syncing has failed                                | [app-sync-failed](#app-sync-failed)                 |
-| on-sync-running        | Application is being synced                                   | [app-sync-running](#app-sync-running)               |
-| on-sync-status-unknown | Application status is 'Unknown'                               | [app-sync-status-unknown](#app-sync-status-unknown) |
-| on-sync-succeeded      | Application syncing has succeeded                             | [app-sync-succeeded](#app-sync-succeeded)           |
+| on-sync
 
-## Templates
-### app-created
-**definition**:
+## 模板
+
+### 应用程序已创建
+
+**定义**：
+
 ```yaml
 email:
   subject: Application {{.app.metadata.name}} has been created.
 message: Application {{.app.metadata.name}} has been created.
 teams:
   title: Application {{.app.metadata.name}} has been created.
-
 ```
-### app-deleted
-**definition**:
+
+### 应用程序已删除
+
+**定义**：
+
 ```yaml
 email:
   subject: Application {{.app.metadata.name}} has been deleted.
 message: Application {{.app.metadata.name}} has been deleted.
 teams:
   title: Application {{.app.metadata.name}} has been deleted.
-
 ```
-### app-deployed
-**definition**:
+
+### 应用已部署
+
+**定义**：
+
 ```yaml
 email:
   subject: New version of an application {{.app.metadata.name}} is up and running.
@@ -117,10 +125,12 @@ teams:
     }]
   themeColor: '#000080'
   title: New version of an application {{.app.metadata.name}} is up and running.
-
 ```
-### app-health-degraded
-**definition**:
+
+### 应用程序健康降级
+
+**定义**：
+
 ```yaml
 email:
   subject: Application {{.app.metadata.name}} has degraded.
@@ -196,10 +206,12 @@ teams:
     }]
   themeColor: '#FF0000'
   title: Application {{.app.metadata.name}} has degraded.
-
 ```
-### app-sync-failed
-**definition**:
+
+### 应用程序同步失败
+
+**定义**：
+
 ```yaml
 email:
   subject: Failed to sync application {{.app.metadata.name}}.
@@ -279,10 +291,12 @@ teams:
     }]
   themeColor: '#FF0000'
   title: Failed to sync application {{.app.metadata.name}}.
-
 ```
-### app-sync-running
-**definition**:
+
+### 应用程序同步运行
+
+**定义**：
+
 ```yaml
 email:
   subject: Start syncing application {{.app.metadata.name}}.
@@ -361,10 +375,12 @@ teams:
       }]
     }]
   title: Start syncing application {{.app.metadata.name}}.
-
 ```
-### app-sync-status-unknown
-**definition**:
+
+### 应用程序同步状态-未知
+
+**定义**：
+
 ```yaml
 email:
   subject: Application {{.app.metadata.name}} sync status is 'Unknown'
@@ -444,10 +460,12 @@ teams:
       }]
     }]
   title: Application {{.app.metadata.name}} sync status is 'Unknown'
-
 ```
-### app-sync-succeeded
-**definition**:
+
+### 应用程序同步成功
+
+**定义**：
+
 ```yaml
 email:
   subject: Application {{.app.metadata.name}} has been successfully synced.
@@ -527,5 +545,4 @@ teams:
     }]
   themeColor: '#000080'
   title: Application {{.app.metadata.name}} has been successfully synced
-
 ```

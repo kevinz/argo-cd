@@ -1,23 +1,21 @@
-# Go Template
+<!-- TRANSLATED by md-translate -->
+# 转到模板
 
-## Introduction
+## 简介
 
-ApplicationSet is able to use [Go Text Template](https://pkg.go.dev/text/template). To activate this feature, add 
-`goTemplate: true` to your ApplicationSet manifest.
+ApplicationSet 可以使用 [Go Text Template](https://pkg.go.dev/text/template)。要激活此功能，请在 ApplicationSet 配置清单中添加 `goTemplate: true` 。
 
-The [Sprig function library](https://masterminds.github.io/sprig/) (except for `env`, `expandenv` and `getHostByName`) 
-is available in addition to the default Go Text Template functions.
+除了默认的 Go 文本模板函数外，还可使用 [Sprig 函数库](https://masterminds.github.io/sprig/)（`env`、`expandenv` 和 `getHostByName` 除外）。
 
-An additional `normalize` function makes any string parameter usable as a valid DNS name by replacing invalid characters 
-with hyphens and truncating at 253 characters. This is useful when making parameters safe for things like Application
-names.
+附加的 "规范化 "功能可将任何字符串参数作为有效的 DNS 名称使用，方法是用连字符替换无效字符，并在 253 个字符处截断。 这在使参数安全用于应用程序名称等情况时非常有用。
 
-Another `slugify` function has been added which, by default, sanitizes and smart truncates (it doesn't cut a word into 2). This function accepts a couple of arguments:
-- The first argument (if provided) is an integer specifying the maximum length of the slug.
-- The second argument (if provided) is a boolean indicating whether smart truncation is enabled.
-- The last argument (if provided) is the input name that needs to be slugified.
+该函数接受几个参数：
 
-#### Usage example
+* 第一个参数（如果 Provider 提供）是一个整数，用于指定 slug 的最大长度。
+* 第二个参数（如有 Providers）是一个布尔值，表示是否启用智能截断。
+* 最后一个参数（如果 Providers 提供）是需要被 slug 化的输入名称。
+
+#### Usage 示例
 
 ```
 apiVersion: argoproj.io/v1alpha1
@@ -35,100 +33,93 @@ spec:
         label-3: '{{ cat .branch | slugify 50 false }}'
 ```
 
-If you want to customize [options defined by text/template](https://pkg.go.dev/text/template#Template.Option), you can
-add the `goTemplateOptions: ["opt1", "opt2", ...]` key to your ApplicationSet next to `goTemplate: true`. Note that at
-the time of writing, there is only one useful option defined, which is `missingkey=error`.
+如果要自定义[由文本/模板定义的选项](https://pkg.go.dev/text/template#Template.Option)，可以在 ApplicationSet 中的`goTemplate: true` 旁边添加`goTemplateOptions:["opt1", "opt2", ...]`键。请注意，在撰写本文时，只定义了一个有用的选项，即`missingkey=error`。
 
-The recommended setting of `goTemplateOptions` is `["missingkey=error"]`, which ensures that if undefined values are
-looked up by your template then an error is reported instead of being ignored silently. This is not currently the default
-behavior, for backwards compatibility.
+建议将 `goTemplateOptions` 设置为 `["missingkey=error"]`，这样可以确保在模板查找到未定义的值时报告错误，而不是默默忽略。 为了向后兼容，目前默认行为并非如此。
 
-## Motivation
+##激励
 
-Go Template is the Go Standard for string templating. It is also more powerful than fasttemplate (the default templating 
-engine) as it allows doing complex templating logic.
+Go Template 是字符串模板的 Go 标准，它比 fasttemplate（默认模板引擎）功能更强大，因为它允许执行复杂的模板逻辑。
 
-## Limitations
+## 限制
 
-Go templates are applied on a per-field basis, and only on string fields. Here are some examples of what is **not** 
-possible with Go text templates:
+Go 模板是按字段应用的，而且只应用于字符串字段。 以下是一些使用 Go 文本模板无法***的示例：
 
-- Templating a boolean field.
+* 模板布尔字段。
+    ```
+    ::yaml
+      apiVersion: argoproj.io/v1alpha1
+      类型ApplicationSet
+      spec：
+        goTemplate: true
+        goTemplateOptions：["missingkey=error"]
+        模板：
+          spec：
+            source：
+              helm：
+                useCredentials："{{.useCredentials}}"  # 该字段不可模板化，因为它是一个布尔字段。
+    ```
+* 模板化对象字段：
+    ```
+    ::yaml
+      apiVersion: argoproj.io/v1alpha1
+      种类：ApplicationSet
+      spec：
+        goTemplate: true
+        goTemplateOptions：["missingkey=error"]
+        模板：
+          spec：
+            syncPolicy："{{.syncPolicy}}"  # 该字段不可模板化，因为它是一个对象字段。
+    ```
+* 跨字段使用控制关键字：
+    ```
+    ::yaml
+      apiVersion: argoproj.io/v1alpha1
+      种类ApplicationSet
+      spec：
+        goTemplate: true
+        goTemplateOptions：["missingkey=error"]
+        模板：
+          spec：
+            source：
+              helm：
+                parameters：
+                # 这些字段中的每一个都会作为独立模板进行 evaluated，因此第一个模板会出错。
+                - name："{{range .parameters}}"
+                - name："{{.name}}"
+                  value："{{.values}}"
+                - name: 丢弃
+                  Values："{{end}}"
+    ```
 
-        ::yaml
-        apiVersion: argoproj.io/v1alpha1
-        kind: ApplicationSet
-        spec:
-          goTemplate: true
-          goTemplateOptions: ["missingkey=error"]
-          template:
-            spec:
-              source:
-                helm:
-                  useCredentials: "{{.useCredentials}}"  # This field may NOT be templated, because it is a boolean field.
+## 迁移指南
 
-- Templating an object field:
+###Globals
 
-        ::yaml
-        apiVersion: argoproj.io/v1alpha1
-        kind: ApplicationSet
-        spec:
-          goTemplate: true
-          goTemplateOptions: ["missingkey=error"]
-          template:
-            spec:
-              syncPolicy: "{{.syncPolicy}}"  # This field may NOT be templated, because it is an object field.
+您的所有模板都必须使用 GoTemplate 语法替换参数：
 
-- Using control keywords across fields:
+例如：`{{ some.value }}` 变成`{{ .some.value }}`
 
-        ::yaml
-        apiVersion: argoproj.io/v1alpha1
-        kind: ApplicationSet
-        spec:
-          goTemplate: true
-          goTemplateOptions: ["missingkey=error"]
-          template:
-            spec:
-              source:
-                helm:
-                  parameters:
-                  # Each of these fields is evaluated as an independent template, so the first one will fail with an error.
-                  - name: "{{range .parameters}}"
-                  - name: "{{.name}}"
-                    value: "{{.value}}"
-                  - name: throw-away
-                    value: "{{end}}"
+#### 集群发电机
 
+激活 Go Templating 后，`{{ .metadata }}` 将成为一个对象。
 
-## Migration guide
+* `{{ metadata.labels.my-label }}` 变成 `{{ index .metadata.labels "my-label" }}`
+* `{{ metadata.annotations.my/annotation }}` 变成 `{{ index .metadata.annotations "my/annotation" }}`
 
-### Globals
+### Git 生成器
 
-All your templates must replace parameters with GoTemplate Syntax:
+激活 Go Templating 后，"{{ .path }}"将成为一个对象。 因此，必须对 Git 生成器的模板进行一些修改：
 
-Example: `{{ some.value }}` becomes `{{ .some.value }}`
+* `{{ path }}` 变成 `{{ .path.path }}`
+* `{{ path.basename }}` 变成 `{{ .path.basename }}`
+* `{{ path.basenameNormalized }}` 变成 `{{ .path.basenameNormalized }}`
+* `{{ path.filename }}` 变成 `{{ .path.filename }}`
+* `{{ path.filenameNormalized }}` 变成 `{{ .path.filenameNormalized }}`
+* `{{ path[n] }}` 变成 `{{ index .path.segments n }}`
+* `{{ Values }}` 如果被引用到文件生成器中，则变为 `{{ .values }}`
 
-### Cluster Generators
-
-By activating Go Templating, `{{ .metadata }}` becomes an object.
-
-- `{{ metadata.labels.my-label }}` becomes `{{ index .metadata.labels "my-label" }}`
-- `{{ metadata.annotations.my/annotation }}` becomes `{{ index .metadata.annotations "my/annotation" }}`
-
-### Git Generators
-
-By activating Go Templating, `{{ .path }}` becomes an object. Therefore, some changes must be made to the Git 
-generators' templating:
-
-- `{{ path }}` becomes `{{ .path.path }}`
-- `{{ path.basename }}` becomes `{{ .path.basename }}`
-- `{{ path.basenameNormalized }}` becomes `{{ .path.basenameNormalized }}`
-- `{{ path.filename }}` becomes `{{ .path.filename }}`
-- `{{ path.filenameNormalized }}` becomes `{{ .path.filenameNormalized }}`
-- `{{ path[n] }}` becomes `{{ index .path.segments n }}`
-- `{{ values }}` if being used in the file generator becomes `{{ .values }}`
-
-Here is an example:
+下面就是一个例子：
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -156,7 +147,7 @@ spec:
         namespace: '{{path.basename}}'
 ```
 
-becomes
+成为
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -186,7 +177,7 @@ spec:
         namespace: '{{.path.basename}}'
 ```
 
-It is also possible to use Sprig functions to construct the path variables manually:
+也可以被引用 Sprig 函数来手动构建路径变量：
 
 | with `goTemplate: false` | with `goTemplate: true` | with `goTemplate: true` + Sprig |
 | ------------ | ----------- | --------------------- |
@@ -197,25 +188,23 @@ It is also possible to use Sprig functions to construct the path variables manua
 | `{{path.filenameNormalized}}` | `{{.path.filenameNormalized}}` | `{{normalize .path.filename}}` |
 | `{{path[N]}}` | `-` | `{{index .path.segments N}}` |
 
-## Available template functions
+## 可用的模板功能
 
-ApplicationSet controller provides:
+ApplicationSet 控制器提供：
 
-- all [sprig](http://masterminds.github.io/sprig/) Go templates function except `env`, `expandenv` and `getHostByName`
-- `normalize`: sanitizes the input so that it complies with the following rules:
-  1. contains no more than 253 characters
-  2. contains only lowercase alphanumeric characters, '-' or '.'
-  3. starts and ends with an alphanumeric character
+* 除 `env`, `expandenv` 和 `getHostByName` 以外的所有 [sprig](http://masterminds.github.io/sprig/) Go 模板函数
+* normalize`：对输入进行消毒，使其符合以下规则：
+    1. 不包含超过 253 个字符
+    2. 只包含小写字母数字字符、"-"或".
+    3. 以字母数字字符开始和结束
+* `slugify`：像`normalize`一样进行消毒，并像[introduction](#introduction)部分所述的那样进行智能截断（不会将一个单词截成2个）。
+* `toYaml` / `fromYaml` / `fromYamlArray` helm 类似函数
 
-- `slugify`: sanitizes like `normalize` and smart truncates (it doesn't cut a word into 2) like described in the [introduction](#introduction) section.
-- `toYaml` / `fromYaml` / `fromYamlArray` helm like functions
+## 示例
 
+#### Go 模板的基本 Usage
 
-## Examples
-
-### Basic Go template usage
-
-This example shows basic string parameter substitution.
+本例展示了基本的字符串参数替换。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -248,10 +237,9 @@ spec:
         namespace: guestbook
 ```
 
-### Fallbacks for unset parameters
+### 未设置参数的回退
 
-For some generators, a parameter of a certain name might not always be populated (for example, with the values generator
-or the git files generator). In these cases, you can use a Go template to provide a fallback value.
+对于某些生成器，某个名称的参数可能并不总是会被填充（例如，在 Values 生成器或 git 文件生成器中）。 在这种情况下，您可以使用 Go 模板来提供一个后备值。
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -283,9 +271,6 @@ spec:
         namespace: guestbook
 ```
 
-This ApplicationSet will produce an Application called `engineering-dev` and another called 
-`engineering-prod-my-name-suffix`.
+此 ApplicationSet 将生成一个名为 "engineering-dev "和另一个名为 "engineering-prod-my-name-ffix "的应用程序。
 
-Note that unset parameters are an error, so you need to avoid looking up a property that doesn't exist. Instead, use
-template functions like `dig` to do the lookup with a default. If you prefer to have unset parameters default to zero,
-you can remove `goTemplateOptions: ["missingkey=error"]` or set it to `goTemplateOptions: ["missingkey=invalid"]`
+请注意，未设置的参数是一个错误，因此需要避免查找不存在的属性。 相反，可以使用模板函数，如 `dig` 以默认值进行查找。 如果希望未设置的参数默认为零，可以删除 `goTemplateOptions: ["missingkey=error"]` 或将其设置为 `goTemplateOptions: ["missingkey=invalid"]` 。
