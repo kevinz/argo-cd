@@ -221,7 +221,7 @@ nav:
 - Blog ⧉: https://blog.argoproj.io/
 repo_url: https://github.com/argoproj/argo-cd
 site_name: Argo CD - 声明式GitOps CD for Kubernetes
-strict: true
+strict: false 
 theme:
   custom_dir: overrides
   favicon: assets/favicon.png
