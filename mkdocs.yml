@@ -19,7 +19,7 @@ nav:
 - understand_the_basics.md
 - core_concepts.md
 - getting_started.md
-- Operator Manual:
+- 操作手册:
   - operator-manual/index.md
   - operator-manual/architecture.md
   - operator-manual/installation.md
@@ -27,10 +27,10 @@ nav:
   - operator-manual/declarative-setup.md
   - operator-manual/app-any-namespace.md
   - operator-manual/ingress.md
-  - High Availability:
-    - Overview: operator-manual/high_availability.md
-    - Dynamic Cluster Distribution: operator-manual/dynamic-cluster-distribution.md
-  - User Management:
+  - 高可用:
+    - 概览: operator-manual/high_availability.md
+    - 动态集群分发: operator-manual/dynamic-cluster-distribution.md
+  - 用户管理:
     - operator-manual/user-management/index.md
     - operator-manual/user-management/auth0.md
     - operator-manual/user-management/microsoft.md
@@ -42,8 +42,8 @@ nav:
     - operator-manual/user-management/zitadel.md
     - operator-manual/user-management/identity-center.md
     - operator-manual/rbac.md
-  - Security:
-    - Overview: operator-manual/security.md
+  - 安全:
+    - 概览: operator-manual/security.md
     - operator-manual/signed-release-assets.md
   - operator-manual/tls.md
   - operator-manual/cluster-bootstrapping.md
