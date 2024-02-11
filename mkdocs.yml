@@ -15,10 +15,10 @@ markdown_extensions:
     permalink: true
 - pymdownx.superfences
 nav:
-- Overview: index.md
-- understand_the_basics.md
-- core_concepts.md
-- getting_started.md
+- 概览: index.md
+- 基础知识: understand_the_basics.md
+- 核心概念: core_concepts.md
+- 快速开始: getting_started.md
 - 操作手册:
   - operator-manual/index.md
   - operator-manual/architecture.md
