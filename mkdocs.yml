@@ -198,7 +198,7 @@ nav:
 - Releases ⧉: https://github.com/argoproj/argo-cd/releases
 - Blog ⧉: https://blog.argoproj.io/
 repo_url: https://github.com/argoproj/argo-cd
-site_name: Argo CD - 声明式GitOps CD for Kubernetes
+site_name: Argo CD 中文文档 平台工程 Devops
 strict: false 
 theme:
   custom_dir: overrides
